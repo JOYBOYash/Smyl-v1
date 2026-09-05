@@ -1026,3 +1026,40 @@ Audit and migrate all remaining icons throughout the application from lucide-rea
 ### Result
 Completed
 
+## 2026-09-05 (Link Shortener Utility, RLS Policies, Rate Limiting & SSRF Protection)
+
+### Request
+Implement a production-ready Link Shortener utility allowing users to enter a long URL and custom slug, redirect short links server-side, maintain link history locally & synced to cloud, with SSRF protection and rate limiting.
+
+### Analysis
+- Database Schema: Defined `short_links` table with `slug`, `original_url`, `user_id`, and `created_at` fields.
+- Access Control: Enforced RLS policies permitting public anonymous insertions, public read lookups, and restricting updates/deletions/reads to owned link rows.
+- SSRF & Private IP Protection: Enforced server-side checks validating protocols (http/https only), parsing hostname, and looking up DNS to block resolving private, loopback, and multicast ranges (RFC 1918).
+- Rate Limiting: Built standard memory-leak-safe IP rate limiter restricting URL creation requests.
+- Front-End UI: Standardized a responsive, clean layout matching DM Sans with spring animations, full state coverage (loading, success, error, empty), copying/opening link, and auto-syncing local link creation to authenticated account on sign-in.
+
+### Implementation
+- Created `/supabase/migrations/20260905_short_links.sql` defining database schema and security rules.
+- Created `/src/components/LinkShortener.tsx` for form controls, link table history, clipboard operations, and sync logic.
+- Updated `/server.ts` with server-side redirects, `/api/utilities/shorten` creation endpoint, rate limiting, and DNS/SSRF checks.
+- Updated `/src/App.tsx` importing LinkShortener and adding a tab in centered header navigation bar with route rendering.
+
+### Security
+- Implemented asynchronous DNS hostname lookup to detect and reject SSRF attacks pointing to private, localhost, or reserved IP ranges.
+- Confirmed protocol verification (http/https only) to prevent protocol abuse.
+- Implemented IP rate limiter to mitigate denial-of-service/scraping attempts on slug generation.
+
+### Files Changed
+- `/supabase/migrations/20260905_short_links.sql`
+- `/server.ts`
+- `/src/components/LinkShortener.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran linter validation via `lint_applet` which succeeded cleanly.
+- Ran production bundling build via `compile_applet` with successful outcome.
+
+### Result
+Completed
+

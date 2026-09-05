@@ -11,6 +11,7 @@ import {
 import { PostCard } from "./components/PostCard";
 import { CanvasWrapper } from "./components/CanvasWrapper";
 import { LandingPage } from "./components/LandingPage";
+import { LinkShortener } from "./components/LinkShortener";
 import { ExportModal } from "./components/ExportModal";
 import { ParsingModal } from "./components/ParsingModal";
 import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
@@ -52,6 +53,7 @@ import {
   IoKeypad,
   IoArrowUndoOutline,
   IoArrowRedoOutline,
+  IoLink,
 } from "react-icons/io5";
 import { FiArrowRight, FiAlignLeft, FiAlignCenter, FiAlignRight, FiPlus, FiHash } from "react-icons/fi";
 
@@ -255,7 +257,7 @@ export const App: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [history, setHistory] = useState<SavedCard[]>([]);
-  const [activeTab, setActiveTab] = useState<"landing" | "customize" | "history">("landing");
+  const [activeTab, setActiveTab] = useState<"landing" | "customize" | "history" | "shortener">("landing");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isBatchExportModalOpen, setIsBatchExportModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -540,7 +542,7 @@ export const App: React.FC = () => {
   };
 
   // Page Transition Handler with silky smooth ease in and ease out
-  const handleTabChange = (nextTab: "landing" | "customize" | "history") => {
+  const handleTabChange = (nextTab: "landing" | "customize" | "history" | "shortener") => {
     if (nextTab === activeTab) return;
     setIsPageTransitioning(true);
     setTimeout(() => {
@@ -950,8 +952,25 @@ export const App: React.FC = () => {
                     transition={{ type: "spring", stiffness: 450, damping: 35 }}
                   />
                 )}
-                <IoSparkles className="w-3.5 h-3.5 shrink-0" />
+                <IoCreate className="w-3.5 h-3.5 shrink-0" />
                 <span>Studio</span>
+              </button>
+
+              <button
+                onClick={() => handleTabChange("shortener")}
+                className={`relative z-10 h-8 px-3 sm:px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer w-auto ${
+                  activeTab === "shortener" ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                }`}
+              >
+                {activeTab === "shortener" && (
+                  <motion.div
+                    layoutId="header-nav-pill"
+                    className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
+                )}
+                <IoLink className="w-3.5 h-3.5 shrink-0" />
+                <span>Shortener</span>
               </button>
 
               <button
@@ -1883,6 +1902,8 @@ export const App: React.FC = () => {
 
             </div>
           </div>
+        ) : activeTab === "shortener" ? (
+          <LinkShortener />
         ) : (
           /* SAVED HISTORY TAB */
           <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
