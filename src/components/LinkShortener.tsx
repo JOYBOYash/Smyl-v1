@@ -13,6 +13,7 @@ import {
   IoTime,
   IoBarChart,
   IoGlobe,
+  IoQrCode,
 } from "react-icons/io5";
 
 interface ShortLink {
@@ -23,7 +24,7 @@ interface ShortLink {
   created_at: string;
 }
 
-export const LinkShortener: React.FC = () => {
+export const LinkShortener: React.FC<{ onGenerateQrCode?: (url: string) => void }> = ({ onGenerateQrCode }) => {
   const { user, isAuthenticated } = useAuth();
   const [longUrl, setLongUrl] = useState("");
   const [customSlug, setCustomSlug] = useState("");
@@ -412,6 +413,18 @@ export const LinkShortener: React.FC = () => {
                       </a>
                     </div>
 
+                    {/* QR Code integration CTA */}
+                    {onGenerateQrCode && (
+                      <button
+                        type="button"
+                        onClick={() => onGenerateQrCode(result.shortUrl)}
+                        className="w-full h-10 border border-[#D0D7DE] hover:border-brand-primary text-brand-primary font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer bg-white"
+                      >
+                        <IoQrCode className="w-4 h-4" />
+                        <span>Generate QR Code</span>
+                      </button>
+                    )}
+
                     <button
                       onClick={resetForm}
                       className="w-full h-10 border border-brand-primary text-brand-primary hover:text-brand-hover font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
@@ -475,6 +488,15 @@ export const LinkShortener: React.FC = () => {
                         >
                           <IoOpen className="w-3.5 h-3.5" />
                         </a>
+                        {onGenerateQrCode && (
+                          <button
+                            onClick={() => onGenerateQrCode(`${window.location.protocol}//${window.location.host}/s/${item.slug}`)}
+                            className="p-1.5 text-[#626A73] hover:text-brand-primary rounded hover:bg-[#EDF1F5] transition-colors"
+                            title="Generate QR Code"
+                          >
+                            <IoQrCode className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDeleteLink(item.id, item.slug)}
                           className="p-1.5 text-[#8D959F] hover:text-rose-600 rounded hover:bg-[#EDF1F5] transition-colors"

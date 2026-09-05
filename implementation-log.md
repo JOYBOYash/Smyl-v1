@@ -1146,3 +1146,196 @@ Use official, high-fidelity online SVG files for X and LinkedIn logos to elimina
 ### Result
 Completed
 
+## 2026-09-05 (Production-ready QR Code Generator Utility with Cloud Synchronization)
+
+### Request
+Implement a production-ready QR Code Generator inside the Smyl application supporting direct URLs and short Smyl URLs, with customizable design controls (resolution, margin, colors), vector/raster exports, local copy capabilities, and cloud-synchronized preset history.
+
+### Analysis
+- Architecture: Integrated a client-side QR generation engine (`qrcode` library) rendering to canvases/data-URIs, coupled with a robust validation layer to prevent unsafe protocol execution and localhost SSRF/internal network exposure.
+- Persistent Storage: Created an additive `qr_codes` database table with Row-Level Security (RLS) policies (`auth.uid() = user_id`) to sync QR presets securely for authenticated users.
+- Flow Integration: Designed a seamless callback bridge (`onGenerateQrCode`) from the Link Shortener views directly to the QR tab to pre-fill generated URLs.
+
+### Implementation
+- Created `/supabase/migrations/20260905_qr_codes.sql` creating the `qr_codes` schema and enabling authenticated database triggers.
+- Created `/src/services/qrService.ts` encapsulating the Supabase database operations (CRUD).
+- Created `/src/components/QrGenerator.tsx` implementing the complete customizable QR Code Generator UI.
+- Updated `/src/components/LinkShortener.tsx` providing QR generation quick-actions.
+- Updated `/src/App.tsx` registering the "QR Code" header navigation tab and wiring page transitions.
+- Updated `/implementation-log.md`.
+
+### Security
+- Implemented robust URL schema check, enforcing `http`/`https` protocols and blocking `javascript:`, local loopback, and internal subnet IP targets.
+- Enforced complete PostgreSQL RLS policies ensuring that users can only select, insert, or delete their own QR code presets.
+
+### Files Changed
+- `/supabase/migrations/20260905_qr_codes.sql`
+- `/src/services/qrService.ts`
+- `/src/components/QrGenerator.tsx`
+- `/src/components/LinkShortener.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Linter validation completed successfully (`lint_applet` passed cleanly).
+- Production build compilation succeeded without errors (`compile_applet` succeeded).
+
+### Result
+Completed
+
+## 2026-09-05 (Production-ready Link Preview Generator with Active SSRF Protection)
+
+### Request
+Implement a full-stack, secure Link Preview Generator supporting six platform preview layouts (X, LinkedIn, Facebook, Slack, Discord, WhatsApp) with server-side extraction, active SSRF protection, strict timeouts, response size limits, and robust fallback rendering.
+
+### Analysis
+- Architecture: Added a dedicated `POST /api/utilities/link-preview` route backed by a secure, server-side extraction pipeline utilizing `node-html-parser`.
+- Safety Controls: Outfitted the fetcher with a manual redirect loop (max 5 hops) to re-evaluate DNS lookups at every hop, preventing advanced DNS-rebinding and redirect SSRF bypasses. Implemented 4-second fetch timeouts and a 1.5MB response size limit.
+- UI Design: Designed modular `SocialPreviewCard` and `LinkPreviewGenerator` blocks inside Smyl featuring responsive Desktop/Mobile toggles, live status panels, and quick-test preset shortcuts.
+
+### Implementation
+- Installed `node-html-parser` to handle safe server-side DOM-tree queries without ReDoS regex vulnerabilities.
+- Created `/src/services/metadataService.ts` containing the full server-side parser, SSRF revalidators, and a 5-minute memory cache.
+- Created `/src/components/SocialPreviewCard.tsx` implementing custom layout styling for all six social preview frames.
+- Created `/src/components/LinkPreviewGenerator.tsx` managing preview requests, status states, viewport triggers, and preset loaders.
+- Updated `/server.ts` to register the `POST /api/utilities/link-preview` endpoint.
+- Updated `/src/App.tsx` registering the "Link Preview" navbar button and view conditionally.
+- Updated `/implementation-log.md`.
+
+### Security
+- Blocks loopback, RFC1918, link-local, broadcast, unspecified, multicast, and AWS/cloud metadata address scopes.
+- Strict timeout limits (4 seconds) and response body size checks (1.5MB max) prevent server hang or exhaustion.
+- Complete validation against HTML content-type headers prevents parsing binary attachments like PDFs/executables.
+- Escaped text-only variables in React prevent XSS or arbitrary HTML injections.
+
+### Files Changed
+- `/src/services/metadataService.ts`
+- `/src/components/SocialPreviewCard.tsx`
+- `/src/components/LinkPreviewGenerator.tsx`
+- `/server.ts`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Both `lint_applet` and `compile_applet` passed successfully.
+
+### Result
+Completed
+
+## 2026-09-05 (Open Graph & Social Metadata Debugger Integration)
+
+### Request
+Integrate the `OgDebugger.tsx` component into the main application UI as a dedicated navbar tab, complete with status metrics, checklist diagnostics, and expandable metadata visualizers.
+
+### Analysis
+- Extended the `activeTab` navigation model and UI routing loop in `App.tsx` with support for the `"ogdebug"` state.
+- Integrated the standard `IoBug` icon as the diagnostic visual indicator in the centered navigation bar.
+- Hooked up `OgDebugger` component rendering with spring animations, seamless scroll dynamics, and layout stability.
+
+### Implementation
+- Updated `/src/App.tsx` with the new `"ogdebug"` state parameter, custom nav icon, dynamic scroll hiding/showing tab routing, and responsive screen mounting.
+- Verified TypeScript declarations, state handoffs, and UI alignment with our design rules.
+
+### Security
+- Retained strict backend validation, proxy isolation, and local storage caching for maximum platform safety.
+
+### Files Changed
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Both `lint_applet` and `compile_applet` passed successfully with zero warnings.
+
+### Result
+Completed
+
+## 2026-09-05 (Responsive Products Dropdown and Profile Dropdown Saved Templates Integration)
+
+### Request
+Fix navbar responsiveness by creating a Products dropdown where users can access all utilities, and relocate the Saved templates list to the Profile dropdown after user logging in.
+
+### Analysis
+- Grouped all 5 standalone utility navigation tabs (Post Card Studio, Link Shortener, QR Code Generator, Link Previewer, OG Debugger) into a single, highly responsive "Products" dropdown menu. This resolves all navbar overflow issues on mobile screens.
+- Programmed the "Products" dropdown trigger button to dynamically display the icon and label of the active utility tab for premium breadcrumb UX.
+- Relocated the "Saved Templates" navigation option into the Profile Dropdown, ensuring it is cleanly visible only when `isAuthenticated` is true, reflecting that all saves are exclusively cloud-saved.
+- Ensured graceful fallback redirections on sign out.
+
+### Implementation
+- Updated `/src/App.tsx` replacing the horizontal nav buttons with the pilled Products dropdown, incorporating AnimatePresence, outside clicks layer, and active state highlights.
+- Updated Profile Dropdown in `/src/App.tsx` with Saved Templates link displaying cloud-synced template counts.
+- Updated Saved templates page description text to reflect direct secure cloud synchronization.
+
+### Security
+- Verified that private cloud templates remain accessible only via authenticated user sessions.
+- No client-side leaks or privileged credentials exposed.
+
+### Files Changed
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran `lint_applet` with zero TypeScript errors.
+- Ran `compile_applet` successfully with complete production-ready build output.
+
+### Result
+Completed
+
+## 2026-09-05 (Skeleton loaders and Mobile Hamburger Menu in Navbar)
+
+### Request
+Add skeleton loaders in the product dropdown during transition, implement a mobile-friendly hamburger menu for small screens, keep the Studio option directly accessible without background, and maintain clean text/icon styles.
+
+### Analysis
+- Re-architected navbar layout to keep "Studio" directly visible as a clean text/icon link with no heavy background.
+- Refactored "All Products" dropdown to be separate, using a clean, simple text-style navbar button without gray pills/borders.
+- Integrated high-fidelity pulsing skeleton rows inside the All Products dropdown while page transition loads (`isPageTransitioning` is true).
+- Engineered a mobile-friendly hamburger icon button (IoMenu / IoClose) and collapsible navigation menu drawer inside the header component for responsive screens.
+
+### Implementation
+- Added `isMobileMenuOpen` state in `/src/App.tsx`.
+- Updated header grid and navigation elements in `/src/App.tsx` for desktop and mobile responsiveness.
+- Created pulsing skeletons for product transitions in the products dropdown.
+
+### Security
+- Standard route transitions checked. No credential leaks.
+
+### Files Changed
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran `lint_applet` with zero issues.
+- Ran `compile_applet` successfully with successful build.
+
+### Result
+Completed
+
+## 2026-09-05 (Dropdown 2-Column Grid Refactoring & Clipping Fix)
+
+### Request
+Refactor the All Products dropdown to use a 2-column grid layout on medium/large screens for better space utilization, keeping the single-column list for mobile, and resolve clipping of the dropdown to the navbar.
+
+### Analysis
+- Removed `overflow-hidden` from the parent navbar container in `/src/App.tsx` so absolute children (Products & Profile dropdowns) can pop out and display beautifully without any clipping.
+- Added `rounded-b-2xl` to the mobile drawer container so it still respects the border-radius design system when fully expanded.
+- Refactored the Products dropdown layout to use `md:grid md:grid-cols-2 md:w-[560px] md:gap-3` on desktop screens, while keeping the responsive `flex flex-col` single-column layout on mobile screens.
+- Updated the header category label ("SMYL Utilities") and the skeleton loaders inside the Products dropdown to perfectly scale with the 2-column grid layout using `md:col-span-2`.
+
+### Implementation
+- Modified `/src/App.tsx` wrapper class, products dropdown layout grid, skeleton grid, and mobile menu border-radius.
+
+### Security
+- Standard styling and overflow adjustments have no backend security or Auth impact.
+
+### Files Changed
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran `lint_applet` with zero issues.
+- Ran `compile_applet` successfully.
+
+### Result
+Completed
+
+

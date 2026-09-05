@@ -12,6 +12,9 @@ import { PostCard } from "./components/PostCard";
 import { CanvasWrapper } from "./components/CanvasWrapper";
 import { LandingPage } from "./components/LandingPage";
 import { LinkShortener } from "./components/LinkShortener";
+import { QrGenerator } from "./components/QrGenerator";
+import { LinkPreviewGenerator } from "./components/LinkPreviewGenerator";
+import { OgDebugger } from "./components/OgDebugger";
 import { ExportModal } from "./components/ExportModal";
 import { ParsingModal } from "./components/ParsingModal";
 import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
@@ -54,6 +57,11 @@ import {
   IoArrowUndoOutline,
   IoArrowRedoOutline,
   IoLink,
+  IoQrCode,
+  IoGlobe,
+  IoBug,
+  IoApps,
+  IoMenu,
 } from "react-icons/io5";
 import { FiArrowRight, FiAlignLeft, FiAlignCenter, FiAlignRight, FiPlus, FiHash } from "react-icons/fi";
 
@@ -257,7 +265,8 @@ export const App: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [history, setHistory] = useState<SavedCard[]>([]);
-  const [activeTab, setActiveTab] = useState<"landing" | "customize" | "history" | "shortener">("landing");
+  const [activeTab, setActiveTab] = useState<"landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug">("landing");
+  const [qrInitialUrl, setQrInitialUrl] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isBatchExportModalOpen, setIsBatchExportModalOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -272,6 +281,8 @@ export const App: React.FC = () => {
       return false;
     }
   });
+  const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isWorkspaceBgDropdownOpen, setIsWorkspaceBgDropdownOpen] = useState(false);
   const [isCardStyleDropdownOpen, setIsCardStyleDropdownOpen] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -542,7 +553,7 @@ export const App: React.FC = () => {
   };
 
   // Page Transition Handler with silky smooth ease in and ease out
-  const handleTabChange = (nextTab: "landing" | "customize" | "history" | "shortener") => {
+  const handleTabChange = (nextTab: "landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug") => {
     if (nextTab === activeTab) return;
     setIsPageTransitioning(true);
     setTimeout(() => {
@@ -550,8 +561,15 @@ export const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
       setTimeout(() => {
         setIsPageTransitioning(false);
+        setIsProductsDropdownOpen(false);
+        setIsMobileMenuOpen(false);
       }, 160);
     }, 180);
+  };
+
+  const handleShortenerToQr = (url: string) => {
+    setQrInitialUrl(url);
+    handleTabChange("qr");
   };
 
   const handleOpenStudioFromLanding = (samplePost?: ParsedPost, sampleCustomization?: Partial<CardCustomization>) => {
@@ -925,75 +943,185 @@ export const App: React.FC = () => {
         transition={{ duration: 0.22, ease: "easeOut" }}
         className="fixed top-3.5 left-0 right-0 z-40 px-4 w-full flex justify-center pointer-events-none"
       >
-        <div className="w-full max-w-5xl bg-white/95 backdrop-blur-md border border-[#E1E5E9] shadow-xs rounded-2xl h-13 px-3.5 sm:px-5 grid grid-cols-3 items-center pointer-events-auto transition-all">
-          {/* Col 1: Logo & Brand */}
-          <div className="flex items-center justify-start">
-            <div
-              onClick={() => handleTabChange("landing")}
-              className="flex items-center gap-2.5 cursor-pointer select-none group"
-            >
-              <SmylLogo className="h-6 sm:h-6.5 w-auto transition-transform group-hover:scale-105" />
+        <div className="w-full max-w-5xl bg-white/95 backdrop-blur-md border border-[#E1E5E9] shadow-xs rounded-2xl pointer-events-auto transition-all flex flex-col">
+          <div className="h-13 w-full px-3.5 sm:px-5 grid grid-cols-3 items-center">
+            {/* Col 1: Logo & Brand */}
+            <div className="flex items-center justify-start">
+              <div
+                onClick={() => handleTabChange("landing")}
+                className="flex items-center gap-2.5 cursor-pointer select-none group"
+              >
+                <SmylLogo className="h-6 sm:h-6.5 w-auto transition-transform group-hover:scale-105" />
+              </div>
             </div>
-          </div>
 
-          {/* Col 2: Navigation Items Centered */}
-          <div className="flex items-center justify-center">
-            <nav className="relative flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl">
+            {/* Col 2: Navigation Items Centered */}
+            <div className="hidden md:flex items-center justify-center gap-6">
+              {/* Studio Button directly visible (out alive) without background */}
               <button
                 onClick={() => handleTabChange("customize")}
-                className={`relative z-10 h-8 px-3 sm:px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer w-auto ${
+                className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
                   activeTab === "customize" ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
                 }`}
               >
-                {activeTab === "customize" && (
-                  <motion.div
-                    layoutId="header-nav-pill"
-                    className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                  />
-                )}
                 <IoCreate className="w-3.5 h-3.5 shrink-0" />
                 <span>Studio</span>
               </button>
 
-              <button
-                onClick={() => handleTabChange("shortener")}
-                className={`relative z-10 h-8 px-3 sm:px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer w-auto ${
-                  activeTab === "shortener" ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
-                }`}
-              >
-                {activeTab === "shortener" && (
-                  <motion.div
-                    layoutId="header-nav-pill"
-                    className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              {/* All Products Dropdown Button without background */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
+                  className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
+                    ["shortener", "qr", "preview", "ogdebug"].includes(activeTab) ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                  }`}
+                >
+                  <IoApps className="w-3.5 h-3.5 shrink-0" />
+                  <span>All Products</span>
+                  <IoChevronDown
+                    className={`w-3 h-3 text-[#626A73] transition-transform duration-200 shrink-0 ${
+                      isProductsDropdownOpen ? "rotate-180" : ""
+                    }`}
                   />
-                )}
-                <IoLink className="w-3.5 h-3.5 shrink-0" />
-                <span>Shortener</span>
-              </button>
+                </button>
 
-              <button
-                onClick={() => handleTabChange("history")}
-                className={`relative z-10 h-8 px-3 sm:px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer w-auto ${
-                  activeTab === "history" ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
-                }`}
-              >
-                {activeTab === "history" && (
-                  <motion.div
-                    layoutId="header-nav-pill"
-                    className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                  />
-                )}
-                <IoBookmark className="w-3.5 h-3.5 shrink-0" />
-                <span>Saved ({history.length})</span>
-              </button>
-            </nav>
-          </div>
+                <AnimatePresence>
+                  {isProductsDropdownOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setIsProductsDropdownOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
+                        className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 md:w-[560px] bg-white border border-[#E1E5E9] rounded-2xl shadow-xl p-2 md:p-4 z-50 flex flex-col md:grid md:grid-cols-2 gap-1 md:gap-3"
+                      >
+                        <div className="px-3 py-1.5 border-b border-[#ECEEF1] mb-1 md:col-span-2">
+                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider">SMYL Utilities</p>
+                        </div>
 
-          {/* Col 3: Right Actions: Faded Shortcuts & Auth Account */}
-          <div className="flex items-center justify-end gap-2 sm:gap-3">
+                        {isPageTransitioning ? (
+                          <div className="flex flex-col md:grid md:grid-cols-2 gap-2 md:col-span-2">
+                            {[1, 2, 3, 4].map((idx) => (
+                              <div key={idx} className="flex items-start gap-2.5 px-3 py-2 rounded-xl animate-pulse">
+                                <div className="w-7 h-7 rounded-lg bg-[#E1E5E9]/60 shrink-0" />
+                                <div className="min-w-0 flex-grow space-y-1.5 py-0.5">
+                                  <div className="h-3 bg-[#E1E5E9]/60 rounded w-24" />
+                                  <div className="h-2 bg-[#E1E5E9]/60 rounded w-40" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => {
+                                handleTabChange("customize");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "customize" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "customize" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoCreate className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">Post Card Studio</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Transform links into image cards</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                handleTabChange("shortener");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "shortener" ? "bg-indigo-50 text-indigo-600" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoLink className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">Link Shortener</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Shorten URLs & track clean clicks</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                handleTabChange("qr");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "qr" ? "bg-purple-50 text-purple-600" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoQrCode className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">QR Code Generator</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Download clean SVG/PNG codes</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                handleTabChange("preview");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "preview" ? "bg-emerald-50 text-emerald-600" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoGlobe className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">Link Previewer</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Social media share previewer</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                handleTabChange("ogdebug");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "ogdebug" ? "bg-rose-50 text-rose-600" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoBug className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">OG Debugger</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Diagnose open graph share tags</p>
+                              </div>
+                            </button>
+                          </>
+                        )}
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Col 3: Right Actions: Faded Shortcuts & Auth Account */}
+            <div className="flex items-center justify-end gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setIsShortcutsModalOpen(true)}
@@ -1040,10 +1168,21 @@ export const App: React.FC = () => {
                     className="absolute right-0 mt-1.5 w-48 bg-white rounded-xl border border-[#E1E5E9] shadow-xl p-1.5 z-50 text-xs animate-in fade-in duration-150"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="px-3 py-2 border-b border-[#ECEEF1]">
+                    <div className="px-3 py-2 border-b border-[#ECEEF1] mb-1">
                       <p className="font-bold text-[#17191C] truncate">{profile?.display_name || "Account"}</p>
                       <p className="text-[10px] text-[#626A73] truncate">{user.email}</p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        handleTabChange("history");
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg text-[#17191C] hover:bg-[#F5F7F9] font-medium flex items-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <IoBookmark className="w-3.5 h-3.5 text-brand-primary" />
+                      <span>Saved Templates ({history.length})</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => {
@@ -1059,6 +1198,9 @@ export const App: React.FC = () => {
                       type="button"
                       onClick={async () => {
                         setIsProfileDropdownOpen(false);
+                        if (activeTab === "history") {
+                          setActiveTab("landing");
+                        }
                         await signOut();
                         setSuccessMsg("Signed out successfully");
                       }}
@@ -1079,7 +1221,121 @@ export const App: React.FC = () => {
                 <span>Try Now</span>
               </button>
             )}
+
+            {/* Mobile Hamburger Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+              className="md:hidden p-1.5 text-[#8D959F] hover:text-[#17191C] hover:bg-[#F5F7F9] rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
+              title="Menu"
+            >
+              {isMobileMenuOpen ? (
+                <IoClose className="w-5 h-5 text-[#17191C]" />
+              ) : (
+                <IoMenu className="w-5 h-5 text-[#626A73]" />
+              )}
+            </button>
           </div>
+        </div>
+
+        {/* Mobile Menu Dropdown Panel */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40 md:hidden bg-transparent"
+                onClick={() => setIsMobileMenuOpen(false)}
+              />
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden border-t border-[#E1E5E9]/80 rounded-b-2xl md:hidden z-50 relative bg-white"
+              >
+                <div className="p-4 space-y-4">
+                  <div>
+                    <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider mb-2 px-1">Studio</p>
+                    <button
+                      onClick={() => handleTabChange("customize")}
+                      className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                        activeTab === "customize" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                      }`}
+                    >
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                        activeTab === "customize" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                      }`}>
+                        <IoCreate className="w-4 h-4" />
+                      </div>
+                      <span className="font-bold text-xs">Post Card Studio</span>
+                    </button>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider mb-2 px-1">All Products</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      <button
+                        onClick={() => handleTabChange("shortener")}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                          activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          activeTab === "shortener" ? "bg-indigo-50 text-indigo-600" : "bg-[#F5F7F9] text-[#626A73]"
+                        }`}>
+                          <IoLink className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-xs">Link Shortener</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("qr")}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                          activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          activeTab === "qr" ? "bg-purple-50 text-purple-600" : "bg-[#F5F7F9] text-[#626A73]"
+                        }`}>
+                          <IoQrCode className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-xs">QR Code Generator</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("preview")}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                          activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          activeTab === "preview" ? "bg-emerald-50 text-emerald-600" : "bg-[#F5F7F9] text-[#626A73]"
+                        }`}>
+                          <IoGlobe className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-xs">Link Previewer</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("ogdebug")}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                          activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          activeTab === "ogdebug" ? "bg-rose-50 text-rose-600" : "bg-[#F5F7F9] text-[#626A73]"
+                        }`}>
+                          <IoBug className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-xs">OG Debugger</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
         </div>
       </motion.header>
 
@@ -1903,7 +2159,13 @@ export const App: React.FC = () => {
             </div>
           </div>
         ) : activeTab === "shortener" ? (
-          <LinkShortener />
+          <LinkShortener onGenerateQrCode={handleShortenerToQr} />
+        ) : activeTab === "qr" ? (
+          <QrGenerator initialUrl={qrInitialUrl} onClearInitialUrl={() => setQrInitialUrl("")} />
+        ) : activeTab === "preview" ? (
+          <LinkPreviewGenerator />
+        ) : activeTab === "ogdebug" ? (
+          <OgDebugger />
         ) : (
           /* SAVED HISTORY TAB */
           <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
@@ -1915,7 +2177,7 @@ export const App: React.FC = () => {
                     <span>Saved Layouts History</span>
                   </h2>
                   <p className="text-xs text-[#626A73]">
-                    {isAuthenticated ? "Templates synced with your cloud account & browser cache." : "Templates saved locally in your browser storage."}
+                    Templates synced securely with your cloud account.
                   </p>
                 </div>
 

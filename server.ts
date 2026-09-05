@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import dns from "dns";
 import { promisify } from "util";
 import { createClient } from "@supabase/supabase-js";
+import { extractLinkMetadata, debugLinkMetadata } from "./src/services/metadataService";
 
 dotenv.config();
 
@@ -407,6 +408,63 @@ async function startServer() {
     } catch (err: any) {
       console.error("Shortener endpoint crash:", err);
       res.status(500).json({ error: "Internal server error creating shortened URL." });
+    }
+  });
+
+  // Link Preview Generator endpoint
+  app.post("/api/utilities/link-preview", async (req, res) => {
+    try {
+      const { url } = req.body;
+      if (!url || typeof url !== "string" || url.trim().length === 0) {
+        return res.status(400).json({ error: "URL parameter is required." });
+      }
+
+      const trimmedUrl = url.trim();
+      const metadata = await extractLinkMetadata(trimmedUrl);
+      res.json(metadata);
+    } catch (err: any) {
+      console.error("Link Preview endpoint crash:", err);
+      // Determine if validation error (e.g., SSRF or bad URL) vs server crash
+      const isValidationError = 
+        err.message?.includes("forbidden") || 
+        err.message?.includes("invalid") ||
+        err.message?.includes("Unsupported content type") ||
+        err.message?.includes("too large") ||
+        err.message?.includes("timed out") ||
+        err.message?.includes("Too many redirects") ||
+        err.message?.includes("HTTP fetch failed");
+
+      res.status(isValidationError ? 400 : 500).json({ 
+        error: err.message || "Failed to generate link preview." 
+      });
+    }
+  });
+
+  // Open Graph Debugger API endpoint
+  app.post("/api/utilities/og-debug", async (req, res) => {
+    try {
+      const { url } = req.body;
+      if (!url || typeof url !== "string" || url.trim().length === 0) {
+        return res.status(400).json({ error: "URL parameter is required." });
+      }
+
+      const trimmedUrl = url.trim();
+      const diagnosticsData = await debugLinkMetadata(trimmedUrl);
+      res.json(diagnosticsData);
+    } catch (err: any) {
+      console.error("OG Debugger endpoint crash:", err);
+      const isValidationError = 
+        err.message?.includes("forbidden") || 
+        err.message?.includes("invalid") ||
+        err.message?.includes("Unsupported content type") ||
+        err.message?.includes("too large") ||
+        err.message?.includes("timed out") ||
+        err.message?.includes("Too many redirects") ||
+        err.message?.includes("HTTP fetch failed");
+
+      res.status(isValidationError ? 400 : 500).json({ 
+        error: err.message || "Failed to inspect website metadata." 
+      });
     }
   });
 
