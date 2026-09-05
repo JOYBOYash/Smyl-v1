@@ -179,23 +179,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             <span className="flex flex-wrap items-center justify-center gap-x-2.5 sm:gap-x-4 gap-y-2">
               Turn your
               <span className="inline-flex items-center justify-center p-1.5 sm:p-2.5 rounded-lg bg-[#17191C]/5 text-[#17191C] shrink-0">
-                <FaXTwitter className="w-5 h-5 sm:w-7 sm:h-7 text-[#17191C]" />
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg"
+                  className="w-5 h-5 sm:w-7 sm:h-7 shrink-0 object-contain"
+                  alt="X"
+                  referrerPolicy="no-referrer"
+                />
               </span>
               or
               <span className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[#0A66C2]/10 shrink-0">
-                <svg viewBox="0 0 118 28" className="h-5 sm:h-7 w-auto text-[#0A66C2] fill-current" aria-label="LinkedIn">
-                  <g transform="translate(0, -50)">
-                    <path d="M.85 52.73h4.94v17.98h9.14v4.56H.85V52.73zM17.11 60h4.74v15.26h-4.74zm2.37-7.59a2.75 2.75 0 1 1-2.75 2.75a2.75 2.75 0 0 1 2.75-2.75m22.21.32h4.74V66.2l5.38-6.22h5.81l-6.22 7.07l6.09 8.22h-5.96l-5.04-7.55h-.06v7.55h-4.74V52.73zM24.48 60H29v2.09h.06a5 5 0 0 1 4.49-2.47c4.81 0 5.69 3.16 5.69 7.27v8.38h-4.7v-7.43c0-1.77 0-4-2.47-4s-2.85 1.93-2.85 3.92v7.55h-4.74z" />
-                    <path d="M67.61 65.85a2.84 2.84 0 0 0-2.91-2.91a3.16 3.16 0 0 0-3.35 2.91zm4 6.77a8.35 8.35 0 0 1-6.48 3c-4.74 0-8.54-3.16-8.54-8.07s3.8-8.06 8.54-8.06c4.43 0 7.21 3.16 7.21 8.06v1.49h-11a3.54 3.54 0 0 0 3.57 3a4 4 0 0 0 3.38-1.87zm10.62-8.94A3.89 3.89 0 1 0 86 67.57a3.6 3.6 0 0 0-3.8-3.89m8.2 11.58H86v-2a6 6 0 0 1-4.71 2.4c-4.56 0-7.56-3.29-7.56-7.94c0-4.27 2.66-8.19 7-8.19a5.73 5.73 0 0 1 4.87 2h.06v-8.8h4.74z" />
-                  </g>
-                  <rect x="94" y="2" width="24" height="24" rx="3" fill="#0A66C2" />
-                  <path d="M102 20h-3v-8h3v8zm-1.5-9.3c-.9 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm11.5 9.3h-3v-4.5c0-1.1-.9-2-2-2s-2 .9-2 2v4.5h-3v-8h3v1.2c.5-.7 1.5-1.2 2.5-1.2 2.2 0 4 1.8 4 4v4z" fill="#FFFFFF" />
-                </svg>
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/0/01/LinkedIn_Logo.svg"
+                  className="h-5 sm:h-7 w-auto shrink-0 object-contain"
+                  alt="LinkedIn"
+                  referrerPolicy="no-referrer"
+                />
               </span>
               posts
             </span>
             <span className="flex flex-wrap items-center justify-center gap-2 sm:gap-3.5 mt-1 sm:mt-2 text-brand-primary">
-              <FiCornerDownRight className="w-6 h-6 sm:w-9 sm:h-9 text-brand-primary/80 animate-pulse shrink-0" />
+              <FiCornerDownRight className="w-6 h-6 sm:w-9 sm:h-9 text-brand-primary/80 shrink-0" />
               <span>into polished cards</span>
             </span>
           </h1>
