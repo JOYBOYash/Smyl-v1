@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "../lib/supabase";
+import { supabase, isSupabaseConfigured, isTableMissingError } from "../lib/supabase";
 
 export const StorageService = {
   // Upload avatar image to user-specific storage bucket
@@ -71,8 +71,10 @@ export const StorageService = {
           mime_type: file.type,
           size: file.size,
         });
-      } catch (metaErr) {
-        console.error("Asset metadata insert error:", metaErr);
+      } catch (metaErr: any) {
+        if (!isTableMissingError(metaErr)) {
+          console.error("Asset metadata insert error:", metaErr);
+        }
       }
 
       return { url: signedData.signedUrl, path: filePath };

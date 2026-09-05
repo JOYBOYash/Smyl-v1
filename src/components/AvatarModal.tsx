@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { IoClose, IoCloudUpload, IoCheckmark, IoTrash } from "react-icons/io5";
-import { User, Image as ImageIcon } from "lucide-react";
+import { IoClose, IoCloudUpload, IoCheckmark, IoTrash, IoPerson, IoImage } from "react-icons/io5";
 
 interface AvatarModalProps {
   isOpen: boolean;
@@ -55,7 +54,7 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
           <div className="p-5 border-b border-[#E1E5E9] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-brand-soft flex items-center justify-center text-brand-primary">
-                <ImageIcon className="w-4 h-4" />
+                <IoImage className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="font-bold text-[#17191C] text-base leading-snug">
@@ -130,7 +129,7 @@ export const AvatarModal: React.FC<AvatarModalProps> = ({
                   }}
                   className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <User className="w-3.5 h-3.5" />
+                  <IoPerson className="w-3.5 h-3.5" />
                   <span>Use Initials (No Photo)</span>
                 </button>
               )}

@@ -6,20 +6,18 @@ import {
   IoLogoTwitter,
   IoCheckmarkCircle,
   IoGlobeOutline,
+  IoChatbubbleOutline,
+  IoRepeat,
+  IoHeartOutline,
+  IoHeart,
+  IoBarChartOutline,
+  IoThumbsUpOutline,
+  IoThumbsUp,
+  IoPaperPlaneOutline,
+  IoSparkles,
+  IoBulb,
 } from "react-icons/io5";
-import {
-  MessageCircle,
-  Repeat2,
-  Heart,
-  BarChart2,
-  ThumbsUp,
-  MessageSquare,
-  Repeat,
-  Send,
-  Sparkles,
-  Lightbulb,
-  Hash,
-} from "lucide-react";
+import { FiHash } from "react-icons/fi";
 
 interface PostCardProps {
   post: ParsedPost;
@@ -413,7 +411,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
                   key={idx}
                   className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${getHashtagBadgeStyle()} shadow-2xs select-none`}
                 >
-                  <Hash className="w-2.5 h-2.5 opacity-70" />
+                  <FiHash className="w-2.5 h-2.5 opacity-70" />
                   <span>{tag}</span>
                 </span>
               ))}
@@ -442,7 +440,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
             <div className={`mt-3 pt-3 border-t ${sc.borderDivider} flex items-center justify-between text-xs ${sc.metricsColor}`}>
               {/* Comments */}
               <div className="flex items-center gap-1.5">
-                <MessageCircle className="w-3.5 h-3.5 flex-shrink-0 opacity-80 stroke-[2]" />
+                <IoChatbubbleOutline className="w-3.5 h-3.5 flex-shrink-0 opacity-80" />
                 {isEditable ? (
                   <input
                     type="number"
@@ -458,7 +456,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
 
               {/* Reposts */}
               <div className="flex items-center gap-1.5">
-                <Repeat2 className="w-3.5 h-3.5 flex-shrink-0 opacity-80 stroke-[2]" />
+                <IoRepeat className="w-3.5 h-3.5 flex-shrink-0 opacity-80" />
                 {isEditable ? (
                   <input
                     type="number"
@@ -474,7 +472,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
 
               {/* Likes */}
               <div className="flex items-center gap-1.5">
-                <Heart className="w-3.5 h-3.5 flex-shrink-0 opacity-80 stroke-[2]" />
+                <IoHeartOutline className="w-3.5 h-3.5 flex-shrink-0 opacity-80" />
                 {isEditable ? (
                   <input
                     type="number"
@@ -491,7 +489,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
               {/* Views */}
               {(post.engagement.views !== undefined || isEditable) && (
                 <div className="flex items-center gap-1.5">
-                  <BarChart2 className="w-3.5 h-3.5 flex-shrink-0 opacity-80 stroke-[2]" />
+                  <IoBarChartOutline className="w-3.5 h-3.5 flex-shrink-0 opacity-80" />
                   {isEditable ? (
                     <input
                       type="number"
@@ -643,7 +641,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
                   key={idx}
                   className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${getHashtagBadgeStyle()} shadow-2xs select-none`}
                 >
-                  <Hash className="w-2.5 h-2.5 opacity-70" />
+                  <FiHash className="w-2.5 h-2.5 opacity-70" />
                   <span>{tag}</span>
                 </span>
               ))}
@@ -654,14 +652,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
         {/* Bottom Section: LinkedIn Engagement Bar */}
         {showEngagement && (
           <div className="space-y-3 pt-2 relative z-10">
-            {/* Reaction counts using authentic Lucide icons */}
+            {/* Reaction counts using authentic Io/react-icons */}
             <div className={`pt-2 border-t ${sc.borderDivider} flex items-center justify-between text-[11px] ${sc.textSecondary}`}>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
-                  <ThumbsUp className="w-3.5 h-3.5 text-[#0A66C2] stroke-[2]" />
-                  <Heart className="w-3.5 h-3.5 text-[#E0245E] stroke-[2]" />
-                  <Sparkles className="w-3.5 h-3.5 text-[#059669] stroke-[2]" />
-                  <Lightbulb className="w-3.5 h-3.5 text-[#D97706] stroke-[2]" />
+                  <IoThumbsUp className="w-3.5 h-3.5 text-[#0A66C2]" />
+                  <IoHeart className="w-3.5 h-3.5 text-[#E0245E]" />
+                  <IoSparkles className="w-3.5 h-3.5 text-[#059669]" />
+                  <IoBulb className="w-3.5 h-3.5 text-[#D97706]" />
                 </div>
                 {isEditable ? (
                   <input
@@ -709,22 +707,22 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
               </div>
             </div>
 
-            {/* Action Icons Bar with authentic Lucide icons */}
+            {/* Action Icons Bar with authentic Io/react-icons */}
             <div className={`pt-2 border-t ${sc.borderDivider} grid grid-cols-4 gap-1 text-[11px] font-semibold ${sc.textSecondary}`}>
               <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <ThumbsUp className="w-3.5 h-3.5 stroke-[1.75]" />
+                <IoThumbsUpOutline className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Like</span>
               </div>
               <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <MessageSquare className="w-3.5 h-3.5 stroke-[1.75]" />
+                <IoChatbubbleOutline className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Comment</span>
               </div>
               <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <Repeat className="w-3.5 h-3.5 stroke-[1.75]" />
+                <IoRepeat className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Repost</span>
               </div>
               <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <Send className="w-3.5 h-3.5 stroke-[1.75]" />
+                <IoPaperPlaneOutline className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Send</span>
               </div>
             </div>

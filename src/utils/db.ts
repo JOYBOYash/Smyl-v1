@@ -12,96 +12,43 @@ const STORAGE_KEY = "smyl_saved_cards_db";
 const DRAFT_STORAGE_KEY = "smyl_generator_draft_v1";
 
 export const CardDatabase = {
-  // Get all cards
+  // Get all cards (disabled local storage support)
   getAll(): SavedCard[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEY);
-      if (!data) return [];
-      return JSON.parse(data) as SavedCard[];
-    } catch (e) {
-      console.error("Database read error:", e);
-      return [];
-    }
+    return [];
   },
 
-  // Save draft state for recovery on page refresh
+  // Save draft state (disabled local storage support)
   saveDraft(post: ParsedPost, customization: CardCustomization): void {
-    try {
-      const draft = {
-        post,
-        customization,
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
-    } catch (e) {
-      console.error("Draft save error:", e);
-    }
+    // No-op: Local storage draft support removed
   },
 
-  // Retrieve auto-saved draft state
+  // Retrieve auto-saved draft state (disabled local storage support)
   getDraft(): { post: ParsedPost; customization: CardCustomization; updatedAt?: string } | null {
-    try {
-      const data = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (!data) return null;
-      return JSON.parse(data);
-    } catch (e) {
-      console.error("Draft read error:", e);
-      return null;
-    }
+    return null;
   },
 
-  // Clear auto-saved draft
+  // Clear auto-saved draft (disabled local storage support)
   clearDraft(): void {
-    try {
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
-    } catch (e) {
-      console.error("Draft clear error:", e);
-    }
+    // No-op: Local storage draft support removed
   },
 
-  // Get a single card by ID
+  // Get a single card by ID (disabled local storage support)
   getById(id: string): SavedCard | null {
-    const cards = this.getAll();
-    return cards.find((c) => c.id === id) || null;
+    return null;
   },
 
-  // Save a new card or update an existing one
+  // Save a new card or update an existing one (disabled local storage support)
   save(card: Omit<SavedCard, "createdAt"> & { createdAt?: string }): SavedCard {
-    const cards = this.getAll();
-    const existingIndex = cards.findIndex((c) => c.id === card.id);
-
     const now = new Date().toISOString();
-    const fullCard: SavedCard = {
+    return {
       ...card,
       createdAt: card.createdAt || now,
     };
-
-    if (existingIndex > -1) {
-      cards[existingIndex] = fullCard;
-    } else {
-      cards.unshift(fullCard); // Add to the top
-    }
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
-    } catch (e) {
-      console.error("Database write error:", e);
-    }
-
-    return fullCard;
   },
 
-  // Delete a card
+  // Delete a card (disabled local storage support)
   delete(id: string): boolean {
-    const cards = this.getAll();
-    const filtered = cards.filter((c) => c.id !== id);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-      return true;
-    } catch (e) {
-      console.error("Database delete error:", e);
-      return false;
-    }
+    return true;
   },
 
   // Generate a shareable link using Base64 encoded URL

@@ -5,7 +5,7 @@ import {
   IoCheckmarkCircle,
   IoSparkles,
 } from "react-icons/io5";
-import { Keyboard } from "lucide-react";
+import { FaKeyboard } from "react-icons/fa";
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
@@ -82,7 +82,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           <div className="p-4 sm:p-5 border-b border-[#E1E5E9] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-brand-soft flex items-center justify-center text-brand-primary">
-                <Keyboard className="w-4 h-4" />
+                <FaKeyboard className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="font-bold text-[#17191C] text-base leading-snug">

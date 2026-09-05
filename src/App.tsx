@@ -50,8 +50,10 @@ import {
   IoPerson,
   IoLogOut,
   IoKeypad,
+  IoArrowUndoOutline,
+  IoArrowRedoOutline,
 } from "react-icons/io5";
-import { AlignLeft, AlignCenter, AlignRight, Hash, Sparkles, Keyboard, Plus, LayoutGrid, Undo2, Redo2, RefreshCw } from "lucide-react";
+import { FiArrowRight, FiAlignLeft, FiAlignCenter, FiAlignRight, FiPlus, FiHash } from "react-icons/fi";
 
 const DOTS_LIGHT_SVG = `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='1.5' fill='%23626A73' fill-opacity='0.25'/%3E%3C/svg%3E")`;
 const DOTS_DARK_SVG = `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='1.5' fill='%23ffffff' fill-opacity='0.20'/%3E%3C/svg%3E")`;
@@ -703,8 +705,14 @@ export const App: React.FC = () => {
     setSuccessMsg("Share URL copied to clipboard!");
   };
 
-  // Save layout to dual database (Local & Supabase Cloud)
+  // Save layout to Supabase Cloud
   const handleSaveTemplate = async (name: string) => {
+    if (!user) {
+      setErrorMsg("You must sign in to save templates.");
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     const title = name.trim() || `${post.platform.toUpperCase()} - ${post.author.name}`;
     const cardId = "card_" + Date.now();
     const savedCard = await CardRepository.saveCard(
@@ -714,7 +722,7 @@ export const App: React.FC = () => {
         post,
         customization,
       },
-      user?.id
+      user.id
     );
     setHistory((prev) => [savedCard, ...prev.filter((i) => i.id !== savedCard.id)]);
     setSuccessMsg(`Saved template: "${title}"`);
@@ -930,23 +938,6 @@ export const App: React.FC = () => {
           <div className="flex items-center justify-center">
             <nav className="relative flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl">
               <button
-                onClick={() => handleTabChange("landing")}
-                className={`relative z-10 h-8 px-3 sm:px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer w-auto ${
-                  activeTab === "landing" ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
-                }`}
-              >
-                {activeTab === "landing" && (
-                  <motion.div
-                    layoutId="header-nav-pill"
-                    className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                  />
-                )}
-                <IoCompass className="w-3.5 h-3.5 shrink-0" />
-                <span>Overview</span>
-              </button>
-
-              <button
                 onClick={() => handleTabChange("customize")}
                 className={`relative z-10 h-8 px-3 sm:px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer w-auto ${
                   activeTab === "customize" ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
@@ -959,7 +950,7 @@ export const App: React.FC = () => {
                     transition={{ type: "spring", stiffness: 450, damping: 35 }}
                   />
                 )}
-                <IoOptions className="w-3.5 h-3.5 shrink-0" />
+                <IoSparkles className="w-3.5 h-3.5 shrink-0" />
                 <span>Studio</span>
               </button>
 
@@ -1064,10 +1055,9 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAuthModalOpen(true)}
-                className="h-8 px-3 rounded-lg bg-brand-primary text-white font-semibold text-xs flex items-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+                className="h-8 px-3.5 rounded-lg bg-brand-primary text-white font-semibold text-xs flex items-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
               >
-                <IoPerson className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sign In</span>
+                <span>Try Now</span>
               </button>
             )}
           </div>
@@ -1077,7 +1067,17 @@ export const App: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-grow w-full pt-16 sm:pt-20">
         {activeTab === "landing" ? (
-          <LandingPage onOpenGenerator={handleOpenStudioFromLanding} />
+          <LandingPage
+            onOpenGenerator={handleOpenStudioFromLanding}
+            onBecomeUser={() => {
+              if (isAuthenticated) {
+                setSuccessMsg("You are already signed in! Enjoy the Studio.");
+                handleTabChange("customize");
+              } else {
+                setIsAuthModalOpen(true);
+              }
+            }}
+          />
         ) : activeTab === "customize" ? (
           <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
 
@@ -1106,7 +1106,7 @@ export const App: React.FC = () => {
                         }`}
                         title={undoStack.length > 0 ? `Undo style change (${undoStack.length} step${undoStack.length > 1 ? 's' : ''}) [Ctrl+Z]` : "Nothing to undo"}
                       >
-                        <Undo2 className="w-3.5 h-3.5" />
+                        <IoArrowUndoOutline className="w-3.5 h-3.5" />
                       </button>
 
                       <button
@@ -1120,7 +1120,7 @@ export const App: React.FC = () => {
                         }`}
                         title={redoStack.length > 0 ? `Redo style change (${redoStack.length} step${redoStack.length > 1 ? 's' : ''}) [Ctrl+Y]` : "Nothing to redo"}
                       >
-                        <Redo2 className="w-3.5 h-3.5" />
+                        <IoArrowRedoOutline className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -1164,7 +1164,7 @@ export const App: React.FC = () => {
                                   <div className={`w-4 h-4 rounded-full ${activePreset.swatch} flex-shrink-0`} />
                                 ) : (
                                   <div className="w-4 h-4 rounded-full bg-brand-soft border border-brand-primary flex items-center justify-center flex-shrink-0">
-                                    <Sparkles className="w-2.5 h-2.5 text-brand-primary" />
+                                    <IoSparkles className="w-2.5 h-2.5 text-brand-primary" />
                                   </div>
                                 )}
                                 <span className="text-[#17191C] font-semibold truncate">
@@ -1350,7 +1350,7 @@ export const App: React.FC = () => {
                           }`}
                           title="Align Left"
                         >
-                          <AlignLeft className="w-3.5 h-3.5" />
+                          <FiAlignLeft className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
@@ -1362,7 +1362,7 @@ export const App: React.FC = () => {
                           }`}
                           title="Align Center"
                         >
-                          <AlignCenter className="w-3.5 h-3.5" />
+                          <FiAlignCenter className="w-3.5 h-3.5" />
                         </button>
                         <button
                           type="button"
@@ -1374,7 +1374,7 @@ export const App: React.FC = () => {
                           }`}
                           title="Align Right"
                         >
-                          <AlignRight className="w-3.5 h-3.5" />
+                          <FiAlignRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -1456,7 +1456,7 @@ export const App: React.FC = () => {
 
                     <label className="flex items-center justify-between text-xs font-semibold text-[#17191C] cursor-pointer hover:text-brand-primary transition-colors">
                       <div className="flex items-center gap-1.5">
-                        <Hash className="w-3.5 h-3.5 text-brand-primary" />
+                        <FiHash className="w-3.5 h-3.5 text-brand-primary" />
                         <span>Hashtag Cloud Badges</span>
                       </div>
                       <input
@@ -1527,7 +1527,7 @@ export const App: React.FC = () => {
                         className="aspect-square rounded-full border-2 border-dashed border-brand-primary/60 bg-brand-soft/50 hover:bg-brand-soft text-brand-primary flex flex-col items-center justify-center transition-all cursor-pointer shadow-2xs hover:scale-105"
                         title="Open Avatar Library & Upload Modal"
                       >
-                        <Plus className="w-4 h-4 text-brand-primary stroke-[2.5]" />
+                        <FiPlus className="w-4 h-4 text-brand-primary" />
                         <span className="text-[9px] font-bold leading-none mt-0.5">More</span>
                       </button>
                     </div>
@@ -1961,8 +1961,9 @@ export const App: React.FC = () => {
 
                       <div className="pt-2 border-t border-[#ECEEF1] flex items-center justify-between text-[11px] text-[#8D959F]">
                         <span>{new Date(item.createdAt).toLocaleDateString()}</span>
-                        <span className="text-brand-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                          Load Layout →
+                        <span className="text-brand-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5">
+                          <span>Load Layout</span>
+                          <FiArrowRight className="w-3.5 h-3.5" />
                         </span>
                       </div>
                     </motion.div>

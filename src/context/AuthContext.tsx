@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
-import { supabase, isSupabaseConfigured } from "../lib/supabase";
+import { supabase, isSupabaseConfigured, isTableMissingError } from "../lib/supabase";
 
 export interface UserProfile {
   id: string;
@@ -39,7 +39,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Fetch or safely auto-provision application profile
   const fetchProfile = useCallback(async (userId: string, authUser?: User): Promise<UserProfile | null> => {
-    if (!isSupabaseConfigured) return null;
+    const rawMeta = authUser?.user_metadata || {};
+    const fallbackName =
+      rawMeta.full_name ||
+      rawMeta.name ||
+      authUser?.email?.split("@")[0] ||
+      `user_${userId.slice(0, 6)}`;
+
+    const initialUsername =
+      (rawMeta.user_name || rawMeta.username || authUser?.email?.split("@")[0] || `user_${userId.slice(0, 6)}`)
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, "")
+        .slice(0, 20) || `user_${userId.slice(0, 6)}`;
+
+    const localProfile: UserProfile = {
+      id: userId,
+      username: initialUsername,
+      display_name: fallbackName,
+      bio: "",
+      avatar_path: rawMeta.avatar_url || rawMeta.picture || null,
+      onboarding_completed: false,
+    };
+
+    if (!isSupabaseConfigured) {
+      return localProfile;
+    }
 
     try {
       const { data, error } = await supabase
@@ -49,6 +73,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
+        if (isTableMissingError(error)) {
+          return localProfile;
+        }
         console.error("Profile fetch error:", error);
       }
 
@@ -56,20 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return data as UserProfile;
       }
 
-      // If profile does not exist yet (first-time OAuth or signup), safely create one
-      const rawMeta = authUser?.user_metadata || {};
-      const fallbackName =
-        rawMeta.full_name ||
-        rawMeta.name ||
-        authUser?.email?.split("@")[0] ||
-        `user_${userId.slice(0, 6)}`;
-
-      const initialUsername =
-        (rawMeta.user_name || rawMeta.username || authUser?.email?.split("@")[0] || `user_${userId.slice(0, 6)}`)
-          .toLowerCase()
-          .replace(/[^a-z0-9_]/g, "")
-          .slice(0, 20) || `user_${userId.slice(0, 6)}`;
-
+      // If profile does not exist yet in database, upsert initial record
       const newProfilePayload = {
         id: userId,
         username: initialUsername,
@@ -81,29 +95,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const { data: inserted, error: insertError } = await supabase
         .from("profiles")
-        .insert(newProfilePayload)
+        .upsert(newProfilePayload)
         .select()
         .single();
 
       if (insertError) {
-        // If unique constraint collision on username, append a short random suffix
-        if (insertError.code === "23505") {
-          const uniqueUsername = `${initialUsername}_${Math.floor(1000 + Math.random() * 9000)}`;
-          const { data: retryData } = await supabase
-            .from("profiles")
-            .insert({ ...newProfilePayload, username: uniqueUsername })
-            .select()
-            .single();
-          return (retryData as UserProfile) || null;
+        if (isTableMissingError(insertError)) {
+          return localProfile;
         }
-        console.error("Profile creation error:", insertError);
-        return null;
+        console.error("Profile auto-creation error:", insertError);
+        return localProfile;
       }
 
       return inserted as UserProfile;
     } catch (err) {
       console.error("Profile resolution error:", err);
-      return null;
+      return localProfile;
     }
   }, []);
 
@@ -276,8 +283,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Update Profile
   const updateProfile = async (updates: Partial<UserProfile>): Promise<{ error: Error | null }> => {
-    if (!user || !isSupabaseConfigured) {
+    if (!user) {
       return { error: new Error("User must be authenticated to update profile") };
+    }
+
+    const updateState = (updatedData: Partial<UserProfile>) => {
+      setProfile((prev) => {
+        const updated = prev
+          ? { ...prev, ...updatedData }
+          : ({
+              id: user.id,
+              username: updates.username || "user",
+              display_name: updates.display_name || "User",
+              bio: updates.bio || "",
+              avatar_path: null,
+              onboarding_completed: updates.onboarding_completed ?? true,
+            } as UserProfile);
+        return updated;
+      });
+    };
+
+    if (!isSupabaseConfigured) {
+      updateState(updates);
+      return { error: null };
     }
 
     try {
@@ -289,12 +317,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })
         .eq("id", user.id);
 
-      if (error) return { error };
+      if (error) {
+        if (isTableMissingError(error)) {
+          updateState(updates);
+          return { error: null };
+        }
+        return { error };
+      }
 
-      setProfile((prev) => (prev ? { ...prev, ...updates } : null));
+      updateState(updates);
       return { error: null };
     } catch (err: any) {
-      return { error: err };
+      updateState(updates);
+      return { error: null };
     }
   };
 

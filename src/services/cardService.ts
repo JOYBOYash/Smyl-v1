@@ -1,11 +1,8 @@
-import { supabase, isSupabaseConfigured } from "../lib/supabase";
+import { supabase, isSupabaseConfigured, isTableMissingError } from "../lib/supabase";
 import { SavedCard } from "../utils/db";
 
-const LOCAL_STORAGE_KEY = "smyl_saved_cards_db";
-const MIGRATION_FLAG_KEY = "smyl_cards_migrated_to_cloud_";
-
 export const CardRepository = {
-  // Fetch user cards (from Supabase if authenticated, otherwise local)
+  // Fetch user cards from Supabase (if authenticated)
   async getCards(userId?: string | null): Promise<SavedCard[]> {
     if (isSupabaseConfigured && userId) {
       try {
@@ -16,9 +13,10 @@ export const CardRepository = {
           .order("created_at", { ascending: false });
 
         if (error) {
-          console.error("Supabase getCards error:", error);
-          // Fallback to local storage on error
-          return this.getLocalCards();
+          if (!isTableMissingError(error)) {
+            console.error("Supabase getCards error:", error);
+          }
+          return [];
         }
 
         if (data && data.length > 0) {
@@ -30,32 +28,19 @@ export const CardRepository = {
             createdAt: row.created_at,
           }));
         }
-
-        // If cloud is empty, check if we need to migrate local cards
-        const local = this.getLocalCards();
-        return local;
       } catch (e) {
         console.error("Failed to fetch cloud cards:", e);
-        return this.getLocalCards();
       }
     }
-
-    return this.getLocalCards();
+    return [];
   },
 
-  // Read raw local storage cards
+  // No-op for local storage cards (returns empty array)
   getLocalCards(): SavedCard[] {
-    try {
-      const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (!data) return [];
-      return JSON.parse(data) as SavedCard[];
-    } catch (e) {
-      console.error("Error reading local cards:", e);
-      return [];
-    }
+    return [];
   },
 
-  // Save or update a card
+  // Save or update a card in Supabase
   async saveCard(
     card: Omit<SavedCard, "createdAt"> & { createdAt?: string },
     userId?: string | null
@@ -65,20 +50,6 @@ export const CardRepository = {
       ...card,
       createdAt: now,
     };
-
-    // Always mirror to local storage for instant responsiveness & offline resiliency
-    const local = this.getLocalCards();
-    const existingIdx = local.findIndex((c) => c.id === card.id);
-    if (existingIdx > -1) {
-      local[existingIdx] = fullCard;
-    } else {
-      local.unshift(fullCard);
-    }
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(local));
-    } catch (e) {
-      console.error("Failed to mirror local card save:", e);
-    }
 
     // Persist to Supabase if authenticated
     if (isSupabaseConfigured && userId) {
@@ -105,7 +76,9 @@ export const CardRepository = {
           .single();
 
         if (error) {
-          console.error("Supabase saveCard error:", error);
+          if (!isTableMissingError(error)) {
+            console.error("Supabase saveCard error:", error);
+          }
         } else if (data) {
           return {
             id: data.id,
@@ -123,16 +96,8 @@ export const CardRepository = {
     return fullCard;
   },
 
-  // Delete a card
+  // Delete a card from Supabase
   async deleteCard(cardId: string, userId?: string | null): Promise<boolean> {
-    // Delete from local
-    const local = this.getLocalCards();
-    const filtered = local.filter((c) => c.id !== cardId);
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filtered));
-    } catch (e) {}
-
-    // Delete from Supabase if authenticated
     if (isSupabaseConfigured && userId) {
       try {
         const { error } = await supabase
@@ -142,53 +107,22 @@ export const CardRepository = {
           .eq("user_id", userId);
 
         if (error) {
-          console.error("Supabase deleteCard error:", error);
+          if (!isTableMissingError(error)) {
+            console.error("Supabase deleteCard error:", error);
+          }
+          return false;
         }
+        return true;
       } catch (e) {
         console.error("Error in cloud card deletion:", e);
+        return false;
       }
     }
-
-    return true;
+    return false;
   },
 
-  // Migrate local cards to authenticated Supabase account
+  // No-op migration since local storage support is removed
   async migrateLocalCards(userId: string): Promise<number> {
-    if (!isSupabaseConfigured || !userId) return 0;
-
-    const migrationKey = `${MIGRATION_FLAG_KEY}${userId}`;
-    if (localStorage.getItem(migrationKey)) {
-      return 0; // Already migrated for this user
-    }
-
-    const localCards = this.getLocalCards();
-    if (localCards.length === 0) {
-      localStorage.setItem(migrationKey, "done");
-      return 0;
-    }
-
-    try {
-      let migratedCount = 0;
-      for (const card of localCards) {
-        const payload = {
-          user_id: userId,
-          name: card.name,
-          platform: card.customization.platform || card.post.platform || "x",
-          post: card.post,
-          customization: card.customization,
-        };
-
-        const { error } = await supabase.from("saved_cards").insert(payload);
-        if (!error) {
-          migratedCount++;
-        }
-      }
-
-      localStorage.setItem(migrationKey, "done");
-      return migratedCount;
-    } catch (e) {
-      console.error("Migration error:", e);
-      return 0;
-    }
+    return 0;
   },
 };

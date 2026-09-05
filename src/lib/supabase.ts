@@ -16,6 +16,22 @@ export const isSupabaseConfigured = Boolean(
     supabaseAnonKey.length > 10
 );
 
+// Check if a PostgREST error is due to a missing table/relation in the database or schema cache
+export function isTableMissingError(error: any): boolean {
+  if (!error) return false;
+  const code = String(error.code || "");
+  const msg = String(error.message || "").toLowerCase();
+  return (
+    code === "PGRST205" ||
+    code === "PGRST301" ||
+    code === "PGRST204" ||
+    code === "42P01" ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find the table") ||
+    (msg.includes("relation") && msg.includes("does not exist"))
+  );
+}
+
 // Single reusable Supabase client instance
 export const supabase: SupabaseClient = createClient(
   supabaseUrl || "https://placeholder.supabase.co",

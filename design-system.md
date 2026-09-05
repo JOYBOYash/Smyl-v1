@@ -211,10 +211,8 @@ Cards are clean, content-first surfaces. Avoid harsh drop shadows. Use ultra-sof
 
 ## 6. Icons
 
-Use **Ionicons 5** from `react-icons/io5`.
-
 Usage rules:
-- Import all UI icons and brand logos directly from `react-icons/io5` (e.g. `IoLogoLinkedin`, `IoLogoTwitter`, `IoSparklesOutline`, `IoDownloadOutline`, `IoShareSocialOutline`, `IoCheckmarkCircle`, `IoClose`, `IoHeart`, `IoRepeat`, `IoEyeOutline`, `IoChevronDownOutline`).
+- Install and import all UI icons and brand logos of popular/existing brands directly from react icons packages. 
 - Never use cartoon emojis in UI controls, metric badges, or layout reactions.
 - Default UI icon size: `20px`.
 - Small icon: `16px`.

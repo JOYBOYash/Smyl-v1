@@ -1,32 +1,29 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { ParsedPost, CardCustomization, FontFamily, CardTheme, CanvasBackground } from "../types";
 import { PLACEHOLDER_IMAGES } from "../constants/images";
 import { PostCard } from "./PostCard";
 import { CanvasWrapper } from "./CanvasWrapper";
-import { SmylLogo, SmylIcon, SmylTextLogo } from "./SmylLogo";
+import { SmylTextLogo, SmylIcon } from "./SmylLogo";
 import { motion, AnimatePresence } from "motion/react";
+import { FiArrowRight } from "react-icons/fi";
 import {
-  IoArrowForward,
   IoCheckmarkCircle,
   IoCloseCircle,
   IoLogoLinkedin,
   IoLogoTwitter,
   IoChevronDown,
-  IoDocumentText,
-  IoColorPalette,
-  IoDownload,
   IoEye,
   IoCreate,
   IoSunny,
   IoMoon,
   IoSparkles,
-  IoSwapHorizontal,
   IoHeart,
   IoCheckmark,
 } from "react-icons/io5";
 
 interface LandingPageProps {
   onOpenGenerator: (samplePost?: ParsedPost, customization?: Partial<CardCustomization>) => void;
+  onBecomeUser: () => void;
 }
 
 const INITIAL_DEMO_X_POST: ParsedPost = {
@@ -39,7 +36,7 @@ const INITIAL_DEMO_X_POST: ParsedPost = {
     avatarText: "AR",
   },
   content: {
-    text: "The best product design doesn't feel like design at all.\n\nIt feels like an obvious solution you wonder why nobody built before.\n\nSimple, focused, fast. #design #product",
+    text: "The best product design doesn't feel like design at all.\n\nIt feels like an obvious solution you wonder why nobody built before.\n\nSimple, focused, fast.",
     hashtags: ["design", "product"],
     mentions: [],
     links: [],
@@ -63,7 +60,7 @@ const INITIAL_DEMO_LINKEDIN_POST: ParsedPost = {
     avatarText: "ER",
   },
   content: {
-    text: "We analyzed 10,000 top-performing technical newsletters.\n\nThe #1 factor driving reader retention? Visual social proof.\n\nEmbedding raw screenshots had 34% lower click-throughs compared to high-DPI styled post cards.",
+    text: "We analyzed 10,000 top-performing technical newsletters.\n\nThe #1 factor driving reader retention? Visual social proof.\n\nEmbedding raw text posts had 34% lower engagement compared to high-DPI styled post cards.",
     hashtags: ["productstrategy", "newsletters"],
     mentions: [],
     links: [],
@@ -76,7 +73,30 @@ const INITIAL_DEMO_LINKEDIN_POST: ParsedPost = {
   },
 };
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => {
+const SHOWCASE_POST: ParsedPost = {
+  platform: "x",
+  author: {
+    name: "Alex Rivera",
+    username: "@alexrivera",
+    isVerified: true,
+    avatarColor: "#0145F2",
+    avatarText: "AR",
+  },
+  content: {
+    text: "The best product design doesn't feel like design at all.\n\nIt feels like an obvious solution you wonder why nobody built before.",
+    hashtags: ["design", "product"],
+    mentions: [],
+    links: [],
+  },
+  timestamp: "9:41 AM · Aug 24, 2026",
+  engagement: {
+    likes: 3840,
+    comments: 215,
+    reposts: 640,
+  },
+};
+
+export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBecomeUser }) => {
   // Interactive mini-demo state
   const [selectedPlatform, setSelectedPlatform] = useState<"x" | "linkedin">("x");
   const [selectedTheme, setSelectedTheme] = useState<CardTheme>("light");
@@ -85,15 +105,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
   const [isDirectEdit, setIsDirectEdit] = useState(false);
   const [isHeroBgDropdownOpen, setIsHeroBgDropdownOpen] = useState(false);
 
-  // Editable post data directly inside the card
+  // Mouse tracking state for sleek responsive background blur
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isDemoHovered, setIsDemoHovered] = useState(false);
+  const demoContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleDemoMouseMove = (e: React.MouseEvent) => {
+    if (!demoContainerRef.current) return;
+    const rect = demoContainerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setMousePos({ x, y });
+  };
+
+  // Editable post data
   const [xPostData, setXPostData] = useState<ParsedPost>(INITIAL_DEMO_X_POST);
   const [linkedInPostData, setLinkedInPostData] = useState<ParsedPost>(INITIAL_DEMO_LINKEDIN_POST);
 
-  // Before / After Slider Position (0 to 100)
+  // Slider Position for Comparison (0 to 100)
   const [sliderPosition, setSliderPosition] = useState(50);
   const isDraggingRef = useRef(false);
 
-  // Collapsible FAQ states
+  // Accordion FAQ states
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const currentPost = selectedPlatform === "x" ? xPostData : linkedInPostData;
@@ -126,85 +159,113 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
     setSliderPosition(percentage);
   };
 
+  const scrollToDemo = () => {
+    document.getElementById("interactive-demo")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="w-full text-[#17191C] overflow-hidden">
       {/* 1. HERO SECTION */}
-      <section className="pt-16 pb-16 md:pt-24 md:pb-24 px-4 max-w-7xl mx-auto">
+      <section className="pt-16 pb-16 md:pt-20 md:pb-20 px-4 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-3xl mx-auto text-center space-y-6"
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-3xl mx-auto text-center space-y-5"
         >
-          {/* Heading */}
+          {/* H1 */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#17191C] tracking-tight leading-[1.12]">
-            Turn plain social posts into{" "}
-            <span className="text-brand-primary inline-block">studio-grade visuals</span>
+            Turn your X or LinkedIn posts into polished shareable cards.
           </h1>
 
-          {/* Subtext */}
+          {/* Body */}
           <p className="text-base sm:text-lg text-[#626A73] font-normal leading-relaxed max-w-2xl mx-auto">
-            Elevate your social media presentation. Transform text ideas into stunning, high-contrast visual cards that build instant authority, demand attention, and multiply feed saves.
+            Paste a post or link. Smyl turns it into an X or LinkedIn-style visual you can share anywhere.
           </p>
 
-          {/* Primary Action Buttons with Motion Feedback */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
+          {/* Primary & Secondary CTAs */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <motion.button
               whileHover={{ scale: 1.02, y: -1 }}
               whileTap={{ scale: 0.98, y: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
               onClick={() => onOpenGenerator(currentPost, demoCustomization)}
-              className="w-auto h-10 px-6 rounded-lg bg-brand-primary text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+              className="w-full sm:w-auto h-11 px-7 rounded-xl bg-brand-primary text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
             >
-              <span>Open Studio Generator</span>
-              <IoArrowForward className="w-4 h-4" />
+              <span>Visit Studio</span>
+              <FiArrowRight className="w-4 h-4" />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.02, y: -1 }}
               whileTap={{ scale: 0.98, y: 0 }}
               transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              onClick={() => {
-                const element = document.getElementById("interactive-demo");
-                element?.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="w-auto h-10 px-6 rounded-lg bg-white text-[#17191C] border border-[#E1E5E9] font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#F5F7F9] hover:border-[#B9C0C8] active:bg-[#EEF1F4] transition-colors cursor-pointer"
+              onClick={onBecomeUser}
+              className="w-full sm:w-auto h-11 px-7 rounded-xl bg-white text-[#17191C] border border-[#E1E5E9] font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#F5F7F9] hover:border-[#B9C0C8] active:bg-[#EEF1F4] transition-colors cursor-pointer"
             >
-              <span>Try Live Demo</span>
+              <span>Become a user!</span>
             </motion.button>
           </div>
 
+          {/* Underlined Url link with Arrow below buttons */}
+          <div className="pt-2 flex items-center justify-center">
+            <button
+              onClick={scrollToDemo}
+              className="inline-flex items-center gap-1 text-sm font-bold text-brand-primary hover:text-brand-hover underline underline-offset-4 cursor-pointer transition-colors"
+            >
+              <span>Try Live Demo</span>
+              <FiArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           {/* Trust points */}
-          <div className="pt-4 flex items-center justify-center flex-wrap gap-x-8 gap-y-2 text-xs font-medium text-[#626A73]">
+          <div className="pt-3 flex items-center justify-center flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[#626A73]">
             <span className="flex items-center gap-1.5">
               <IoCheckmarkCircle className="text-emerald-600 w-3.5 h-3.5" />
-              No signup required
+              No design skills required
             </span>
+            <span className="text-[#C2C9D1] hidden sm:inline">•</span>
             <span className="flex items-center gap-1.5">
               <IoCheckmarkCircle className="text-emerald-600 w-3.5 h-3.5" />
-              2x High-DPI exports
+              Built for X & LinkedIn
             </span>
+            <span className="text-[#C2C9D1] hidden sm:inline">•</span>
             <span className="flex items-center gap-1.5">
               <IoCheckmarkCircle className="text-emerald-600 w-3.5 h-3.5" />
-              100% Watermark-free exports
+              Export-ready visuals
             </span>
           </div>
         </motion.div>
 
-        {/* 2. DIRECT IN-CARD EDITABLE DEMO IN HERO WITH PREVIEW MODE & METRICS EDITING */}
+        {/* 2. PRODUCT PREVIEW SECTION */}
         <motion.div
           id="interactive-demo"
+          ref={demoContainerRef}
+          onMouseMove={handleDemoMouseMove}
+          onMouseEnter={() => setIsDemoHovered(true)}
+          onMouseLeave={() => setIsDemoHovered(false)}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-10 md:mt-14 max-w-5xl mx-auto"
+          className="mt-10 md:mt-12 max-w-5xl mx-auto relative overflow-hidden rounded-2xl"
         >
-          <div className="bg-white border border-[#E1E5E9] rounded-2xl p-4 sm:p-6 md:p-7 shadow-sm space-y-4">
-            
-            {/* Interactive Controller Bar with Motion Animated Sliding Indicator Pills */}
+          {/* Glowing cursor tracker blur background circle */}
+          <motion.div
+            animate={{
+              x: mousePos.x - 120,
+              y: mousePos.y - 120,
+              opacity: isDemoHovered ? 0.25 : 0.08,
+              scale: isDemoHovered ? 1.2 : 1,
+            }}
+            transition={{ type: "spring", stiffness: 150, damping: 28, mass: 0.1 }}
+            className="absolute pointer-events-none w-64 h-64 rounded-full bg-gradient-to-tr from-brand-primary via-cyan-400 to-indigo-500 blur-3xl"
+            style={{ left: 0, top: 0, zIndex: 0 }}
+          />
+
+          <div className="bg-white/80 backdrop-blur-md border border-[#E1E5E9] rounded-2xl p-4 sm:p-6 md:p-7 shadow-sm space-y-4 relative z-10">
+            {/* Interactive Controller Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#ECEEF1]">
               <div className="flex items-center gap-2.5 flex-wrap w-full justify-between sm:justify-start">
-                
-                {/* 1. Mode Selector (Icons Only) */}
+                {/* 1. Mode Selector */}
                 <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
                   <button
                     type="button"
@@ -242,10 +303,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                   </button>
                 </div>
 
-                {/* Divider */}
                 <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-                {/* 2. Layout/Platform Selector (Icons Only) */}
+                {/* 2. Platform Selector */}
                 <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
                   <button
                     type="button"
@@ -253,7 +313,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                     className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
                       selectedPlatform === "x" ? "text-[#1D9BF0]" : "text-[#626A73] hover:text-[#17191C]"
                     }`}
-                    title="X Post Layout"
+                    title="X Layout"
                   >
                     {selectedPlatform === "x" && (
                       <motion.div
@@ -283,10 +343,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                   </button>
                 </div>
 
-                {/* Divider */}
                 <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-                {/* 3. Theme Selector (Icons Only: Light, Dark, Retro) */}
+                {/* 3. Theme Selector */}
                 <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
                   <button
                     type="button"
@@ -328,7 +387,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                     className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
                       selectedTheme === "retro" ? "text-cyan-300" : "text-[#626A73] hover:text-[#17191C]"
                     }`}
-                    title="Holographic Retro Theme"
+                    title="Retro Theme"
                   >
                     {selectedTheme === "retro" && (
                       <motion.div
@@ -341,10 +400,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                   </button>
                 </div>
 
-                {/* Divider */}
                 <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-                {/* 4. Font Dropdown Selector */}
+                {/* 4. Font Selector */}
                 <div className="relative">
                   <select
                     value={selectedFont}
@@ -363,10 +421,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                   </div>
                 </div>
 
-                {/* Divider */}
                 <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-                {/* 5. Canvas Backdrop Dropdown Swatches */}
+                {/* 5. Backdrop Swatches */}
                 <div className="relative">
                   <button
                     type="button"
@@ -428,32 +485,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                     )}
                   </AnimatePresence>
                 </div>
-
-                {/* 6. Character Limit Counter beside Backdrop */}
-                <div
-                  className="h-8 px-2.5 rounded-lg border border-[#D0D7DE] bg-white text-xs font-semibold flex items-center gap-1.5 shadow-xs select-none"
-                  title={`${currentPost.content.text?.length || 0} / 500 characters used`}
-                >
-                  <span
-                    className={
-                      (currentPost.content.text?.length || 0) >= 500
-                        ? "text-rose-600 font-bold"
-                        : (currentPost.content.text?.length || 0) >= 400
-                        ? "text-amber-600 font-bold"
-                        : "text-[#17191C] font-semibold"
-                    }
-                  >
-                    {currentPost.content.text?.length || 0}
-                  </span>
-                  <span className="text-[#8D959F]">/</span>
-                  <span className="text-[#8D959F]">500</span>
-                </div>
-
               </div>
             </div>
 
-            {/* Direct In-Card Editable Canvas Container with generous preview scale and compact outer padding */}
-            <div className="p-3 sm:p-5 md:p-6 bg-[#EDF1F5] rounded-xl flex items-center justify-center min-h-[420px] overflow-hidden w-full transition-all duration-300">
+            {/* In-Card Canvas */}
+            <div className="p-3 sm:p-5 md:p-6 bg-[#EDF1F5] rounded-xl flex items-center justify-center min-h-[400px] overflow-hidden w-full transition-all duration-300">
               <CanvasWrapper background={demoCustomization.canvasBackground} padding={demoCustomization.canvasPadding}>
                 <PostCard
                   post={currentPost}
@@ -463,12 +499,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
               </CanvasWrapper>
             </div>
 
-            {/* Hint & Perfectly Aligned Studio Launch Button */}
+            {/* Action Bar Below Canvas */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
               <span className="text-xs text-[#626A73] text-center sm:text-left">
                 {isDirectEdit
-                  ? "Direct Edit Active: Type directly in the card or edit metric counts."
-                  : "Switch to Direct Edit mode or customize further in Studio Generator."}
+                  ? "Direct Edit Active: Type directly on the card to edit content."
+                  : "Preview Mode: Switch themes, fonts, and backgrounds above."}
               </span>
               <motion.button
                 whileHover={{ scale: 1.02, y: -1 }}
@@ -477,33 +513,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                 onClick={() => onOpenGenerator(currentPost, demoCustomization)}
                 className="w-auto h-10 px-5 rounded-lg bg-brand-primary text-white font-semibold text-xs flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs shrink-0"
               >
-                <span>Customize in Studio</span>
-                <IoArrowForward className="w-4 h-4" />
+                <span>Visit Studio</span>
+                <FiArrowRight className="w-3.5 h-3.5" />
               </motion.button>
             </div>
           </div>
         </motion.div>
       </section>
 
-      {/* 3. INTERACTIVE BEFORE / AFTER SLIDER SECTION */}
-      <section className="py-20 md:py-28 bg-white border-y border-[#E1E5E9]">
+      {/* 3. COMPARISON SECTION */}
+      <section className="py-20 md:py-24 bg-white border-y border-[#E1E5E9]">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="text-center max-w-2xl mx-auto space-y-3 mb-12"
+            className="text-center max-w-2xl mx-auto space-y-3 mb-10"
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-[#17191C] tracking-tight">
-              Why screenshots hurt your content quality
+              Your best posts deserve more than a screenshot.
             </h2>
-            <p className="text-sm sm:text-base text-[#626A73]">
-              Drag the interactive slider below to compare messy screenshots with sleek, modern Smyl cards.
+            <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
+              Screenshots are easy to make, but they rarely look intentional. Smyl turns your posts into clean, platform-inspired cards designed for sharing.
             </p>
           </motion.div>
 
-          {/* Draggable Comparison Slider */}
+          {/* Interactive Comparison Slider */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -512,7 +548,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
             className="max-w-4xl mx-auto"
           >
             <div
-              className="relative w-full h-[440px] sm:h-[480px] md:h-[520px] rounded-2xl overflow-hidden select-none border border-[#E1E5E9] shadow-sm cursor-ew-resize group"
+              className="relative w-full h-[400px] sm:h-[460px] md:h-[500px] rounded-2xl overflow-hidden select-none border border-[#E1E5E9] shadow-sm cursor-ew-resize group"
               onMouseDown={(e) => {
                 isDraggingRef.current = true;
                 const rect = e.currentTarget.getBoundingClientRect();
@@ -535,23 +571,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                 if (e.touches[0]) handleSliderMove(e.touches[0].clientX, rect);
               }}
             >
-              {/* RIGHT SIDE: The Smyl Card (Base Layer Image) */}
+              {/* RIGHT SIDE: The Smyl Card */}
               <div className="absolute inset-0 bg-[#0F172A] overflow-hidden flex items-center justify-center">
                 <img
                   src={PLACEHOLDER_IMAGES.comparison.after}
                   alt={PLACEHOLDER_IMAGES.comparison.afterAlt}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                
-                {/* Badge Indicator */}
                 <div className="absolute top-5 right-5 bg-emerald-600/95 backdrop-blur-md text-white text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-xs flex items-center gap-1.5 z-20">
                   <IoCheckmarkCircle className="w-3.5 h-3.5" />
                   <span>The Smyl Card</span>
                 </div>
               </div>
 
-              {/* LEFT SIDE: The Messy Screenshot (Clipped Layer Image) */}
+              {/* LEFT SIDE: Messy Screenshot */}
               <div
                 className="absolute inset-0 bg-[#1E293B] overflow-hidden flex items-center justify-center"
                 style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
@@ -561,18 +594,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                   alt={PLACEHOLDER_IMAGES.comparison.beforeAlt}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-red-950/60 via-transparent to-red-950/30" />
-
-                 {/* Badge Indicator */}
-                <div className="absolute top-5 left-5 bg-red-600/95 backdrop-blur-md text-white text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-xs flex items-center gap-1.5 z-20">
+                <div className="absolute top-5 left-5 bg-rose-600/95 backdrop-blur-md text-white text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-xs flex items-center gap-1.5 z-20">
                   <IoCloseCircle className="w-3.5 h-3.5 shrink-0" />
-                  <span>Messy Screenshot</span>
+                  <span>Plain Screenshot</span>
                 </div>
               </div>
 
-              {/* Draggable Divider Line & Perfectly Centered Handle */}
+              {/* Slider Handle */}
               <div
-                className="absolute top-0 bottom-0 w-[2px] bg-white/95 shadow-[0_0_10px_rgba(0,0,0,0.5)] z-40 pointer-events-none -translate-x-1/2"
+                className="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-40 pointer-events-none -translate-x-1/2"
                 style={{ left: `${sliderPosition}%` }}
               >
                 <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white shadow-[0_2px_12px_rgba(0,0,0,0.3)] flex items-center justify-center text-[#17191C] pointer-events-auto hover:scale-110 active:scale-95 transition-transform duration-200 cursor-ew-resize">
@@ -585,15 +615,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
             </div>
 
             <div className="text-center mt-3 text-xs text-[#626A73]">
-              Drag the arrow left and right to inspect the visual contrast
+              Drag handle left and right to inspect the visual contrast
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* 4. HOW SMYL WORKS SECTION - 3 STEP CARDS REDESIGN MATCHING REFERENCE */}
-      <section className="py-20 md:py-28 px-4 max-w-7xl mx-auto">
-        {/* Section Eyebrow, Title & Subtitle */}
+      {/* 4. HOW IT WORKS SECTION */}
+      <section className="py-20 md:py-24 px-4 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -601,23 +630,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="text-center max-w-2xl mx-auto space-y-3 mb-12 sm:mb-16"
         >
-          {/* Eyebrow Pill with blue indicator box */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-soft text-brand-primary text-xs font-bold border border-brand-primary/15">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-soft text-brand-primary text-xs font-bold border border-brand-primary/15 uppercase tracking-wider">
             <span className="w-2 h-2 rounded-xs bg-brand-primary inline-block shrink-0" />
-            <span>How It Works</span>
+            <span>HOW IT WORKS</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#17191C] tracking-tight leading-tight">
-            From post to card in 3 simple steps
+            From post to shareable card in 3 simple steps.
           </h2>
-          <p className="text-sm sm:text-base text-[#626A73] leading-relaxed max-w-xl mx-auto">
-            Paste your post link or draft, fine-tune design presets & styling, and export high-resolution cards in seconds.
-          </p>
         </motion.div>
 
         {/* 3 Step Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-          {PLACEHOLDER_IMAGES.howItWorks.map((item, idx) => (
+          {[
+            {
+              step: "01",
+              title: "Paste your post",
+              desc: "Paste plain text or enter a URL from X or LinkedIn to parse author details and content automatically.",
+              image: PLACEHOLDER_IMAGES.howItWorks[0].imageUrl,
+              alt: PLACEHOLDER_IMAGES.howItWorks[0].alt,
+            },
+            {
+              step: "02",
+              title: "Make it yours",
+              desc: "Customize platform layout, light/dark theme, background gradients, and font pairings in real-time.",
+              image: PLACEHOLDER_IMAGES.howItWorks[1].imageUrl,
+              alt: PLACEHOLDER_IMAGES.howItWorks[1].alt,
+            },
+            {
+              step: "03",
+              title: "Export & share",
+              desc: "Download high-DPI, 100% watermark-free PNG visual cards ready to share on any platform.",
+              image: PLACEHOLDER_IMAGES.howItWorks[2].imageUrl,
+              alt: PLACEHOLDER_IMAGES.howItWorks[2].alt,
+            },
+          ].map((item, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, y: 30 }}
@@ -627,87 +674,83 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
               className="flex flex-col group cursor-pointer"
               onClick={() => onOpenGenerator()}
             >
-              {/* Visual Holder Container */}
               <div className="w-full bg-[#F4F6F9] border border-[#E8ECF0] rounded-3xl p-5 sm:p-6 aspect-[4/3] relative overflow-hidden flex items-center justify-center shadow-2xs group-hover:border-[#CBD5E1] transition-colors duration-200">
                 <img
-                  src={item.imageUrl}
+                  src={item.image}
                   alt={item.alt}
                   className="w-full h-full object-cover rounded-2xl border border-white/60 shadow-xs transition-transform duration-500 group-hover:scale-[1.03]"
                 />
               </div>
 
-              {/* Step Text Below Container */}
               <div className="pt-4 px-1 space-y-1">
-                <span className="text-xs font-bold text-brand-primary uppercase tracking-wider block">
-                  {item.stepLabel}
+                <span className="text-xs font-extrabold text-brand-primary uppercase tracking-wider block">
+                  Step {item.step}
                 </span>
                 <h3 className="text-base sm:text-lg font-bold text-[#17191C] leading-snug">
                   {item.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-[#626A73] leading-relaxed">
-                  {item.description}
+                  {item.desc}
                 </p>
               </div>
             </motion.div>
           ))}
         </div>
+
+        <div className="mt-12 text-center">
+          <motion.button
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.98, y: 0 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            onClick={() => onOpenGenerator()}
+            className="h-10 px-6 rounded-xl bg-brand-primary text-white font-semibold text-xs inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+          >
+            <span>Visit Studio</span>
+            <FiArrowRight className="w-3.5 h-3.5" />
+          </motion.button>
+        </div>
       </section>
 
-      {/* 5. ENGINEERED FOR VISUAL AUTHORITY SECTION WITH HORIZONTAL SCROLL DECK */}
+      {/* 6. BENEFIT CARDS SECTION */}
       <section className="py-20 bg-white border-t border-[#E1E5E9]">
         <div className="max-w-7xl mx-auto px-4">
-          
-          {/* Header Title Bar */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-60px" }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="text-center max-w-2xl mx-auto space-y-4 mb-12 flex flex-col items-center"
+            className="text-center max-w-2xl mx-auto space-y-3 mb-12"
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-[#17191C] tracking-tight">
-              Engineered for visual authority
+              Everything you need for a post that looks shareable.
             </h2>
-            <p className="text-sm sm:text-base text-[#626A73] max-w-xl">
-              Inspect how Smyl's mathematically balanced layout elements transform basic post captures into high-converting visual assets.
+            <p className="text-sm sm:text-base text-[#626A73]">
+              Designed to elevate your text into clean, engaging visuals.
             </p>
-
-            <div className="pt-2">
-              <motion.button
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98, y: 0 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => onOpenGenerator()}
-                className="h-10 px-6 rounded-lg bg-brand-primary text-white font-semibold text-sm inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-all cursor-pointer shadow-xs w-auto"
-              >
-                <span>Get Started for Free</span>
-                <IoArrowForward className="w-4 h-4" />
-              </motion.button>
-            </div>
           </motion.div>
 
-          {/* Responsive 4-Card Deck with Offset Bottom-Left Notch Accent (Consistently adhering to Brand Theme) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 max-w-4xl mx-auto mt-12 px-4">
+          {/* 4 Benefit Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto px-4">
             {[
               {
                 num: "01",
-                title: "Editorial Layout Proportions",
-                desc: "Subconscious alignment. Stop relying on default social layout grids. Elevate your key statements with editorial typography pairings and customized margins.",
+                title: "Platform-inspired layouts",
+                desc: "Designed specifically to mirror the authentic structure of X and LinkedIn posts so your content looks native and credible.",
               },
               {
                 num: "02",
-                title: "Credibility Reinforced",
-                desc: "Instant design authority. Enrich your text posts with crisp, high-DPI verified badges, custom circular avatars, and authentic platform branding.",
+                title: "Clean, readable formatting",
+                desc: "Optimized typography, line heights, and padding that make your post effortless to read across all feed sizes.",
               },
               {
                 num: "03",
-                title: "Atmospheric Canvas Depths",
-                desc: "Feed-stopping backdrops. Stop pasting raw text on boring white feeds. Wrap your ideas in deep dim gradients or organic light canvas backdrops that break feed monotony.",
+                title: "Customizable styles",
+                desc: "Pick from clean light and dark themes, background gradients, and font pairings that align with your personal brand.",
               },
               {
                 num: "04",
-                title: "Boost Feed Click-Throughs",
-                desc: "Designed to drive engagement. Every line height and color contrast ratio is WCAG AA compliant to guarantee immediate legibility and seamless mobile viewing.",
+                title: "Ready to export",
+                desc: "Download high-DPI, 100% watermark-free PNG images instantly ready for newsletters, blogs, or social feeds.",
               },
             ].map((card, idx) => (
               <motion.div
@@ -715,25 +758,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-60px" }}
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -3 }}
                 transition={{ duration: 0.5, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
                 className="relative group"
               >
-                {/* Offset Bottom-Left Notch Accent Block using Brand Primary */}
+                {/* Offset Bottom-Left Notch Accent */}
                 <div className="absolute -bottom-2.5 -left-2.5 w-24 sm:w-28 h-12 sm:h-14 rounded-bl-2xl rounded-tr-lg bg-brand-primary opacity-90 transition-transform duration-300 group-hover:translate-x-[-2px] group-hover:translate-y-[2px]" />
 
                 {/* Main White Card Box */}
                 <div className="relative z-10 bg-white border border-[#E1E5E9] shadow-md hover:shadow-lg transition-all rounded-2xl p-6 sm:p-7 flex items-start gap-4 sm:gap-5">
-                  {/* Stylized Number in Brand Primary */}
                   <span className="text-3xl sm:text-4xl font-black tracking-tight shrink-0 select-none leading-none pt-0.5 text-brand-primary">
                     {card.num}
                   </span>
 
-                  {/* Title & Desc */}
                   <div className="space-y-1.5">
-                    <h4 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-brand-primary">
+                    <h3 className="text-sm sm:text-base font-bold text-[#17191C]">
                       {card.title}
-                    </h4>
+                    </h3>
                     <p className="text-xs sm:text-sm text-[#626A73] leading-relaxed font-normal">
                       {card.desc}
                     </p>
@@ -743,11 +784,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
             ))}
           </div>
 
+          <div className="mt-12 text-center">
+            <motion.button
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.98, y: 0 }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              onClick={() => onOpenGenerator()}
+              className="h-10 px-6 rounded-xl bg-brand-primary text-white font-semibold text-xs inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+            >
+              <span>Visit Studio</span>
+              <FiArrowRight className="w-3.5 h-3.5" />
+            </motion.button>
+          </div>
         </div>
       </section>
 
-      {/* 6. SLEEK & ELEGANT FAQ SECTION WITH SILKY SMOOTH MOTION EXPANSION */}
-      <section className="py-20 md:py-28 px-4 max-w-3xl mx-auto space-y-10">
+      {/* 7. FAQ SECTION */}
+      <section className="py-20 md:py-24 px-4 max-w-3xl mx-auto space-y-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -758,26 +811,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
           <h2 className="text-3xl sm:text-4xl font-bold text-[#17191C] tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="text-sm sm:text-base text-[#626A73]">Everything you need to know about exporting high-DPI social media cards, design customizations, and licensing.</p>
+          <p className="text-sm sm:text-base text-[#626A73]">
+            Everything you need to know about Smyl card generation and usage.
+          </p>
         </motion.div>
 
         <div className="divide-y divide-[#ECEEF1] border-y border-[#ECEEF1]">
           {[
             {
-              q: "Does Smyl add watermarks to exported cards?",
-              a: "No. All exported PNG images are clean, crisp, and 100% watermark-free. You can use them freely in commercial presentations, blogs, or newsletters.",
+              q: "What is Smyl?",
+              a: "Smyl is a web tool that transforms social text posts and links into clean, platform-inspired visual cards ready to share.",
             },
             {
-              q: "Can I edit the post text, handles, and engagement metrics manually?",
-              a: "Yes. You can edit any element directly in the card or adjust author names, avatars, timestamps, likes, comments, reposts, and views in real-time.",
+              q: "What posts can I use?",
+              a: "You can paste text from X (Twitter), LinkedIn, or notes, or paste a public post URL to parse content automatically.",
             },
             {
-              q: "What platforms and card orientations are supported?",
-              a: "Smyl supports authentic post card formats for both X (Twitter) and LinkedIn with Auto, Landscape, Portrait, and Square aspect ratios.",
+              q: "Do I need design skills?",
+              a: "No design skills required. Smyl handles layout, font pairings, padding, and contrast automatically.",
             },
             {
-              q: "How do custom Google Fonts work?",
-              a: "You can select from 12 curated Google Fonts—including DM Sans, Inter, Roboto, Lora Serif, JetBrains Mono, and Plus Jakarta Sans—to match the tone of your brand.",
+              q: "Can I customize my card?",
+              a: "Yes. You can switch between light, dark, and retro themes, pick background colors, customize font styles, and toggle post metadata.",
+            },
+            {
+              q: "Can I use exported cards commercially?",
+              a: "Yes. All exported cards are 100% watermark-free and yours to use in newsletters, presentations, blogs, or social feeds.",
             },
           ].map((faq, idx) => {
             const isOpen = openFaq === idx;
@@ -799,7 +858,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
                     <IoChevronDown className={`w-4 h-4 ${isOpen ? "text-brand-primary" : ""}`} />
                   </motion.div>
                 </button>
-                
+
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
@@ -822,67 +881,68 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator }) => 
         </div>
       </section>
 
-      {/* 7. BRAND BLUE CTA SECTION */}
+      {/* 8. FINAL CTA SECTION */}
       <section className="py-14 pb-24 px-4 max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-brand-primary rounded-3xl p-8 sm:p-12 md:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-10 shadow-lg relative overflow-hidden"
+          className="bg-brand-primary rounded-3xl p-8 sm:p-12 md:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-lg relative overflow-hidden"
         >
-          {/* Accent Huge Background Icon on the right */}
+          {/* Background Brand Icon Accent */}
           <div className="absolute right-[-10%] bottom-[-20%] md:right-[-5%] md:bottom-[-10%] opacity-15 pointer-events-none select-none">
             <SmylIcon className="h-64 sm:h-80 md:h-96 w-auto" variant="white" />
           </div>
 
-          <div className="space-y-4 max-w-md text-center md:text-left z-10">
-            <h3 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tighter text-white leading-none">
-              SHARE YOUR SMYLS
-            </h3>
-            <p className="text-xs sm:text-sm text-white/85 leading-relaxed max-w-sm">
-              Upgrade your social post screenshots to studio-grade visuals in seconds. Free, instant, and clean.
+          <div className="space-y-4 max-w-lg text-center md:text-left z-10">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              Your next shareable post is already written.
+            </h2>
+            <p className="text-sm sm:text-base text-white/90 leading-relaxed max-w-md">
+              Paste it into Smyl and turn it into a polished visual.
             </p>
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
               <motion.button
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98, y: 0 }}
                 transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 onClick={() => onOpenGenerator()}
-                className="w-auto h-11 px-6 rounded-lg bg-white text-brand-primary font-semibold text-sm inline-flex items-center justify-center gap-2 hover:bg-[#F5F7F9] active:bg-[#EEF1F4] transition-all cursor-pointer shadow-md"
+                className="w-full sm:w-auto h-11 px-7 rounded-xl bg-white text-brand-primary font-semibold text-sm inline-flex items-center justify-center gap-2 hover:bg-[#F5F7F9] active:bg-[#EEF1F4] transition-all cursor-pointer shadow-md"
               >
-                <span>Get Started for Free</span>
-                <IoArrowForward className="w-4 h-4" />
+                <span>Visit Studio</span>
+                <FiArrowRight className="w-4 h-4" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98, y: 0 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                onClick={onBecomeUser}
+                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-brand-hover text-white border border-white/20 font-semibold text-sm inline-flex items-center justify-center gap-2 hover:bg-brand-pressed transition-all cursor-pointer"
+              >
+                <span>Become a user!</span>
               </motion.button>
             </div>
           </div>
 
-          {/* CTA Right Column Placeholder Image */}
-          <div className="relative z-10 w-full max-w-[340px] h-[220px] rounded-2xl overflow-hidden border border-white/20 shadow-xl flex-shrink-0 bg-white/5">
-            <img 
-              src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80" 
-              alt="Smyl Presentation Graphic"
-              className="w-full h-full object-cover select-none"
-            />
-          </div>
+          {/* Product Preview Image */}
+          <img
+            src={PLACEHOLDER_IMAGES.comparison.after}
+            alt="Smyl Card Preview"
+            className="relative z-10 w-full max-w-[340px] h-[220px] rounded-2xl border border-white/20 shadow-xl flex-shrink-0 object-cover"
+          />
         </motion.div>
       </section>
 
-      {/* 8. FOOTER WITH @2026 LEFT & MADE WITH HEART FROM INDIA RIGHT */}
+      {/* 9. FOOTER */}
       <footer className="py-8 bg-white border-t border-[#E1E5E9] text-xs text-[#626A73]">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span>© 2026</span>
             <SmylTextLogo className="h-4 w-auto" variant="monochrome" />
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-[#626A73]">
-            <span>Made with</span>
-            <IoHeart className="w-3.5 h-3.5 text-red-500 fill-current inline" />
-            <span>from India</span>
           </div>
         </div>
       </footer>
     </div>
   );
 };
-

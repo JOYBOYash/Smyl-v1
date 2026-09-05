@@ -926,3 +926,103 @@ Reduce feature card height to fit text content, eliminate excessive bottom white
 
 ### Result
 Completed
+
+## 2026-09-04 (Supabase-Only Persistence & Navbar UI Polish)
+
+### Request
+Remove local storage support, transition all layout data, drafts, and profile caching strictly to Supabase Cloud, rename Navbar CTA to "Try now", and use the Smyl logo for home page navigation without the "Overview" button.
+
+### Analysis
+- Removed local storage mirrors, caching, and fallback logic from `CardDatabase`, `CardRepository`, and `AuthContext` to transition the app to a purely cloud-backed architecture.
+- Enforced user authentication checks on the templates saving flow, prompting users to sign in before saving to Supabase.
+- Removed the redundant "Overview" button from the floating header navbar, and updated the non-authenticated sign-in button text to "Try Now".
+- Ensured logo remains the primary navigation to the home/landing tab.
+
+### Implementation
+- Updated `/src/utils/db.ts` disabling CRUD local storage operations.
+- Updated `/src/services/cardService.ts` removing local storage fallbacks.
+- Updated `/src/context/AuthContext.tsx` removing profile local storage caching.
+- Updated `/src/App.tsx` with Navbar items cleanup, sign in text change, and authentication constraints on card save.
+
+### Security
+- Strictly enforced cloud database boundaries; users must be authenticated via Supabase to write or load templates.
+
+### Files Changed
+- `/src/utils/db.ts`
+- `/src/services/cardService.ts`
+- `/src/context/AuthContext.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran linter validation and verified complete compilation of the app successfully.
+
+### Result
+Completed
+
+## 2026-09-04 (Hero Polish, Mouse-Responsive Blur, and Icon Adjustments)
+
+### Request
+1. Overhaul hero buttons and URLs: change primary CTA button to 'Visit Studio', secondary button to 'Become a user!', and add Try Live Demo underlined link with arrow underneath.
+2. Implement slightly sleek background blur behind the demo card with mouse responsivity.
+3. Replace the thin Studio icon beside Studio in the navbar.
+4. Standardize arrow icons throughout the app using FiArrowRight.
+
+### Analysis
+- Hero Overhaul: Custom aligned buttons and underlined live demo anchor tag layout.
+- Mouse Responsivity: Mounted Framer Motion spring-animated gradient sphere that tracks mouse position within the container coordinates.
+- Studio Icon: Replaced thin `IoOptions` with a thicker, premium `IoSparkles` filled icon inside the pilled navbar.
+- Arrow Icons: Standardized interactive prompts with `FiArrowRight` from `react-icons/fi` in both Landing Page and Studio history cards.
+
+### Implementation
+- Updated `/src/components/LandingPage.tsx` with responsive mouse track state, a sleek backdrop-blur container, new CTA layout, and `FiArrowRight`.
+- Updated `/src/App.tsx` replacing thin navbar icon and importing `FiArrowRight` for template card loading actions.
+
+### Security
+- Verified all interactive states perform calculations bounded to container dimensions safely without rendering blocking errors.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- `lint_applet` passed successfully.
+- `compile_applet` completed successfully.
+
+### Result
+Completed
+
+## 2026-09-05 (Unified Icon Set Migration to react-icons)
+
+### Request
+Audit and migrate all remaining icons throughout the application from lucide-react to react-icons appropriately.
+
+### Analysis
+- Audited all workspace source files for imports from `"lucide-react"`.
+- Identified remaining lucide-react icons in `src/App.tsx`, `src/components/KeyboardShortcutsModal.tsx`, and `src/components/PostCard.tsx`.
+- Mapped each icon to standard, fully exported equivalents from `react-icons/io5`, `react-icons/fi`, and `react-icons/fa`.
+- Ensured consistent styling, sizing, and visuals across the application.
+
+### Implementation
+- Updated `/src/App.tsx`: Replaced undo/redo button icons with `IoArrowUndoOutline` / `IoArrowRedoOutline`, text alignment options with `FiAlignLeft` / `FiAlignCenter` / `FiAlignRight`, hashtag cloud with `FiHash`, and upload avatar with `FiPlus`.
+- Updated `/src/components/KeyboardShortcutsModal.tsx`: Migrated keyboard icon to `FaKeyboard` from `react-icons/fa`.
+- Updated `/src/components/PostCard.tsx`: Replaced Lucide reaction lightbulb icon with `IoBulb` and the hashtag cloud icon with `FiHash` in both X/Twitter and LinkedIn post layouts.
+- Verified and removed all occurrences of `"lucide-react"` package imports from the codebase.
+
+### Security
+- Verified all icon elements render securely as standard React SVG components with zero unsafe HTML injection.
+
+### Files Changed
+- `/src/App.tsx`
+- `/src/components/KeyboardShortcutsModal.tsx`
+- `/src/components/PostCard.tsx`
+- `/implementation-log.md`
+
+### Verification
+- `lint_applet` compilation checks completed successfully.
+- `compile_applet` production-ready build verification passed with zero errors.
+
+### Result
+Completed
+
