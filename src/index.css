@@ -1,0 +1,161 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #0145F2;
+  --color-brand-hover: #0039D4;
+  --color-brand-pressed: #0030B8;
+  --color-brand-soft: #E8EEFF;
+  --color-canvas: #EDF1F5;
+  --color-surface: #FFFFFF;
+  --color-surface-dark: #111418;
+  --color-text-primary: #17191C;
+  --color-text-secondary: #626A73;
+  --color-text-tertiary: #8D959F;
+  --color-text-muted: #B0B6BD;
+  --color-border-default: #E1E5E9;
+  --color-border-subtle: #ECEEF1;
+  --color-border-hover: #B9C0C8;
+  --color-border-focus: #0145F2;
+  --color-success: #2E9B62;
+  --color-warning: #D99422;
+  --color-error: #D94A4A;
+  
+  --font-sans: "DM Sans", sans-serif;
+  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: "Lora", Georgia, serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Plus Jakarta Sans", sans-serif;
+}
+
+/* Lenis Smooth Scroll Styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+.lenis.lenis-autoToggle {
+  transition-property: overflow;
+  transition-duration: 1ms;
+  transition-behavior: allow-discrete;
+}
+
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+.font-card-sans {
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.font-card-inter {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.font-card-roboto {
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.font-card-display {
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+.font-card-outfit {
+  font-family: "Outfit", sans-serif;
+}
+.font-card-poppins {
+  font-family: "Poppins", sans-serif;
+}
+.font-card-montserrat {
+  font-family: "Montserrat", sans-serif;
+}
+.font-card-space {
+  font-family: "Space Grotesk", sans-serif;
+}
+.font-card-serif {
+  font-family: "Lora", Georgia, serif;
+}
+.font-card-playfair {
+  font-family: "Playfair Display", Georgia, serif;
+}
+.font-card-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+.font-card-fira {
+  font-family: "Fira Code", monospace;
+}
+
+/* Custom modern smooth scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(141, 149, 159, 0.35);
+  border-radius: 9999px;
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-primary);
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(141, 149, 159, 0.35) transparent;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(141, 149, 159, 0.35) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(141, 149, 159, 0.35);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-primary);
+}
