@@ -1063,3 +1063,59 @@ Implement a production-ready Link Shortener utility allowing users to enter a lo
 ### Result
 Completed
 
+## 2026-09-05 (Hero Brand Icons, Funky Arrow, and Text Cleanup)
+
+### Request
+Use actual X and LinkedIn brand icons in the landing page hero section heading text, add a funky arrow icon on a new line from posts text to polished cards, and remove the word "shareable".
+
+### Analysis
+- Visual Identity: Replaced static text labels in the main hero headline of `LandingPage.tsx` with high-fidelity, color-matched inline brand tags featuring standard official icons (`FaXTwitter` and `IoLogoLinkedin`).
+- Directional Flow: Replaced the direct transition text with a new-line transition block featuring a pulsing funky corner-down-right arrow (`FiCornerDownRight`) pointing to "into polished cards".
+- Text Cleanup: Removed the word "shareable" from the heading to streamline copy focus.
+
+### Implementation
+- Updated `/src/components/LandingPage.tsx` importing brand logos and direction arrows, and restructured the main `<h1>` element.
+- Updated `/implementation-log.md`.
+
+### Security
+- Presentation and styling only; no security impacts.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran `lint_applet` successfully with zero errors.
+- Ran `compile_applet` successfully with zero build errors.
+
+### Result
+Completed
+
+## 2026-09-05 (Landing Hero Redesign: Full LinkedIn Wordmark & First Line Alignment)
+
+### Request
+Remove the text letters beside the brand logos, use the full LinkedIn corporate wordmark logo instead of just the square icon, make the entire first phrase "Turn your [X] or [LinkedIn] posts" fit onto the same line, and position "into polished cards" on the second line.
+
+### Analysis
+- Header Aesthetics: Replaced the small LinkedIn square icon with a crisp inline SVG rendering the full "LinkedIn" corporate wordmark (the blue "Linked" vector text next to the blue "in" box).
+- Text Cleanup: Removed all adjacent text helpers ("X", "LinkedIn") from within the logo badges.
+- Fluid Layout: Restructured the Flex containment so that the word "posts" stays on the first line directly after the LinkedIn wordmark badge, and the polished cards text is placed on the second line beneath the funky directional arrow.
+
+### Implementation
+- Updated `/src/components/LandingPage.tsx` with full LinkedIn wordmark SVG and aligned the `<h1>` child rows.
+- Updated `/implementation-log.md`.
+
+### Security
+- Presentation and styling only; no security impacts.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran linter validation via `lint_applet` which succeeded cleanly.
+- Ran production bundling build via `compile_applet` with successful outcome.
+
+### Result
+Completed
+
