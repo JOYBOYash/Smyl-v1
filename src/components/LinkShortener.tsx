@@ -24,9 +24,23 @@ interface ShortLink {
   created_at: string;
 }
 
-export const LinkShortener: React.FC<{ onGenerateQrCode?: (url: string) => void }> = ({ onGenerateQrCode }) => {
+export const LinkShortener: React.FC<{
+  initialUrl?: string;
+  onClearInitialUrl?: () => void;
+  onGenerateQrCode?: (url: string) => void;
+}> = ({ initialUrl, onClearInitialUrl, onGenerateQrCode }) => {
   const { user, isAuthenticated } = useAuth();
   const [longUrl, setLongUrl] = useState("");
+
+  // Pre-populate input if initialUrl is provided
+  useEffect(() => {
+    if (initialUrl) {
+      setLongUrl(initialUrl);
+      if (onClearInitialUrl) {
+        onClearInitialUrl();
+      }
+    }
+  }, [initialUrl, onClearInitialUrl]);
   const [customSlug, setCustomSlug] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

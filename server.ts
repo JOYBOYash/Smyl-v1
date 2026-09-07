@@ -24,6 +24,31 @@ const supabase = createClient(
   supabaseAnonKey || "placeholder-anon-key"
 );
 
+// In-memory fallback for short links if the database table is missing or unconfigured
+const shortLinksFallback = new Map<string, {
+  id: string;
+  slug: string;
+  destination_url: string;
+  user_id: string | null;
+  click_count: number;
+  created_at: string;
+}>();
+
+function isTableMissingError(error: any): boolean {
+  if (!error) return false;
+  const code = String(error.code || "");
+  const msg = String(error.message || "").toLowerCase();
+  return (
+    code === "PGRST205" ||
+    code === "PGRST301" ||
+    code === "PGRST204" ||
+    code === "42P01" ||
+    msg.includes("schema cache") ||
+    msg.includes("could not find the table") ||
+    (msg.includes("relation") && msg.includes("does not exist"))
+  );
+}
+
 // Private IP ranges validation for SSRF Protection
 function isPrivateIp(ip: string): boolean {
   // Check IPv4 format
@@ -269,17 +294,45 @@ async function startServer() {
       }
 
       if (!isSupabaseConfigured) {
-        return res.status(503).send("Database service not configured.");
+        const link = shortLinksFallback.get(cleanSlug);
+        if (!link) {
+          return res.status(404).send("Short link not found or has been removed (unconfigured Supabase).");
+        }
+        link.click_count++;
+        return res.redirect(301, link.destination_url);
       }
 
       // Fetch the link record
-      const { data: link, error } = await supabase
-        .from("short_links")
-        .select("*")
-        .eq("slug", cleanSlug)
-        .maybeSingle();
+      let link: any = null;
+      let dbError: any = null;
 
-      if (error || !link) {
+      try {
+        const { data, error } = await supabase
+          .from("short_links")
+          .select("*")
+          .eq("slug", cleanSlug)
+          .maybeSingle();
+        link = data;
+        dbError = error;
+      } catch (err) {
+        dbError = err;
+      }
+
+      if (dbError) {
+        if (isTableMissingError(dbError)) {
+          console.warn(`Table 'short_links' is missing. Falling back to in-memory store for slug: ${cleanSlug}`);
+          link = shortLinksFallback.get(cleanSlug) || null;
+        } else {
+          console.error("Database check error during redirection lookup:", dbError);
+          return res.status(500).send("Database check error during redirection.");
+        }
+      }
+
+      if (!link) {
+        link = shortLinksFallback.get(cleanSlug) || null;
+      }
+
+      if (!link) {
         return res.status(404).send("Short link not found or has been removed.");
       }
 
@@ -289,15 +342,21 @@ async function startServer() {
         return res.status(400).send("Invalid redirection destination scheme.");
       }
 
-      // Fire-and-forget: safely increment the click count
-      const currentClicks = typeof link.click_count === "string" ? parseInt(link.click_count, 10) : Number(link.click_count || 0);
-      supabase
-        .from("short_links")
-        .update({ click_count: currentClicks + 1 })
-        .eq("id", link.id)
-        .then(({ error: updateErr }) => {
-          if (updateErr) console.error("Failed to update click count:", updateErr);
-        });
+      // Increment click count (either in-memory or database)
+      if (shortLinksFallback.has(cleanSlug)) {
+        const item = shortLinksFallback.get(cleanSlug)!;
+        item.click_count++;
+      } else {
+        // Fire-and-forget: safely increment the click count
+        const currentClicks = typeof link.click_count === "string" ? parseInt(link.click_count, 10) : Number(link.click_count || 0);
+        supabase
+          .from("short_links")
+          .update({ click_count: currentClicks + 1 })
+          .eq("id", link.id)
+          .then(({ error: updateErr }) => {
+            if (updateErr) console.error("Failed to update click count:", updateErr);
+          });
+      }
 
       // Clear, absolute 301 Redirect
       res.redirect(301, dest);
@@ -336,35 +395,53 @@ async function startServer() {
         finalSlug = generateRandomSlug(6);
       }
 
-      if (!isSupabaseConfigured) {
-        return res.status(503).json({ error: "Database service not configured." });
-      }
-
       // Optionally authenticate user via client Authorization header
       let userId: string | null = null;
-      const authHeader = req.headers.authorization;
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.split(" ")[1];
-        try {
-          const { data: { user }, error } = await supabase.auth.getUser(token);
-          if (!error && user) {
-            userId = user.id;
+      if (isSupabaseConfigured) {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith("Bearer ")) {
+          const token = authHeader.split(" ")[1];
+          try {
+            const { data: { user }, error } = await supabase.auth.getUser(token);
+            if (!error && user) {
+              userId = user.id;
+            }
+          } catch (authErr) {
+            // Fallback to anonymous creation if token is expired/invalid
           }
-        } catch (authErr) {
-          // Fallback to anonymous creation if token is expired/invalid
         }
       }
 
       // Perform a lookup to guarantee uniqueness of the custom slug
-      const { data: existing, error: checkErr } = await supabase
-        .from("short_links")
-        .select("id")
-        .eq("slug", finalSlug)
-        .maybeSingle();
+      let existing: any = null;
+      let checkErr: any = null;
+      let useFallback = !isSupabaseConfigured;
 
-      if (checkErr) {
-        console.error("Database check error:", checkErr);
-        return res.status(500).json({ error: "Failed to verify slug availability." });
+      if (isSupabaseConfigured) {
+        try {
+          const { data, error } = await supabase
+            .from("short_links")
+            .select("id")
+            .eq("slug", finalSlug)
+            .maybeSingle();
+          existing = data;
+          checkErr = error;
+        } catch (err) {
+          checkErr = err;
+        }
+
+        if (checkErr) {
+          if (isTableMissingError(checkErr)) {
+            console.warn(`Table 'short_links' is missing. Verifying slug availability in-memory for: ${finalSlug}`);
+            useFallback = true;
+            existing = shortLinksFallback.get(finalSlug) ? { id: "fallback" } : null;
+          } else {
+            console.error("Database check error during creation lookup:", checkErr);
+            return res.status(500).json({ error: "Failed to verify slug availability." });
+          }
+        }
+      } else {
+        existing = shortLinksFallback.get(finalSlug) ? { id: "fallback" } : null;
       }
 
       if (existing) {
@@ -373,24 +450,59 @@ async function startServer() {
         } else {
           // Regenerate one more time for extremely rare random collision
           finalSlug = generateRandomSlug(7);
+          if (useFallback && shortLinksFallback.has(finalSlug)) {
+            finalSlug = generateRandomSlug(8);
+          }
         }
       }
 
-      // Insert record
-      const { data: createdLink, error: insertErr } = await supabase
-        .from("short_links")
-        .insert({
+      let createdLink: any = null;
+      if (useFallback) {
+        createdLink = {
+          id: Math.random().toString(36).substring(2, 15),
           slug: finalSlug,
           destination_url: cleanUrl,
           user_id: userId,
           click_count: 0,
-        })
-        .select()
-        .single();
+          created_at: new Date().toISOString(),
+        };
+        shortLinksFallback.set(finalSlug, createdLink);
+      } else {
+        try {
+          const { data, error: insertErr } = await supabase
+            .from("short_links")
+            .insert({
+              slug: finalSlug,
+              destination_url: cleanUrl,
+              user_id: userId,
+              click_count: 0,
+            })
+            .select()
+            .single();
 
-      if (insertErr) {
-        console.error("Database insertion error:", insertErr);
-        return res.status(500).json({ error: "Failed to register shortened URL." });
+          if (insertErr) {
+            if (isTableMissingError(insertErr)) {
+              console.warn(`Table 'short_links' is missing during insert. Falling back to in-memory store for slug: ${finalSlug}`);
+              createdLink = {
+                id: Math.random().toString(36).substring(2, 15),
+                slug: finalSlug,
+                destination_url: cleanUrl,
+                user_id: userId,
+                click_count: 0,
+                created_at: new Date().toISOString(),
+              };
+              shortLinksFallback.set(finalSlug, createdLink);
+            } else {
+              console.error("Database insertion error:", insertErr);
+              return res.status(500).json({ error: "Failed to register shortened URL." });
+            }
+          } else {
+            createdLink = data;
+          }
+        } catch (err) {
+          console.error("Database insertion crash:", err);
+          return res.status(500).json({ error: "Failed to register shortened URL." });
+        }
       }
 
       // Construct short URL using host of current request
@@ -608,6 +720,512 @@ ${scrapedMetadata}`;
     } catch (error: any) {
       console.error("Gemini Parsing Error:", error);
       res.status(500).json({ error: error.message || "Failed to parse post content." });
+    }
+  });
+
+  // ==========================================
+  // LINK HUB ENDPOINTS (WITH FALLBACK ENGINE)
+  // ==========================================
+
+  const RESERVED_SLUGS = new Set([
+    "landing", "customize", "history", "shortener", "qr", "preview", 
+    "ogdebug", "utm", "api", "auth", "admin", "settings", "h", "s", 
+    "public", "save", "redirect", "click", "assets", "static", "help", "hubs"
+  ]);
+
+  function validateHubSlug(slug: string): { isValid: boolean; error?: string } {
+    const normalized = slug.trim().toLowerCase();
+    if (normalized.length < 3 || normalized.length > 30) {
+      return { isValid: false, error: "Slug must be between 3 and 30 characters." };
+    }
+    if (!/^[a-z0-9-]+$/.test(normalized)) {
+      return { isValid: false, error: "Slug can only contain lowercase letters, numbers, and hyphens." };
+    }
+    if (RESERVED_SLUGS.has(normalized)) {
+      return { isValid: false, error: "This slug is a reserved system route and cannot be used." };
+    }
+    return { isValid: true };
+  }
+
+  function validateDestinationUrl(urlStr: string): boolean {
+    try {
+      const parsed = new URL(urlStr);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch (err) {
+      return false;
+    }
+  }
+
+  // Helper to authenticate
+  async function getAuthenticatedUser(req: any): Promise<string | null> {
+    if (!isSupabaseConfigured) {
+      return "anonymous-local-user";
+    }
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (!error && user) {
+          return user.id;
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    return "anonymous-local-user";
+  }
+
+  const fallbackLinkHubs = new Map<string, any>(); // Key: id, or slug
+  const fallbackLinkHubItems = new Map<string, any[]>(); // Key: hub_id
+
+  // 1. GET User Link Hubs
+  app.get("/api/hubs", async (req, res) => {
+    try {
+      const userId = await getAuthenticatedUser(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized access." });
+      }
+
+      let hubs: any[] = [];
+      let dbError: any = null;
+
+      if (isSupabaseConfigured && userId !== "anonymous-local-user") {
+        try {
+          const { data, error } = await supabase
+            .from("link_hubs")
+            .select("*")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false });
+          
+          if (error) {
+            dbError = error;
+          } else {
+            hubs = data || [];
+          }
+        } catch (err) {
+          dbError = err;
+        }
+      }
+
+      // If database is not configured or table missing or user is anonymous, return from memory fallback
+      if (!isSupabaseConfigured || userId === "anonymous-local-user" || (dbError && isTableMissingError(dbError))) {
+        hubs = Array.from(fallbackLinkHubs.values()).filter(h => h.user_id === userId);
+      } else if (dbError) {
+        console.error("Database error fetching hubs:", dbError);
+        return res.status(500).json({ error: "Failed to load link hubs from database." });
+      }
+
+      // Fetch items for each hub
+      const enrichedHubs = [];
+      for (const hub of hubs) {
+        let items: any[] = [];
+        let itemsError: any = null;
+
+        if (isSupabaseConfigured && userId !== "anonymous-local-user" && !isTableMissingError(dbError)) {
+          try {
+            const { data, error } = await supabase
+              .from("link_hub_items")
+              .select("*")
+              .eq("hub_id", hub.id)
+              .order("position", { ascending: true });
+            if (error) itemsError = error;
+            else items = data || [];
+          } catch (err) {
+            itemsError = err;
+          }
+        }
+
+        if (!isSupabaseConfigured || userId === "anonymous-local-user" || (itemsError && isTableMissingError(itemsError)) || (dbError && isTableMissingError(dbError))) {
+          items = fallbackLinkHubItems.get(hub.id) || [];
+          items.sort((a, b) => a.position - b.position);
+        }
+
+        enrichedHubs.push({
+          ...hub,
+          items
+        });
+      }
+
+      res.json(enrichedHubs);
+    } catch (err: any) {
+      console.error("GET /api/hubs error:", err);
+      res.status(500).json({ error: err.message || "Failed to load link hubs." });
+    }
+  });
+
+  // 2. POST Save/Upsert Link Hub and Items
+  app.post("/api/hubs/save", async (req, res) => {
+    try {
+      const userId = await getAuthenticatedUser(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized access." });
+      }
+
+      const { hub, items } = req.body;
+      if (!hub || typeof hub !== "object") {
+        return res.status(400).json({ error: "Invalid hub structure." });
+      }
+
+      const slug = String(hub.slug || "").trim().toLowerCase();
+      const slugVal = validateHubSlug(slug);
+      if (!slugVal.isValid) {
+        return res.status(400).json({ error: slugVal.error });
+      }
+
+      // Validate destination URLs
+      const validatedItems = Array.isArray(items) ? items : [];
+      for (const item of validatedItems) {
+        if (!item.title || String(item.title).trim() === "") {
+          return res.status(400).json({ error: "Every link item must have a title." });
+        }
+        if (!validateDestinationUrl(item.destination_url)) {
+          return res.status(400).json({ error: `Invalid protocol or format in destination URL for link: "${item.title}". Only http:// or https:// is allowed.` });
+        }
+      }
+
+      // Check if slug is taken by another hub (not owned by current user)
+      let isSlugTaken = false;
+      let existingHubId: string | null = null;
+      let checkError: any = null;
+
+      if (isSupabaseConfigured && userId !== "anonymous-local-user") {
+        try {
+          const { data, error } = await supabase
+            .from("link_hubs")
+            .select("id, user_id")
+            .eq("slug", slug)
+            .maybeSingle();
+          if (error) {
+            checkError = error;
+          } else if (data) {
+            if (data.user_id !== userId) {
+              isSlugTaken = true;
+            }
+            existingHubId = data.id;
+          }
+        } catch (err) {
+          checkError = err;
+        }
+      }
+
+      // Memory check fallback
+      if (!isSupabaseConfigured || userId === "anonymous-local-user" || (checkError && isTableMissingError(checkError))) {
+        const memHub = Array.from(fallbackLinkHubs.values()).find(h => h.slug === slug);
+        if (memHub) {
+          if (memHub.user_id !== userId) {
+            isSlugTaken = true;
+          }
+          existingHubId = memHub.id;
+        }
+      }
+
+      if (isSlugTaken) {
+        return res.status(400).json({ error: `The custom URL alias "smyl.link/h/${slug}" is already taken by another profile.` });
+      }
+
+      let finalHubId = hub.id || existingHubId || Math.random().toString(36).substring(2, 15);
+      const hubData = {
+        id: finalHubId,
+        user_id: userId,
+        slug,
+        display_name: String(hub.display_name || "").trim() || slug,
+        bio: String(hub.bio || "").trim(),
+        avatar_path: hub.avatar_path || null,
+        theme_config: hub.theme_config || {
+          theme: "light",
+          background: "bg-[#F8FAFC]",
+          button_style: "rounded-xl border border-[#E1E5E9] bg-white text-[#17191C]"
+        },
+        is_published: Boolean(hub.is_published),
+        updated_at: new Date().toISOString()
+      };
+
+      let savedHub: any = null;
+      let writeError: any = null;
+      let useFallback = !isSupabaseConfigured || userId === "anonymous-local-user";
+
+      if (isSupabaseConfigured && userId !== "anonymous-local-user") {
+        try {
+          // Check ownership if update
+          if (hub.id) {
+            const { data: ownershipCheck, error: ownerError } = await supabase
+              .from("link_hubs")
+              .select("user_id")
+              .eq("id", hub.id)
+              .maybeSingle();
+            
+            if (ownerError) throw ownerError;
+            if (ownershipCheck && ownershipCheck.user_id !== userId) {
+              return res.status(403).json({ error: "Access denied. You do not own this Link Hub." });
+            }
+          }
+
+          // Upsert Hub
+          const { data, error } = await supabase
+            .from("link_hubs")
+            .upsert({
+              ...hubData,
+              created_at: hub.created_at || new Date().toISOString()
+            })
+            .select()
+            .single();
+
+          if (error) {
+            writeError = error;
+          } else {
+            savedHub = data;
+          }
+        } catch (err) {
+          writeError = err;
+        }
+      }
+
+      if (!isSupabaseConfigured || userId === "anonymous-local-user" || (writeError && isTableMissingError(writeError))) {
+        useFallback = true;
+        const oldHub = fallbackLinkHubs.get(finalHubId);
+        savedHub = {
+          ...hubData,
+          created_at: oldHub ? oldHub.created_at : new Date().toISOString()
+        };
+        fallbackLinkHubs.set(finalHubId, savedHub);
+      } else if (writeError) {
+        console.error("Database save error:", writeError);
+        return res.status(500).json({ error: "Failed to save Link Hub to database." });
+      }
+
+      // Upsert Items
+      const savedItems: any[] = [];
+      const itemIdsToKeep = new Set<string>();
+
+      if (useFallback) {
+        const fallbacks: any[] = [];
+        validatedItems.forEach((item, index) => {
+          const itemId = item.id || Math.random().toString(36).substring(2, 15);
+          itemIdsToKeep.add(itemId);
+          const oldItem = (fallbackLinkHubItems.get(finalHubId) || []).find(i => i.id === itemId);
+          const newItem = {
+            id: itemId,
+            hub_id: finalHubId,
+            title: String(item.title).trim(),
+            description: String(item.description || "").trim(),
+            destination_url: String(item.destination_url).trim(),
+            image_path: item.image_path || null,
+            position: index,
+            is_enabled: item.is_enabled !== false,
+            click_count: oldItem ? oldItem.click_count : 0,
+            created_at: oldItem ? oldItem.created_at : new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          fallbacks.push(newItem);
+          savedItems.push(newItem);
+        });
+        fallbackLinkHubItems.set(finalHubId, fallbacks);
+      } else {
+        // Find existing IDs to delete from db if not in payload
+        validatedItems.forEach(item => {
+          if (item.id) itemIdsToKeep.add(item.id);
+        });
+
+        // Delete removed items
+        if (itemIdsToKeep.size > 0) {
+          await supabase
+            .from("link_hub_items")
+            .delete()
+            .eq("hub_id", finalHubId)
+            .not("id", "in", `(${Array.from(itemIdsToKeep).join(",")})`);
+        } else {
+          await supabase
+            .from("link_hub_items")
+            .delete()
+            .eq("hub_id", finalHubId);
+        }
+
+        // Upsert new ones
+        for (let i = 0; i < validatedItems.length; i++) {
+          const item = validatedItems[i];
+          const itemId = item.id || gen_random_uuid_local();
+          const itemPayload = {
+            id: itemId,
+            hub_id: finalHubId,
+            title: String(item.title).trim(),
+            description: String(item.description || "").trim(),
+            destination_url: String(item.destination_url).trim(),
+            image_path: item.image_path || null,
+            position: i,
+            is_enabled: item.is_enabled !== false,
+            click_count: item.click_count || 0,
+            updated_at: new Date().toISOString()
+          };
+
+          const { data: savedItem, error: itemErr } = await supabase
+            .from("link_hub_items")
+            .upsert({
+              ...itemPayload,
+              created_at: item.created_at || new Date().toISOString()
+            })
+            .select()
+            .single();
+
+          if (itemErr) {
+            console.error("Failed to upsert link hub item:", itemErr);
+          } else {
+            savedItems.push(savedItem);
+          }
+        }
+      }
+
+      res.json({
+        ...savedHub,
+        items: savedItems
+      });
+    } catch (err: any) {
+      console.error("POST /api/hubs/save error:", err);
+      res.status(500).json({ error: err.message || "Failed to sync Link Hub state." });
+    }
+  });
+
+  function gen_random_uuid_local() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  // 3. GET Public Link Hub by Slug
+  app.get("/api/hubs/public/:slug", async (req, res) => {
+    try {
+      const slug = String(req.params.slug).trim().toLowerCase();
+      
+      let hub: any = null;
+      let dbError: any = null;
+
+      if (isSupabaseConfigured) {
+        try {
+          const { data, error } = await supabase
+            .from("link_hubs")
+            .select("*")
+            .eq("slug", slug)
+            .maybeSingle();
+          hub = data;
+          dbError = error;
+        } catch (err) {
+          dbError = err;
+        }
+      }
+
+      if (!isSupabaseConfigured || (dbError && isTableMissingError(dbError))) {
+        hub = Array.from(fallbackLinkHubs.values()).find(h => h.slug === slug) || null;
+      }
+
+      if (!hub) {
+        return res.status(404).json({ error: "Link Hub profile not found." });
+      }
+
+      // Check draft state -> if not published, the active user MUST be the owner to view it
+      if (!hub.is_published) {
+        const userId = await getAuthenticatedUser(req);
+        if (hub.user_id !== userId) {
+          return res.status(403).json({ error: "This Link Hub is currently offline (draft mode)." });
+        }
+      }
+
+      // Fetch items
+      let items: any[] = [];
+      let itemsError: any = null;
+
+      if (isSupabaseConfigured && (!dbError || !isTableMissingError(dbError))) {
+        try {
+          const { data, error } = await supabase
+            .from("link_hub_items")
+            .select("*")
+            .eq("hub_id", hub.id)
+            .order("position", { ascending: true });
+          
+          items = data || [];
+          itemsError = error;
+        } catch (err) {
+          itemsError = err;
+        }
+      }
+
+      if (!isSupabaseConfigured || (itemsError && isTableMissingError(itemsError)) || (dbError && isTableMissingError(dbError))) {
+        items = fallbackLinkHubItems.get(hub.id) || [];
+        items.sort((a, b) => a.position - b.position);
+      }
+
+      // Filter enabled links for public view
+      const activeItems = items.filter(i => i.is_enabled);
+
+      res.json({
+        ...hub,
+        items: activeItems
+      });
+    } catch (err: any) {
+      console.error("GET /api/hubs/public error:", err);
+      res.status(500).json({ error: err.message || "Failed to load public Link Hub." });
+    }
+  });
+
+  // 4. GET Redirect / Tracking endpoint
+  app.get("/api/hubs/redirect/:itemId", async (req, res) => {
+    try {
+      const itemId = req.params.itemId;
+
+      let item: any = null;
+      let dbError: any = null;
+
+      if (isSupabaseConfigured) {
+        try {
+          const { data, error } = await supabase
+            .from("link_hub_items")
+            .select("*")
+            .eq("id", itemId)
+            .maybeSingle();
+          item = data;
+          dbError = error;
+        } catch (err) {
+          dbError = err;
+        }
+      }
+
+      if (!isSupabaseConfigured || (dbError && isTableMissingError(dbError))) {
+        // Look in all fallback hub arrays
+        for (const list of fallbackLinkHubItems.values()) {
+          const found = list.find(i => i.id === itemId);
+          if (found) {
+            item = found;
+            break;
+          }
+        }
+      }
+
+      if (!item) {
+        return res.status(404).send("Link item not found or has been removed.");
+      }
+
+      if (!validateDestinationUrl(item.destination_url)) {
+        return res.status(400).send("The stored destination URL is insecure or invalid.");
+      }
+
+      // Safe Server Redirect with click count increment
+      if (isSupabaseConfigured && (!dbError || !isTableMissingError(dbError))) {
+        supabase
+          .from("link_hub_items")
+          .update({ click_count: Number(item.click_count || 0) + 1 })
+          .eq("id", item.id)
+          .then(({ error: clickErr }) => {
+            if (clickErr) console.error("Failed to update link click count:", clickErr);
+          });
+      } else {
+        item.click_count = Number(item.click_count || 0) + 1;
+      }
+
+      // Redirect safely to destination URL (HTTP/HTTPS guaranteed)
+      res.redirect(302, item.destination_url);
+    } catch (err: any) {
+      console.error("GET /api/hubs/redirect error:", err);
+      res.status(500).send("Failed to follow tracked redirection link.");
     }
   });
 

@@ -15,6 +15,8 @@ import { LinkShortener } from "./components/LinkShortener";
 import { QrGenerator } from "./components/QrGenerator";
 import { LinkPreviewGenerator } from "./components/LinkPreviewGenerator";
 import { OgDebugger } from "./components/OgDebugger";
+import { UtmBuilder } from "./components/UtmBuilder";
+import { LinkHubWorkspace, PublicLinkHub } from "./components/LinkHub";
 import { ExportModal } from "./components/ExportModal";
 import { ParsingModal } from "./components/ParsingModal";
 import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
@@ -256,7 +258,7 @@ const DEFAULT_CUSTOMIZATION: CardCustomization = {
 };
 
 export const App: React.FC = () => {
-  const { user, profile, isAuthenticated, isConfigured, signOut } = useAuth();
+  const { user, session, profile, isAuthenticated, isConfigured, signOut } = useAuth();
   const [post, setPost] = useState<ParsedPost>(DEFAULT_POST);
   const [customization, setCustomization] = useState<CardCustomization>(DEFAULT_CUSTOMIZATION);
   const [pastedContent, setPastedContent] = useState("");
@@ -265,7 +267,8 @@ export const App: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [history, setHistory] = useState<SavedCard[]>([]);
-  const [activeTab, setActiveTab] = useState<"landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug">("landing");
+  const [activeTab, setActiveTab] = useState<"landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug" | "utm" | "hubs">("landing");
+  const [shortenerInitialUrl, setShortenerInitialUrl] = useState("");
   const [qrInitialUrl, setQrInitialUrl] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isBatchExportModalOpen, setIsBatchExportModalOpen] = useState(false);
@@ -553,7 +556,7 @@ export const App: React.FC = () => {
   };
 
   // Page Transition Handler with silky smooth ease in and ease out
-  const handleTabChange = (nextTab: "landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug") => {
+  const handleTabChange = (nextTab: "landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug" | "utm" | "hubs") => {
     if (nextTab === activeTab) return;
     setIsPageTransitioning(true);
     setTimeout(() => {
@@ -570,6 +573,11 @@ export const App: React.FC = () => {
   const handleShortenerToQr = (url: string) => {
     setQrInitialUrl(url);
     handleTabChange("qr");
+  };
+
+  const handleUtmToShortener = (url: string) => {
+    setShortenerInitialUrl(url);
+    handleTabChange("shortener");
   };
 
   const handleOpenStudioFromLanding = (samplePost?: ParsedPost, sampleCustomization?: Partial<CardCustomization>) => {
@@ -885,6 +893,14 @@ export const App: React.FC = () => {
     }
   };
 
+  const isPublicHubRoute = window.location.pathname.startsWith("/h/");
+  if (isPublicHubRoute) {
+    const slug = window.location.pathname.substring(3); // strips "/h/"
+    return <PublicLinkHub slug={slug} />;
+  }
+
+  const token = session?.access_token || null;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#EDF1F5] font-sans antialiased text-[#17191C]">
       {/* Toast Notifications */}
@@ -973,7 +989,7 @@ export const App: React.FC = () => {
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
                   className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                    ["shortener", "qr", "preview", "ogdebug"].includes(activeTab) ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                    ["shortener", "qr", "preview", "ogdebug", "hubs"].includes(activeTab) ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
                   }`}
                 >
                   <IoApps className="w-3.5 h-3.5 shrink-0" />
@@ -1109,6 +1125,44 @@ export const App: React.FC = () => {
                               <div className="min-w-0">
                                 <p className="font-bold text-xs">OG Debugger</p>
                                 <p className="text-[10px] text-[#626A73] truncate">Diagnose open graph share tags</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                handleTabChange("utm");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "utm" ? "bg-amber-50 text-amber-600" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoSparkles className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">UTM Link Builder</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Generate trackable marketing URLs</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                handleTabChange("hubs");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoCompass className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">Link Hub</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Trackable custom links micro-page</p>
                               </div>
                             </button>
                           </>
@@ -1328,6 +1382,34 @@ export const App: React.FC = () => {
                           <IoBug className="w-4 h-4" />
                         </div>
                         <span className="font-bold text-xs">OG Debugger</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("utm")}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                          activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          activeTab === "utm" ? "bg-amber-50 text-amber-600" : "bg-[#F5F7F9] text-[#626A73]"
+                        }`}>
+                          <IoSparkles className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-xs">UTM Link Builder</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("hubs")}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                          activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                        }`}>
+                          <IoCompass className="w-4 h-4" />
+                        </div>
+                        <span className="font-bold text-xs">Link Hub</span>
                       </button>
                     </div>
                   </div>
@@ -2159,13 +2241,21 @@ export const App: React.FC = () => {
             </div>
           </div>
         ) : activeTab === "shortener" ? (
-          <LinkShortener onGenerateQrCode={handleShortenerToQr} />
+          <LinkShortener
+            initialUrl={shortenerInitialUrl}
+            onClearInitialUrl={() => setShortenerInitialUrl("")}
+            onGenerateQrCode={handleShortenerToQr}
+          />
         ) : activeTab === "qr" ? (
           <QrGenerator initialUrl={qrInitialUrl} onClearInitialUrl={() => setQrInitialUrl("")} />
         ) : activeTab === "preview" ? (
           <LinkPreviewGenerator />
         ) : activeTab === "ogdebug" ? (
           <OgDebugger />
+        ) : activeTab === "utm" ? (
+          <UtmBuilder onShorten={handleUtmToShortener} />
+        ) : activeTab === "hubs" ? (
+          <LinkHubWorkspace token={token} />
         ) : (
           /* SAVED HISTORY TAB */
           <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
