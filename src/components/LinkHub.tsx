@@ -293,9 +293,14 @@ export const PublicLinkHub: React.FC<PublicLinkHubProps> = ({ slug }) => {
 interface LinkHubWorkspaceProps {
   token: string | null;
   onTriggerAuth: () => void;
+  onProcessingChange?: (processing: boolean) => void;
 }
 
-export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token, onTriggerAuth }) => {
+export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({
+  token,
+  onTriggerAuth,
+  onProcessingChange,
+}) => {
   // Hub state
   const [hubId, setHubId] = useState<string>("");
   const [slug, setSlug] = useState<string>("");
@@ -327,6 +332,7 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token, onTri
     const loadHubData = async () => {
       try {
         setLoading(true);
+        onProcessingChange?.(true);
         setErrorMsg(null);
 
         // Fetch authenticated user's hubs
@@ -388,6 +394,7 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token, onTri
         setErrorMsg("Failed to initialize Link Hub panel.");
       } finally {
         setLoading(false);
+        onProcessingChange?.(false);
       }
     };
 
@@ -441,6 +448,7 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token, onTri
 
     try {
       setSaving(true);
+      onProcessingChange?.(true);
       setSyncStatus("saving");
       setErrorMsg(null);
       setSuccessMsg(null);
@@ -500,6 +508,7 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token, onTri
       setSyncStatus("offline");
     } finally {
       setSaving(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -634,8 +643,18 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token, onTri
 
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader className="h-8 w-8 animate-spin text-[#626A73]" />
+      <div className="flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden p-8 text-center bg-white border border-[#E1E5E9] rounded-2xl shadow-xs">
+        {/* Pulsing visual cues */}
+        <div className="relative mb-4">
+          <div className="w-16 h-16 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Compass className="w-6 h-6 text-brand-primary animate-pulse" />
+          </div>
+        </div>
+        <h3 className="font-bold text-sm text-[#17191C]">Initializing Link Hub Workspace</h3>
+        <p className="text-xs text-[#626A73] mt-1 max-w-xs mx-auto">
+          Fetching profiles, themes, and social links to configure your landing page builder...
+        </p>
       </div>
     );
   }

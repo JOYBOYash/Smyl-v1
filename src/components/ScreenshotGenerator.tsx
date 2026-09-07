@@ -33,7 +33,8 @@ interface ScreenshotResult {
 
 export const ScreenshotGenerator: React.FC<{
   onHandoffToStudio: (post: any, customization?: any) => void;
-}> = ({ onHandoffToStudio }) => {
+  onProcessingChange?: (processing: boolean) => void;
+}> = ({ onHandoffToStudio, onProcessingChange }) => {
   const { isAuthenticated, user } = useAuth();
   const [targetUrl, setTargetUrl] = useState("");
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
@@ -50,11 +51,13 @@ export const ScreenshotGenerator: React.FC<{
     e.preventDefault();
     setError(null);
     setLoading(true);
+    onProcessingChange?.(true);
 
     const trimmedUrl = targetUrl.trim();
     if (!trimmedUrl) {
       setError("Please paste a webpage URL.");
       setLoading(false);
+      onProcessingChange?.(false);
       return;
     }
 
@@ -105,6 +108,7 @@ export const ScreenshotGenerator: React.FC<{
       setError(err.message || "An unexpected error occurred while capturing.");
     } finally {
       setLoading(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -398,7 +402,7 @@ export const ScreenshotGenerator: React.FC<{
         <div className="lg:col-span-7 bg-[#F8FAFC] rounded-2xl border border-[#E1E5E9] p-4 md:p-6 min-h-[400px] flex flex-col justify-between shadow-xs">
           <div className="w-full flex-1 flex flex-col justify-center items-center">
             {loading ? (
-              <div className="w-full space-y-6 animate-pulse">
+              <div className="w-full space-y-6">
                 <div className="flex items-center justify-between text-xs font-bold text-brand-primary uppercase tracking-wider">
                   <span>Processing Screenshot...</span>
                   <span className="flex items-center gap-1">
@@ -407,40 +411,56 @@ export const ScreenshotGenerator: React.FC<{
                   </span>
                 </div>
 
-                {/* Animated Browser Viewport Skeleton */}
-                <div className="w-full rounded-xl border border-[#E1E5E9] bg-white overflow-hidden shadow-xs">
-                  {/* Browser Top Bar Mockup */}
-                  <div className="bg-[#EDF1F5] px-4 py-2 border-b border-[#E1E5E9] flex items-center gap-1.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                    <div className="bg-white px-3 py-0.5 rounded-md text-[10px] text-[#8D959F] font-mono ml-4 w-48 truncate">
-                      {targetUrl || "https://example.com"}
-                    </div>
-                  </div>
-
-                  {/* Browser Content Skeleton Canvas */}
-                  <div className="p-5 space-y-4">
-                    {/* Pulsing Website Header */}
-                    <div className="flex items-center justify-between">
-                      <div className="h-5 bg-[#EDF1F5] rounded-md w-24" />
-                      <div className="flex gap-2">
-                        <div className="h-3 bg-[#EDF1F5] rounded-md w-12" />
-                        <div className="h-3 bg-[#EDF1F5] rounded-md w-12" />
+                {/* Animated Browser Viewport Skeleton with Glass Spinner Overlay */}
+                <div className="relative w-full rounded-xl border border-[#E1E5E9] bg-white overflow-hidden shadow-xs">
+                  {/* Background Skeleton Content (dimmed) */}
+                  <div className="opacity-60 select-none pointer-events-none animate-pulse">
+                    {/* Browser Top Bar Mockup */}
+                    <div className="bg-[#EDF1F5] px-4 py-2 border-b border-[#E1E5E9] flex items-center gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                      <div className="bg-white px-3 py-0.5 rounded-md text-[10px] text-[#8D959F] font-mono ml-4 w-48 truncate">
+                        {targetUrl || "https://example.com"}
                       </div>
                     </div>
 
-                    {/* Pulsing Content Blocks */}
-                    <div className="space-y-2 pt-2">
-                      <div className="h-4 bg-[#EDF1F5] rounded-md w-3/4" />
-                      <div className="h-3 bg-[#EDF1F5] rounded-md w-full" />
-                      <div className="h-3 bg-[#EDF1F5] rounded-md w-5/6" />
-                    </div>
+                    {/* Browser Content Skeleton Canvas */}
+                    <div className="p-5 space-y-4">
+                      {/* Pulsing Website Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="h-5 bg-[#EDF1F5] rounded-md w-24" />
+                        <div className="flex gap-2">
+                          <div className="h-3 bg-[#EDF1F5] rounded-md w-12" />
+                          <div className="h-3 bg-[#EDF1F5] rounded-md w-12" />
+                        </div>
+                      </div>
 
-                    {/* Mock Hero Image Frame */}
-                    <div className="h-32 bg-[#EDF1F5] rounded-lg w-full flex items-center justify-center text-[#8D959F]">
-                      <Image className="w-8 h-8 opacity-40 animate-bounce" />
+                      {/* Pulsing Content Blocks */}
+                      <div className="space-y-2 pt-2">
+                        <div className="h-4 bg-[#EDF1F5] rounded-md w-3/4" />
+                        <div className="h-3 bg-[#EDF1F5] rounded-md w-full" />
+                        <div className="h-3 bg-[#EDF1F5] rounded-md w-5/6" />
+                      </div>
+
+                      {/* Mock Hero Image Frame */}
+                      <div className="h-32 bg-[#EDF1F5] rounded-lg w-full flex items-center justify-center text-[#8D959F]">
+                        <Image className="w-8 h-8 opacity-40 animate-bounce" />
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Absolute Centered Premium Spinner Overlay */}
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-2xs flex flex-col items-center justify-center space-y-3 z-10">
+                    <div className="relative">
+                      <div className="w-12 h-12 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <RefreshCw className="w-4 h-4 text-brand-primary animate-spin" style={{ animationDuration: '3s' }} />
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-[#17191C] bg-white/90 px-3 py-1.5 rounded-full border border-[#D0D7DE]/50 shadow-sm animate-pulse">
+                      Active Background Sandbox Render
+                    </span>
                   </div>
                 </div>
 

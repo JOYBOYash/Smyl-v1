@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Lenis from "lenis";
+import { Helmet } from "react-helmet-async";
+import { Breadcrumbs } from "./components/Breadcrumbs";
 import {
   ParsedPost,
   CardCustomization,
@@ -285,6 +287,59 @@ const TAB_TO_PATH: Record<string, string> = {
   "screenshot": "/screenshot-generator",
 };
 
+const METADATA: Record<string, { title: string; description: string }> = {
+  landing: {
+    title: "Smyl | Premium Visual Branding & Link Marketing Tools",
+    description: "Smyl is an offline-first visual branding workspace. Auto-format X/Twitter and LinkedIn posts into beautiful social cards, shorten links, and generate customized QR codes."
+  },
+  customize: {
+    title: "Post Card Studio | Smyl",
+    description: "Design custom visual image cards for your X/Twitter and LinkedIn post drafts with custom themes, colors, and typography."
+  },
+  history: {
+    title: "Saved Card Layouts History | Smyl",
+    description: "View and manage your saved visual branding card templates and configurations."
+  },
+  shortener: {
+    title: "Dynamic Link Shortener | Smyl",
+    description: "Create premium short links, track real-time audience analytics, and customize redirects instantly on our dynamic dashboard."
+  },
+  qr: {
+    title: "Custom QR Code Generator | Smyl",
+    description: "Create fully custom vector QR codes in PNG and SVG formats with customizable block colors and quiet zone padding."
+  },
+  preview: {
+    title: "Social Link Previewer | Smyl",
+    description: "Preview in real-time how your link shares look across Twitter, LinkedIn, Facebook, Slack, Discord, and WhatsApp."
+  },
+  ogdebug: {
+    title: "Open Graph Tags Inspector & Debugger | Smyl",
+    description: "Diagnose, validate, and preview Open Graph metadata, headers, secure HTTPS, redirects, and meta structures for search engines."
+  },
+  utm: {
+    title: "UTM Campaign URL Builder | Smyl",
+    description: "Build trackable links with custom source, medium, campaign, and term UTM tags, plus direct link shortening."
+  },
+  hubs: {
+    title: "Mobile-Optimized Link Hub Creator | Smyl",
+    description: "Design a customizable personal microsite landing page to host and track all your social links and profiles in one place."
+  },
+  screenshot: {
+    title: "Webpage Screenshot Generator Card | Smyl",
+    description: "Render, optimize, and capture high-resolution screenshots of any webpage URL to convert into a customizable visual layout."
+  }
+};
+
+const UTILITY_TOOL_NAMES: Record<string, string> = {
+  shortener: "Link Shortener",
+  qr: "QR Code Generator",
+  preview: "Link Previewer",
+  ogdebug: "Open Graph Debugger",
+  utm: "UTM Campaign Builder",
+  hubs: "Link Hub Creator",
+  screenshot: "Screenshot Generator",
+};
+
 export const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -324,6 +379,7 @@ export const App: React.FC = () => {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isPageTransitioning, setIsPageTransitioning] = useState(false);
   const [isAvatarDragOver, setIsAvatarDragOver] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isNavVisible, setIsNavVisible] = useState(true);
   const [showAutoSaved, setShowAutoSaved] = useState(false);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -969,6 +1025,43 @@ export const App: React.FC = () => {
       {/* Parsing Progress Modal */}
       <ParsingModal isOpen={isParsing} inputContent={pastedContent} />
 
+      {/* Global Processing Indicator - Glowing Top Progress Bar & Floating Badge */}
+      <AnimatePresence>
+        {isProcessing && (
+          <>
+            {/* Elegant Top Progress Line */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed top-0 left-0 right-0 h-1 bg-brand-primary/20 z-50 overflow-hidden"
+            >
+              <motion.div
+                initial={{ x: "-100%" }}
+                animate={{ x: "100%" }}
+                transition={{ repeat: Infinity, duration: 1.4, ease: "easeInOut" }}
+                className="w-full h-full bg-gradient-to-r from-brand-primary/10 via-brand-primary to-cyan-400"
+              />
+            </motion.div>
+
+            {/* Glowing Floating Processing Status Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 12 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed bottom-6 left-6 z-40 bg-[#17191C]/95 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg border border-white/10 flex items-center gap-2.5 backdrop-blur-md select-none pointer-events-none"
+            >
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              <span>Running background task...</span>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Page Transition Loader - Compact Bottom-Right Floating Pill without Bar */}
       <AnimatePresence>
         {isPageTransitioning && (
@@ -1489,6 +1582,24 @@ export const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-grow w-full pt-16 sm:pt-20">
+        {(() => {
+          const currentMeta = METADATA[activeTab] || METADATA["landing"];
+          return (
+            <Helmet>
+              <title>{currentMeta.title}</title>
+              <meta name="description" content={currentMeta.description} />
+              <meta property="og:title" content={currentMeta.title} />
+              <meta property="og:description" content={currentMeta.description} />
+              <meta name="twitter:title" content={currentMeta.title} />
+              <meta name="twitter:description" content={currentMeta.description} />
+            </Helmet>
+          );
+        })()}
+
+        {UTILITY_TOOL_NAMES[activeTab] && (
+          <Breadcrumbs toolName={UTILITY_TOOL_NAMES[activeTab]} />
+        )}
+
         {activeTab === "landing" ? (
           <LandingPage
             onOpenGenerator={handleOpenStudioFromLanding}
@@ -2311,17 +2422,26 @@ export const App: React.FC = () => {
             initialUrl={shortenerInitialUrl}
             onClearInitialUrl={() => setShortenerInitialUrl("")}
             onGenerateQrCode={handleShortenerToQr}
+            onProcessingChange={setIsProcessing}
           />
         ) : activeTab === "qr" ? (
-          <QrGenerator initialUrl={qrInitialUrl} onClearInitialUrl={() => setQrInitialUrl("")} />
+          <QrGenerator
+            initialUrl={qrInitialUrl}
+            onClearInitialUrl={() => setQrInitialUrl("")}
+            onProcessingChange={setIsProcessing}
+          />
         ) : activeTab === "preview" ? (
-          <LinkPreviewGenerator />
+          <LinkPreviewGenerator onProcessingChange={setIsProcessing} />
         ) : activeTab === "ogdebug" ? (
-          <OgDebugger />
+          <OgDebugger onProcessingChange={setIsProcessing} />
         ) : activeTab === "utm" ? (
-          <UtmBuilder onShorten={handleUtmToShortener} />
+          <UtmBuilder onShorten={handleUtmToShortener} onProcessingChange={setIsProcessing} />
         ) : activeTab === "hubs" ? (
-          <LinkHubWorkspace token={token} onTriggerAuth={() => setIsAuthModalOpen(true)} />
+          <LinkHubWorkspace
+            token={token}
+            onTriggerAuth={() => setIsAuthModalOpen(true)}
+            onProcessingChange={setIsProcessing}
+          />
         ) : activeTab === "screenshot" ? (
           <ScreenshotGenerator
             onHandoffToStudio={(handedPost, customizationFields) => {
@@ -2333,6 +2453,7 @@ export const App: React.FC = () => {
               navigate("/customize");
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
+            onProcessingChange={setIsProcessing}
           />
         ) : (
           /* SAVED HISTORY TAB */

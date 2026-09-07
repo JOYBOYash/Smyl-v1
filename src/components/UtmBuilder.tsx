@@ -30,9 +30,10 @@ interface SavedUtm {
 
 interface UtmBuilderProps {
   onShorten?: (url: string) => void;
+  onProcessingChange?: (processing: boolean) => void;
 }
 
-export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
+export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten, onProcessingChange }) => {
   const { user, isAuthenticated } = useAuth();
 
   // Form Fields
@@ -220,6 +221,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     setSuccess(null);
     setGeneratedUrl("");
     setBuilding(true);
+    onProcessingChange?.(true);
 
     // Standard field length limits
     const maxUrlLength = 2048;
@@ -229,6 +231,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     if (!rawUrl) {
       setError("Website URL is required.");
       setBuilding(false);
+      onProcessingChange?.(false);
       return;
     }
 
@@ -237,6 +240,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     if (cleanUrl.length > maxUrlLength) {
       setError(`URL exceeds sensible length limit of ${maxUrlLength} characters.`);
       setBuilding(false);
+      onProcessingChange?.(false);
       return;
     }
 
@@ -250,12 +254,14 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     ) {
       setError("Forbidden protocol. Only http:// or https:// URLs are allowed.");
       setBuilding(false);
+      onProcessingChange?.(false);
       return;
     }
 
     if (!lowerUrl.startsWith("http://") && !lowerUrl.startsWith("https://")) {
       setError("Website URL must start with http:// or https://");
       setBuilding(false);
+      onProcessingChange?.(false);
       return;
     }
 
@@ -267,6 +273,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     if (!sourceClean || !mediumClean || !campaignClean) {
       setError("Source, Medium, and Campaign name parameters are required.");
       setBuilding(false);
+      onProcessingChange?.(false);
       return;
     }
 
@@ -280,6 +287,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     ) {
       setError(`Campaign parameter values cannot exceed ${maxParamLength} characters.`);
       setBuilding(false);
+      onProcessingChange?.(false);
       return;
     }
 
@@ -370,6 +378,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
       setError("Invalid website URL format. Please double check.");
     } finally {
       setBuilding(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -634,17 +643,33 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
-                className="bg-white border border-[#E1E5E9] rounded-2xl shadow-sm p-6 space-y-4 animate-pulse"
+                className="bg-white border border-[#E1E5E9] rounded-2xl shadow-sm p-6 space-y-4 relative overflow-hidden"
               >
-                <div className="flex items-center justify-between border-b border-[#ECEEF1] pb-3">
-                  <div className="h-4 bg-[#EDF1F5] rounded w-1/3" />
-                  <div className="h-5 bg-[#EDF1F5] rounded w-16" />
+                {/* Dimmed background pulsing skeleton layout */}
+                <div className="space-y-4 opacity-40 select-none pointer-events-none animate-pulse">
+                  <div className="flex items-center justify-between border-b border-[#ECEEF1] pb-3">
+                    <div className="h-4 bg-[#EDF1F5] rounded w-1/3" />
+                    <div className="h-5 bg-[#EDF1F5] rounded w-16" />
+                  </div>
+                  <div className="h-12 bg-[#EDF1F5]/60 rounded-xl w-full" />
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
+                    <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
+                    <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
+                  </div>
                 </div>
-                <div className="h-12 bg-[#EDF1F5]/60 rounded-xl w-full" />
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
-                  <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
-                  <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
+
+                {/* Absolute glass spinner overlay */}
+                <div className="absolute inset-0 bg-white/30 backdrop-blur-3xs flex flex-col items-center justify-center space-y-3 z-10">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <IoLink className="w-4 h-4 text-brand-primary animate-pulse" />
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#17191C] bg-white/95 px-3 py-1.5 rounded-full border border-[#D0D7DE]/50 shadow-sm animate-pulse">
+                    Compiling UTM campaign string...
+                  </span>
                 </div>
               </motion.div>
             ) : generatedUrl && (

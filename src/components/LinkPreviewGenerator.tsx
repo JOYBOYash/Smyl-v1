@@ -15,10 +15,12 @@ import {
 
 interface LinkPreviewGeneratorProps {
   onBackToTools?: () => void;
+  onProcessingChange?: (processing: boolean) => void;
 }
 
 export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
   onBackToTools,
+  onProcessingChange,
 }) => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -85,6 +87,7 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
     }
 
     setLoading(true);
+    onProcessingChange?.(true);
     setError(null);
     setMetadata(null);
 
@@ -108,6 +111,7 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
       setError(err.message || "An unexpected error occurred while fetching preview.");
     } finally {
       setLoading(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -375,23 +379,37 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
             <div className="bg-[#EDF1F5]/40 border border-[#D0D7DE]/50 rounded-xl p-5 flex flex-col justify-center min-h-[320px] relative overflow-hidden">
               <AnimatePresence mode="wait">
                 {loading ? (
-                  <div className="w-full space-y-4 animate-pulse">
-                    {/* Simulated Social Header */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#EDF1F5]" />
-                      <div className="space-y-1.5 flex-1">
-                        <div className="h-3 bg-[#EDF1F5] rounded w-1/4" />
-                        <div className="h-2.5 bg-[#EDF1F5]/70 rounded w-1/6" />
+                  <div className="relative w-full">
+                    {/* Dimmed background pulsing mockup */}
+                    <div className="w-full space-y-4 opacity-40 select-none pointer-events-none animate-pulse">
+                      {/* Simulated Social Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#EDF1F5]" />
+                        <div className="space-y-1.5 flex-1">
+                          <div className="h-3 bg-[#EDF1F5] rounded w-1/4" />
+                          <div className="h-2.5 bg-[#EDF1F5]/70 rounded w-1/6" />
+                        </div>
                       </div>
+                      {/* Simulated Text Lines */}
+                      <div className="space-y-2 pt-1">
+                        <div className="h-3 bg-[#EDF1F5] rounded w-5/6" />
+                        <div className="h-3 bg-[#EDF1F5] rounded w-2/3" />
+                      </div>
+                      {/* Simulated Card Image */}
+                      <div className="h-36 bg-[#EDF1F5] rounded-xl w-full" />
                     </div>
-                    {/* Simulated Text Lines */}
-                    <div className="space-y-2 pt-1">
-                      <div className="h-3 bg-[#EDF1F5] rounded w-5/6" />
-                      <div className="h-3 bg-[#EDF1F5] rounded w-2/3" />
-                    </div>
-                    {/* Simulated Card Image */}
-                    <div className="h-36 bg-[#EDF1F5] rounded-xl w-full flex items-center justify-center text-[#8D959F]">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#8D959F]/60">Extracting Social tags...</span>
+
+                    {/* Absolute glass spinner overlay */}
+                    <div className="absolute inset-0 bg-white/30 backdrop-blur-3xs flex flex-col items-center justify-center space-y-3 z-10">
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <IoSparkles className="w-4 h-4 text-brand-primary animate-pulse" />
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold text-[#17191C] bg-white/95 px-3 py-1.5 rounded-full border border-[#D0D7DE]/50 shadow-sm animate-pulse">
+                        Extracting rich social metadata...
+                      </span>
                     </div>
                   </div>
                 ) : metadata ? (

@@ -67,7 +67,9 @@ export interface DebugMetadataResult {
   diagnostics: DiagnosticItem[];
 }
 
-export const OgDebugger: React.FC = () => {
+export const OgDebugger: React.FC<{
+  onProcessingChange?: (processing: boolean) => void;
+}> = ({ onProcessingChange }) => {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,6 +125,7 @@ export const OgDebugger: React.FC = () => {
     }
 
     setLoading(true);
+    onProcessingChange?.(true);
     setError(null);
     setDebugData(null);
 
@@ -142,6 +145,7 @@ export const OgDebugger: React.FC = () => {
       setError(err.message || "An unexpected error occurred during diagnostics inspection.");
     } finally {
       setLoading(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -313,34 +317,47 @@ export const OgDebugger: React.FC = () => {
         <div className="lg:col-span-8 space-y-6">
           <AnimatePresence mode="wait">
             {loading ? (
-              <div className="space-y-6 animate-pulse">
-                {/* Health Rating Status Banner Skeleton */}
-                <div className="p-5 rounded-xl border border-[#E1E5E9] bg-white flex items-center justify-between">
-                  <div className="space-y-2">
-                    <div className="h-4 bg-[#EDF1F5] rounded w-32" />
-                    <div className="h-3 bg-[#EDF1F5]/80 rounded w-48" />
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-[#EDF1F5]" />
-                </div>
-
-                {/* Tab layout skeleton */}
-                <div className="bg-white border border-[#E1E5E9] rounded-xl p-5 md:p-6 space-y-4">
-                  <div className="flex gap-2 border-b border-[#ECEEF1] pb-3 overflow-x-auto">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-8 bg-[#EDF1F5] rounded-lg w-20 shrink-0" />
-                    ))}
+              <div className="relative space-y-6">
+                {/* Dimmed background skeletons */}
+                <div className="space-y-6 opacity-45 select-none pointer-events-none animate-pulse">
+                  {/* Health Rating Status Banner Skeleton */}
+                  <div className="p-5 rounded-xl border border-[#E1E5E9] bg-white flex items-center justify-between">
+                    <div className="space-y-2">
+                      <div className="h-4 bg-[#EDF1F5] rounded w-32" />
+                      <div className="h-3 bg-[#EDF1F5]/80 rounded w-48" />
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-[#EDF1F5]" />
                   </div>
 
-                  {/* Diagnostic details skeleton lines */}
-                  <div className="space-y-3 pt-2">
-                    <div className="h-4 bg-[#EDF1F5] rounded w-3/4" />
-                    <div className="h-3.5 bg-[#EDF1F5]/70 rounded w-5/6" />
-                    <div className="h-3.5 bg-[#EDF1F5]/70 rounded w-2/3" />
-                    <div className="h-24 bg-[#EDF1F5]/40 rounded-xl w-full flex items-center justify-center text-xs text-[#8D959F] font-bold">
-                      <Search className="w-5 h-5 animate-spin mr-1.5 text-brand-primary" />
-                      <span>Requesting & analyzing target markup tags...</span>
+                  {/* Tab layout skeleton */}
+                  <div className="bg-white border border-[#E1E5E9] rounded-xl p-5 md:p-6 space-y-4">
+                    <div className="flex gap-2 border-b border-[#ECEEF1] pb-3 overflow-x-auto">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-8 bg-[#EDF1F5] rounded-lg w-20 shrink-0" />
+                      ))}
+                    </div>
+
+                    {/* Diagnostic details skeleton lines */}
+                    <div className="space-y-3 pt-2">
+                      <div className="h-4 bg-[#EDF1F5] rounded w-3/4" />
+                      <div className="h-3.5 bg-[#EDF1F5]/70 rounded w-5/6" />
+                      <div className="h-3.5 bg-[#EDF1F5]/70 rounded w-2/3" />
+                      <div className="h-24 bg-[#EDF1F5]/40 rounded-xl w-full" />
                     </div>
                   </div>
+                </div>
+
+                {/* Absolute premium glass overlay spinner */}
+                <div className="absolute inset-0 bg-white/30 backdrop-blur-3xs flex flex-col items-center justify-center space-y-3 z-10">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Search className="w-5 h-5 text-brand-primary animate-pulse" />
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-[#17191C] bg-white/95 px-3.5 py-1.5 rounded-full border border-[#D0D7DE]/50 shadow-sm animate-pulse">
+                    Requesting & analyzing target markup tags...
+                  </span>
                 </div>
               </div>
             ) : debugData ? (

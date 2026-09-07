@@ -19,11 +19,13 @@ import {
 interface QrGeneratorProps {
   initialUrl?: string;
   onClearInitialUrl?: () => void;
+  onProcessingChange?: (processing: boolean) => void;
 }
 
 export const QrGenerator: React.FC<QrGeneratorProps> = ({
   initialUrl,
   onClearInitialUrl,
+  onProcessingChange,
 }) => {
   const { user, isAuthenticated } = useAuth();
   const [url, setUrl] = useState("");
@@ -155,6 +157,7 @@ export const QrGenerator: React.FC<QrGeneratorProps> = ({
 
     try {
       setLoading(true);
+      onProcessingChange?.(true);
 
       // 1. Render to DataURL for image previews
       const dataUrl = await QRCode.toDataURL(url.trim(), {
@@ -183,6 +186,7 @@ export const QrGenerator: React.FC<QrGeneratorProps> = ({
       setQrCodeDataUrl(null);
     } finally {
       setLoading(false);
+      onProcessingChange?.(false);
     }
   };
 
@@ -597,12 +601,24 @@ export const QrGenerator: React.FC<QrGeneratorProps> = ({
             {/* Canvas container with beautiful presentation layout */}
             <div className="bg-[#EDF1F5] p-6 rounded-2xl flex items-center justify-center min-h-[260px] max-h-[300px] border border-[#D0D7DE] shadow-inner relative overflow-hidden group">
               {loading ? (
-                <div className="w-full h-full flex flex-col justify-center items-center space-y-3 animate-pulse">
-                  {/* Pulsing QR Code Box */}
-                  <div className="w-40 h-40 bg-white border border-[#D0D7DE] rounded-xl flex items-center justify-center shadow-xs">
-                    <IoQrCode className="w-24 h-24 text-[#CBD5E1] animate-spin duration-3000" />
+                <div className="w-full h-full flex flex-col justify-center items-center relative">
+                  {/* Dimmed background pulsing mockup */}
+                  <div className="w-40 h-40 bg-white/60 border border-[#D0D7DE] rounded-xl flex items-center justify-center shadow-xs animate-pulse opacity-40">
+                    <IoQrCode className="w-24 h-24 text-[#CBD5E1]" />
                   </div>
-                  <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">Generating QR...</p>
+                  
+                  {/* Glassy spinner overlay */}
+                  <div className="absolute inset-0 bg-white/30 backdrop-blur-3xs flex flex-col items-center justify-center space-y-3 z-10">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <IoQrCode className="w-4 h-4 text-brand-primary animate-bounce" />
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#17191C] bg-white/95 px-3 py-1.5 rounded-full border border-[#D0D7DE]/50 shadow-sm animate-pulse">
+                      Generating Vector matrix...
+                    </span>
+                  </div>
                 </div>
               ) : qrCodeDataUrl ? (
                 <motion.div
