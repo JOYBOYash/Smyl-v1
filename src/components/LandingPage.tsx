@@ -5,26 +5,30 @@ import { PostCard } from "./PostCard";
 import { CanvasWrapper } from "./CanvasWrapper";
 import { SmylTextLogo, SmylIcon } from "./SmylLogo";
 import { motion, AnimatePresence } from "motion/react";
-import { FiArrowRight, FiCornerDownRight } from "react-icons/fi";
-import { FaXTwitter } from "react-icons/fa6";
-import {
-  IoCheckmarkCircle,
-  IoCloseCircle,
-  IoLogoLinkedin,
-  IoLogoTwitter,
-  IoChevronDown,
-  IoEye,
-  IoCreate,
-  IoSunny,
-  IoMoon,
-  IoTerminal,
-  IoHeart,
-  IoCheckmark,
-} from "react-icons/io5";
+import { 
+  ArrowRight, 
+  Link as LinkIcon, 
+  QrCode, 
+  Eye, 
+  Bug, 
+  Compass, 
+  Image as ImageIcon, 
+  Settings, 
+  FileText, 
+  CheckCircle, 
+  HelpCircle, 
+  ChevronDown, 
+  Check, 
+  Sparkles,
+  MousePointerClick,
+  Info
+} from "lucide-react";
+import { IoSunny, IoMoon, IoTerminal } from "react-icons/io5";
 
 interface LandingPageProps {
   onOpenGenerator: (samplePost?: ParsedPost, customization?: Partial<CardCustomization>) => void;
   onBecomeUser: () => void;
+  onTabChange?: (tab: string) => void;
 }
 
 const INITIAL_DEMO_X_POST: ParsedPost = {
@@ -74,30 +78,7 @@ const INITIAL_DEMO_LINKEDIN_POST: ParsedPost = {
   },
 };
 
-const SHOWCASE_POST: ParsedPost = {
-  platform: "x",
-  author: {
-    name: "Alex Rivera",
-    username: "@alexrivera",
-    isVerified: true,
-    avatarColor: "#0145F2",
-    avatarText: "AR",
-  },
-  content: {
-    text: "The best product design doesn't feel like design at all.\n\nIt feels like an obvious solution you wonder why nobody built before.",
-    hashtags: ["design", "product"],
-    mentions: [],
-    links: [],
-  },
-  timestamp: "9:41 AM · Aug 24, 2026",
-  engagement: {
-    likes: 3840,
-    comments: 215,
-    reposts: 640,
-  },
-};
-
-export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBecomeUser }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBecomeUser, onTabChange }) => {
   // Interactive mini-demo state
   const [selectedPlatform, setSelectedPlatform] = useState<"x" | "linkedin">("x");
   const [selectedTheme, setSelectedTheme] = useState<CardTheme>("light");
@@ -160,420 +141,444 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
     setSliderPosition(percentage);
   };
 
-  const scrollToDemo = () => {
-    document.getElementById("interactive-demo")?.scrollIntoView({ behavior: "smooth" });
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div className="w-full text-[#17191C] overflow-hidden">
       {/* 1. HERO SECTION */}
-      <section className="pt-16 pb-16 md:pt-20 md:pb-20 px-4 max-w-7xl mx-auto">
+      <section className="pt-20 pb-16 md:pt-24 md:pb-20 px-4 max-w-7xl mx-auto relative">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-3xl mx-auto text-center space-y-5"
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="max-w-4xl mx-auto text-center space-y-6"
         >
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand-primary text-[10px] sm:text-xs font-bold tracking-wider uppercase border border-brand-primary/10">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Free Tools for Sharing Links & Content</span>
+          </div>
+
           {/* H1 */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#17191C] tracking-tight leading-[1.2] flex flex-col items-center justify-center gap-2">
-            <span className="flex flex-wrap items-center justify-center gap-x-2.5 sm:gap-x-4 gap-y-2">
-              Turn your
-              <span className="inline-flex items-center justify-center p-1.5 sm:p-2.5 rounded-lg bg-[#17191C]/5 text-[#17191C] shrink-0">
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg"
-                  className="w-5 h-5 sm:w-7 sm:h-7 shrink-0 object-contain"
-                  alt="X"
-                  referrerPolicy="no-referrer"
-                />
-              </span>
-              or
-              <span className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-[#0A66C2]/10 shrink-0">
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/0/01/LinkedIn_Logo.svg"
-                  className="h-5 sm:h-7 w-auto shrink-0 object-contain"
-                  alt="LinkedIn"
-                  referrerPolicy="no-referrer"
-                />
-              </span>
-              posts
-            </span>
-            <span className="flex flex-wrap items-center justify-center gap-2 sm:gap-3.5 mt-1 sm:mt-2 text-brand-primary">
-              <FiCornerDownRight className="w-6 h-6 sm:w-9 sm:h-9 text-brand-primary/80 shrink-0" />
-              <span>into polished cards</span>
-            </span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#17191C] tracking-tight leading-[1.1] max-w-3xl mx-auto">
+            Turn links and social posts into things <span className="text-brand-primary">worth sharing</span>.
           </h1>
 
-          {/* Body */}
-          <p className="text-base sm:text-lg text-[#626A73] font-normal leading-relaxed max-w-2xl mx-auto">
-            Paste a post or link. Smyl turns it into an X or LinkedIn-style visual you can share anywhere.
+          {/* Subheading */}
+          <p className="text-base sm:text-lg md:text-xl text-[#626A73] font-normal leading-relaxed max-w-2xl mx-auto">
+            Create polished social cards, shorten links, generate QR codes, preview link shares, build UTM URLs, and more — all from one place.
           </p>
 
           {/* Primary & Secondary CTAs */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             <motion.button
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98, y: 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              onClick={() => onOpenGenerator(currentPost, demoCustomization)}
-              className="w-full sm:w-auto h-11 px-7 rounded-xl bg-brand-primary text-white font-semibold text-sm flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+              whileHover={{ scale: 1.01, y: -1 }}
+              whileTap={{ scale: 0.99, y: 0 }}
+              onClick={() => onOpenGenerator()}
+              className="w-full sm:w-auto h-12 px-8 rounded-xl bg-brand-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-md shadow-brand-primary/10"
             >
-              <span>Visit Studio</span>
-              <FiArrowRight className="w-4 h-4" />
+              <span>Create your first card</span>
+              <ArrowRight className="w-4 h-4" />
             </motion.button>
             <motion.button
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98, y: 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              onClick={onBecomeUser}
-              className="w-full sm:w-auto h-11 px-7 rounded-xl bg-white text-[#17191C] border border-[#E1E5E9] font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#F5F7F9] hover:border-[#B9C0C8] active:bg-[#EEF1F4] transition-colors cursor-pointer"
+              whileHover={{ scale: 1.01, y: -1 }}
+              whileTap={{ scale: 0.99, y: 0 }}
+              onClick={() => scrollToSection("free-tools")}
+              className="w-full sm:w-auto h-12 px-8 rounded-xl bg-white text-[#17191C] border border-[#E1E5E9] font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#F5F7F9] hover:border-[#B9C0C8] active:bg-[#EEF1F4] transition-colors cursor-pointer shadow-2xs"
             >
-              <span>Become a user!</span>
+              <span>Explore free tools</span>
             </motion.button>
           </div>
 
-          {/* Underlined Url link with Arrow below buttons */}
-          <div className="pt-2 flex items-center justify-center">
-            <button
-              onClick={scrollToDemo}
-              className="inline-flex items-center gap-1 text-sm font-bold text-brand-primary hover:text-brand-hover underline underline-offset-4 cursor-pointer transition-colors"
-            >
-              <span>Try Live Demo</span>
-              <FiArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Trust points */}
-          <div className="pt-3 flex items-center justify-center flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[#626A73]">
-            <span className="flex items-center gap-1.5">
-              <IoCheckmarkCircle className="text-emerald-600 w-3.5 h-3.5" />
-              No design skills required
-            </span>
-            <span className="text-[#C2C9D1] hidden sm:inline">•</span>
-            <span className="flex items-center gap-1.5">
-              <IoCheckmarkCircle className="text-emerald-600 w-3.5 h-3.5" />
-              Built for X & LinkedIn
-            </span>
-            <span className="text-[#C2C9D1] hidden sm:inline">•</span>
-            <span className="flex items-center gap-1.5">
-              <IoCheckmarkCircle className="text-emerald-600 w-3.5 h-3.5" />
-              Export-ready visuals
-            </span>
+          {/* Trust Line */}
+          <div className="pt-3 text-xs font-semibold text-[#8D959F] flex flex-wrap items-center justify-center gap-2">
+            <span>No design skills required</span>
+            <span className="text-[#C2C9D1]">•</span>
+            <span>Free to use</span>
+            <span className="text-[#C2C9D1]">•</span>
+            <span>No credit card required</span>
           </div>
         </motion.div>
+      </section>
 
-        {/* 2. PRODUCT PREVIEW SECTION */}
+      {/* 2. ENTRY POINT SECTION */}
+      <section className="py-16 bg-[#F8FAFC] border-y border-[#ECEEF1]">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center space-y-3 mb-12">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#17191C] tracking-tight">
+              Start with the thing you're already trying to share.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Social Post Entry */}
+            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300 group">
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center font-black">
+                  A
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-[#17191C]">Social Post</h3>
+                  <p className="text-sm text-[#626A73] mt-2 leading-relaxed">
+                    Turn X or LinkedIn posts into polished shareable cards.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-6">
+                <button
+                  onClick={() => onOpenGenerator()}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary group-hover:text-brand-hover hover:underline cursor-pointer"
+                >
+                  <span>Create a card</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+
+            {/* Link Entry */}
+            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300 group">
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <LinkIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-[#17191C]">Link</h3>
+                  <p className="text-sm text-[#626A73] mt-2 leading-relaxed">
+                    Shorten, track, preview, tag, or turn any URL into a QR code.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-6">
+                <button
+                  onClick={() => onTabChange?.("shortener")}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary group-hover:text-brand-hover hover:underline cursor-pointer"
+                >
+                  <span>Work with a link</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+
+            {/* Webpage Entry */}
+            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-6 flex flex-col justify-between hover:shadow-lg transition-all duration-300 group">
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
+                  <ImageIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-[#17191C]">Webpage</h3>
+                  <p className="text-sm text-[#626A73] mt-2 leading-relaxed">
+                    Capture a webpage or inspect exactly how its social preview will appear.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-6">
+                <button
+                  onClick={() => onTabChange?.("screenshot")}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand-primary group-hover:text-brand-hover hover:underline cursor-pointer"
+                >
+                  <span>Inspect a page</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. INTERACTIVE DEMO */}
+      <section className="py-20 px-4 max-w-7xl mx-auto">
+        <div className="text-center space-y-2 mb-10">
+          <h2 className="text-3xl font-black text-[#17191C] tracking-tight">
+            See what you can make in seconds.
+          </h2>
+          <p className="text-sm text-[#626A73]">
+            Customize content directly inside the card to see the high-DPI output format.
+          </p>
+        </div>
+
         <motion.div
-          id="interactive-demo"
           ref={demoContainerRef}
           onMouseMove={handleDemoMouseMove}
           onMouseEnter={() => setIsDemoHovered(true)}
           onMouseLeave={() => setIsDemoHovered(false)}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-10 md:mt-12 max-w-5xl mx-auto relative overflow-hidden rounded-2xl"
+          className="max-w-5xl mx-auto relative overflow-hidden rounded-2xl border border-[#E1E5E9] shadow-md bg-white p-4 sm:p-6 md:p-8"
         >
-          {/* Glowing cursor tracker blur background circle */}
-          <motion.div
-            animate={{
-              x: mousePos.x - 120,
-              y: mousePos.y - 120,
-              opacity: isDemoHovered ? 0.25 : 0.08,
-              scale: isDemoHovered ? 1.2 : 1,
-            }}
-            transition={{ type: "spring", stiffness: 150, damping: 28, mass: 0.1 }}
-            className="absolute pointer-events-none w-64 h-64 rounded-full bg-gradient-to-tr from-brand-primary via-cyan-400 to-indigo-500 blur-3xl"
-            style={{ left: 0, top: 0, zIndex: 0 }}
-          />
+          {/* Interactive Controller Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#ECEEF1]">
+            <div className="flex items-center gap-2.5 flex-wrap w-full justify-between sm:justify-start">
+              {/* 1. Mode Selector */}
+              <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
+                <button
+                  type="button"
+                  onClick={() => setIsDirectEdit(false)}
+                  className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
+                    !isDirectEdit ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                  }`}
+                  title="Live Preview Mode"
+                >
+                  {!isDirectEdit && (
+                    <motion.div
+                      layoutId="demo-mode-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
+                    />
+                  )}
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsDirectEdit(true)}
+                  className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
+                    isDirectEdit ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                  }`}
+                  title="Direct Edit Mode"
+                >
+                  {isDirectEdit && (
+                    <motion.div
+                      layoutId="demo-mode-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
+                    />
+                  )}
+                  <FileText className="w-4 h-4" />
+                </button>
+              </div>
 
-          <div className="bg-white/80 backdrop-blur-md border border-[#E1E5E9] rounded-2xl p-4 sm:p-6 md:p-7 shadow-sm space-y-4 relative z-10">
-            {/* Interactive Controller Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#ECEEF1]">
-              <div className="flex items-center gap-2.5 flex-wrap w-full justify-between sm:justify-start">
-                {/* 1. Mode Selector */}
-                <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsDirectEdit(false)}
-                    className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
-                      !isDirectEdit ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
-                    }`}
-                    title="Live Preview Mode"
-                  >
-                    {!isDirectEdit && (
-                      <motion.div
-                        layoutId="demo-mode-pill"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                      />
-                    )}
-                    <IoEye className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsDirectEdit(true)}
-                    className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
-                      isDirectEdit ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
-                    }`}
-                    title="Direct Edit Mode"
-                  >
-                    {isDirectEdit && (
-                      <motion.div
-                        layoutId="demo-mode-pill"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                      />
-                    )}
-                    <IoCreate className="w-4 h-4" />
-                  </button>
-                </div>
+              <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-                <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
+              {/* 2. Platform Selector */}
+              <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlatform("x")}
+                  className={`relative z-10 p-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    selectedPlatform === "x" ? "text-brand-primary" : "text-[#626A73]"
+                  }`}
+                >
+                  {selectedPlatform === "x" && (
+                    <motion.div
+                      layoutId="demo-platform-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
+                    />
+                  )}
+                  X (Twitter)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPlatform("linkedin")}
+                  className={`relative z-10 p-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                    selectedPlatform === "linkedin" ? "text-brand-primary" : "text-[#626A73]"
+                  }`}
+                >
+                  {selectedPlatform === "linkedin" && (
+                    <motion.div
+                      layoutId="demo-platform-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
+                    />
+                  )}
+                  LinkedIn
+                </button>
+              </div>
 
-                {/* 2. Platform Selector */}
-                <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPlatform("x")}
-                    className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
-                      selectedPlatform === "x" ? "text-[#1D9BF0]" : "text-[#626A73] hover:text-[#17191C]"
-                    }`}
-                    title="X Layout"
-                  >
-                    {selectedPlatform === "x" && (
-                      <motion.div
-                        layoutId="demo-platform-pill"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                      />
-                    )}
-                    <IoLogoTwitter className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPlatform("linkedin")}
-                    className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
-                      selectedPlatform === "linkedin" ? "text-[#0A66C2]" : "text-[#626A73] hover:text-[#17191C]"
-                    }`}
-                    title="LinkedIn Layout"
-                  >
-                    {selectedPlatform === "linkedin" && (
-                      <motion.div
-                        layoutId="demo-platform-pill"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                      />
-                    )}
-                    <IoLogoLinkedin className="w-4 h-4" />
-                  </button>
-                </div>
+              <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-                <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
+              {/* 3. Theme Selector */}
+              <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme("light")}
+                  className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
+                    selectedTheme === "light" ? "text-brand-primary" : "text-[#626A73] hover:text-[#17191C]"
+                  }`}
+                  title="Light Theme"
+                >
+                  {selectedTheme === "light" && (
+                    <motion.div
+                      layoutId="demo-theme-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
+                    />
+                  )}
+                  <IoSunny className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme("dark")}
+                  className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
+                    selectedTheme === "dark" ? "text-white" : "text-[#626A73] hover:text-[#17191C]"
+                  }`}
+                  title="Dark Theme"
+                >
+                  {selectedTheme === "dark" && (
+                    <motion.div
+                      layoutId="demo-theme-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-[#0A0D12] rounded-lg shadow-xs -z-10"
+                    />
+                  )}
+                  <IoMoon className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedTheme("retro")}
+                  className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
+                    selectedTheme === "retro" ? "text-cyan-300" : "text-[#626A73] hover:text-[#17191C]"
+                  }`}
+                  title="Retro Theme"
+                >
+                  {selectedTheme === "retro" && (
+                    <motion.div
+                      layoutId="demo-theme-pill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-[#0B0F19] ring-1 ring-cyan-400/50 rounded-lg shadow-xs -z-10"
+                    />
+                  )}
+                  <IoTerminal className="w-4 h-4" />
+                </button>
+              </div>
 
-                {/* 3. Theme Selector */}
-                <div className="flex items-center gap-1 bg-[#EDF1F5] p-1 rounded-xl relative">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTheme("light")}
-                    className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
-                      selectedTheme === "light" ? "text-brand-primary" : "text-[#626A73] hover:text-[#17191C]"
-                    }`}
-                    title="Light Theme"
-                  >
-                    {selectedTheme === "light" && (
-                      <motion.div
-                        layoutId="demo-theme-pill"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        className="absolute inset-0 bg-white rounded-lg shadow-xs -z-10"
-                      />
-                    )}
-                    <IoSunny className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTheme("dark")}
-                    className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
-                      selectedTheme === "dark" ? "text-white" : "text-[#626A73] hover:text-[#17191C]"
-                    }`}
-                    title="Dark Theme"
-                  >
-                    {selectedTheme === "dark" && (
-                      <motion.div
-                        layoutId="demo-theme-pill"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        className="absolute inset-0 bg-[#0A0D12] rounded-lg shadow-xs -z-10"
-                      />
-                    )}
-                    <IoMoon className="w-4 h-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTheme("retro")}
-                    className={`relative z-10 p-2 rounded-lg transition-colors cursor-pointer ${
-                      selectedTheme === "retro" ? "text-cyan-300" : "text-[#626A73] hover:text-[#17191C]"
-                    }`}
-                    title="Retro Theme"
-                  >
-                    {selectedTheme === "retro" && (
-                      <motion.div
-                        layoutId="demo-theme-pill"
-                        transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                        className="absolute inset-0 bg-[#0B0F19] ring-1 ring-cyan-400/50 rounded-lg shadow-xs -z-10"
-                      />
-                    )}
-                    <IoTerminal className="w-4 h-4" />
-                  </button>
-                </div>
+              <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-                <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
-
-                {/* 4. Font Selector */}
-                <div className="relative">
-                  <select
-                    value={selectedFont}
-                    onChange={(e) => setSelectedFont(e.target.value as FontFamily)}
-                    className="h-8 pl-2.5 pr-6 text-xs font-semibold rounded-lg border border-[#E1E5E9] bg-white text-[#17191C] hover:bg-[#F8FAFC] focus:outline-none focus:border-brand-primary cursor-pointer appearance-none shadow-xs transition-colors"
-                  >
-                    <option value="sans">DM Sans</option>
-                    <option value="inter">Inter</option>
-                    <option value="display">Plus Jakarta</option>
-                    <option value="serif">Lora Serif</option>
-                    <option value="mono">JetBrains Mono</option>
-                    <option value="space">Space Grotesk</option>
-                  </select>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-[#8D959F] flex items-center">
-                    <IoChevronDown className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-
-                <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
-
-                {/* 5. Backdrop Swatches */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsHeroBgDropdownOpen(!isHeroBgDropdownOpen)}
-                    className="h-8 pl-2.5 pr-2 rounded-lg border border-[#E1E5E9] bg-white hover:bg-[#F8FAFC] flex items-center gap-1.5 shadow-xs cursor-pointer text-[#17191C] font-semibold text-xs transition-colors"
-                  >
-                    <div className={`w-3.5 h-3.5 rounded-full border border-black/10 flex-shrink-0 ${
-                      selectedBg === "solid-white" ? "bg-white" :
-                      selectedBg === "solid-dark" ? "bg-[#111418]" :
-                      selectedBg === "gradient-sunset" ? "bg-gradient-to-tr from-[#ff7e5f] to-[#ec4899]" :
-                      selectedBg === "gradient-ocean" ? "bg-gradient-to-tr from-[#00c6ff] to-[#3b82f6]" :
-                      selectedBg === "gradient-twilight" ? "bg-gradient-to-tr from-[#0f172a] to-[#581c87]" :
-                      selectedBg === "gradient-emerald" ? "bg-gradient-to-tr from-[#11998e] to-[#38ef7d]" : "bg-transparent border-dashed"
-                    }`} />
-                    <span className="hidden sm:inline">Backdrop</span>
-                    <IoChevronDown className="w-3.5 h-3.5 text-[#8D959F] flex-shrink-0" />
-                  </button>
-
-                  <AnimatePresence>
-                    {isHeroBgDropdownOpen && (
-                      <>
-                        <div className="fixed inset-0 z-40" onClick={() => setIsHeroBgDropdownOpen(false)} />
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-                          className="absolute right-0 mt-1.5 bg-white border border-[#E1E5E9] rounded-xl shadow-lg p-2.5 z-50 grid grid-cols-4 gap-2 w-48"
-                        >
-                          {[
-                            { id: "none", color: "bg-transparent border border-dashed border-gray-300", label: "None" },
-                            { id: "solid-white", color: "bg-white border border-[#E1E5E9]", label: "White" },
-                            { id: "solid-dark", color: "bg-[#111418]", label: "Dark" },
-                            { id: "gradient-sunset", color: "bg-gradient-to-tr from-[#ff7e5f] to-[#ec4899]", label: "Sunset" },
-                            { id: "gradient-ocean", color: "bg-gradient-to-tr from-[#00c6ff] to-[#3b82f6]", label: "Ocean" },
-                            { id: "gradient-twilight", color: "bg-gradient-to-tr from-[#0f172a] to-[#581c87]", label: "Twilight" },
-                            { id: "gradient-emerald", color: "bg-gradient-to-tr from-[#11998e] to-[#38ef7d]", label: "Emerald" },
-                          ].map((bg) => {
-                            const isSel = selectedBg === bg.id;
-                            return (
-                              <button
-                                key={bg.id}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedBg(bg.id as CanvasBackground);
-                                  setIsHeroBgDropdownOpen(false);
-                                }}
-                                className={`w-8 h-8 rounded-full ${bg.color} transition-transform duration-200 hover:scale-110 active:scale-95 relative flex items-center justify-center cursor-pointer ${
-                                  isSel ? "ring-2 ring-brand-primary ring-offset-2" : "opacity-90"
-                                }`}
-                                title={bg.label}
-                              >
-                                {isSel && <IoCheckmark className="text-brand-primary bg-white rounded-full w-3.5 h-3.5 p-0.5" />}
-                              </button>
-                            );
-                          })}
-                        </motion.div>
-                      </>
-                    )}
-                  </AnimatePresence>
+              {/* 4. Font Selector */}
+              <div className="relative">
+                <select
+                  value={selectedFont}
+                  onChange={(e) => setSelectedFont(e.target.value as FontFamily)}
+                  className="h-8 pl-2.5 pr-6 text-xs font-semibold rounded-lg border border-[#E1E5E9] bg-white text-[#17191C] hover:bg-[#F8FAFC] focus:outline-none focus:border-brand-primary cursor-pointer appearance-none shadow-xs transition-colors"
+                >
+                  <option value="sans">DM Sans</option>
+                  <option value="inter">Inter</option>
+                  <option value="display">Plus Jakarta</option>
+                  <option value="serif">Lora Serif</option>
+                  <option value="mono">JetBrains Mono</option>
+                  <option value="space">Space Grotesk</option>
+                </select>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-[#8D959F] flex items-center">
+                  <ChevronDown className="w-3.5 h-3.5" />
                 </div>
               </div>
-            </div>
 
-            {/* In-Card Canvas */}
-            <div className="p-3 sm:p-5 md:p-6 bg-[#EDF1F5] rounded-xl flex items-center justify-center min-h-[400px] overflow-hidden w-full transition-all duration-300">
-              <CanvasWrapper background={demoCustomization.canvasBackground} padding={demoCustomization.canvasPadding}>
-                <PostCard
-                  post={currentPost}
-                  customization={demoCustomization}
-                  onUpdatePost={handleUpdateCurrentPost}
-                />
-              </CanvasWrapper>
-            </div>
+              <div className="hidden sm:block h-6 w-[1px] bg-[#ECEEF1]" />
 
-            {/* Action Bar Below Canvas */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
-              <span className="text-xs text-[#626A73] text-center sm:text-left">
-                {isDirectEdit
-                  ? "Direct Edit Active: Type directly on the card to edit content."
-                  : "Preview Mode: Switch themes, fonts, and backgrounds above."}
-              </span>
+              {/* 5. Backdrop Swatches */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsHeroBgDropdownOpen(!isHeroBgDropdownOpen)}
+                  className="h-8 pl-2.5 pr-2 rounded-lg border border-[#E1E5E9] bg-white hover:bg-[#F8FAFC] flex items-center gap-1.5 shadow-xs cursor-pointer text-[#17191C] font-semibold text-xs transition-colors"
+                >
+                  <div className={`w-3.5 h-3.5 rounded-full border border-black/10 flex-shrink-0 ${
+                    selectedBg === "solid-white" ? "bg-white" :
+                    selectedBg === "solid-dark" ? "bg-[#111418]" :
+                    selectedBg === "gradient-sunset" ? "bg-gradient-to-tr from-[#ff7e5f] to-[#ec4899]" :
+                    selectedBg === "gradient-ocean" ? "bg-gradient-to-tr from-[#00c6ff] to-[#3b82f6]" :
+                    selectedBg === "gradient-twilight" ? "bg-gradient-to-tr from-[#0f172a] to-[#581c87]" :
+                    selectedBg === "gradient-emerald" ? "bg-gradient-to-tr from-[#11998e] to-[#38ef7d]" : "bg-transparent border-dashed"
+                  }`} />
+                  <span className="hidden sm:inline">Backdrop</span>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#8D959F] flex-shrink-0" />
+                </button>
+
+                <AnimatePresence>
+                  {isHeroBgDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setIsHeroBgDropdownOpen(false)} />
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                        className="absolute right-0 mt-1.5 bg-white border border-[#E1E5E9] rounded-xl shadow-lg p-2.5 z-50 grid grid-cols-4 gap-2 w-48"
+                      >
+                        {[
+                          { id: "none", color: "bg-transparent border border-dashed border-gray-300", label: "None" },
+                          { id: "solid-white", color: "bg-white border border-[#E1E5E9]", label: "White" },
+                          { id: "solid-dark", color: "bg-[#111418]", label: "Dark" },
+                          { id: "gradient-sunset", color: "bg-gradient-to-tr from-[#ff7e5f] to-[#ec4899]", label: "Sunset" },
+                          { id: "gradient-ocean", color: "bg-gradient-to-tr from-[#00c6ff] to-[#3b82f6]", label: "Ocean" },
+                          { id: "gradient-twilight", color: "bg-gradient-to-tr from-[#0f172a] to-[#581c87]", label: "Twilight" },
+                          { id: "gradient-emerald", color: "bg-gradient-to-tr from-[#11998e] to-[#38ef7d]", label: "Emerald" },
+                        ].map((bg) => {
+                          const isSel = selectedBg === bg.id;
+                          return (
+                            <button
+                              key={bg.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedBg(bg.id as CanvasBackground);
+                                setIsHeroBgDropdownOpen(false);
+                              }}
+                              className={`w-8 h-8 rounded-full ${bg.color} transition-transform duration-200 hover:scale-110 active:scale-95 relative flex items-center justify-center cursor-pointer ${
+                                isSel ? "ring-2 ring-brand-primary ring-offset-2" : "opacity-90"
+                              }`}
+                              title={bg.label}
+                            >
+                              {isSel && <Check className="text-brand-primary bg-white rounded-full w-3.5 h-3.5 p-0.5" />}
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+
+          {/* In-Card Canvas */}
+          <div className="p-3 sm:p-5 md:p-8 bg-[#EDF1F5] rounded-xl flex items-center justify-center min-h-[420px] overflow-hidden w-full transition-all duration-300 mt-4 relative">
+            <CanvasWrapper background={demoCustomization.canvasBackground} padding={demoCustomization.canvasPadding}>
+              <PostCard
+                post={currentPost}
+                customization={demoCustomization}
+                onUpdatePost={handleUpdateCurrentPost}
+              />
+            </CanvasWrapper>
+          </div>
+
+          {/* Action Bar Below Canvas */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#ECEEF1] mt-4">
+            <div className="text-xs text-[#626A73] flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse shrink-0" />
+              <span>{isDirectEdit ? "Direct Edit Active: Click on any text inside the card to modify." : "Live Customization: Choose configurations instantly above."}</span>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <span className="text-xs font-bold text-[#8D959F] hidden sm:inline">Paste → customize → export</span>
               <motion.button
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98, y: 0 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => onOpenGenerator(currentPost, demoCustomization)}
-                className="w-auto h-10 px-5 rounded-lg bg-brand-primary text-white font-semibold text-xs flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs shrink-0"
+                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-brand-primary text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs shrink-0"
               >
-                <span>Visit Studio</span>
-                <FiArrowRight className="w-3.5 h-3.5" />
+                <span>Make yours</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </motion.button>
             </div>
           </div>
         </motion.div>
       </section>
 
-      {/* 3. COMPARISON SECTION */}
-      <section className="py-20 md:py-24 bg-white border-y border-[#E1E5E9]">
+      {/* 4. PROBLEM SECTION */}
+      <section className="py-20 bg-white border-y border-[#E1E5E9]">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="text-center max-w-2xl mx-auto space-y-3 mb-10"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#17191C] tracking-tight">
-              Your best posts deserve more than a screenshot.
+          <div className="text-center max-w-3xl mx-auto space-y-4 mb-12">
+            <h2 className="text-3xl sm:text-4xl font-black text-[#17191C] tracking-tight leading-tight">
+              Your content is already good. The presentation shouldn't make it look unfinished.
             </h2>
-            <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
-              Screenshots are easy to make, but they rarely look intentional. Smyl turns your posts into clean, platform-inspired cards designed for sharing.
+            <p className="text-base text-[#626A73] leading-relaxed max-w-2xl mx-auto font-normal">
+              Screenshots crop awkwardly, lose context, and rarely look like something you intentionally designed. Smyl turns your existing content into clean, shareable visuals without making you rebuild it in a design tool.
             </p>
-          </motion.div>
+          </div>
 
-          {/* Interactive Comparison Slider */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="max-w-4xl mx-auto"
-          >
+          {/* Slider Comparison Box */}
+          <div className="max-w-4xl mx-auto">
             <div
-              className="relative w-full h-[400px] sm:h-[460px] md:h-[500px] rounded-2xl overflow-hidden select-none border border-[#E1E5E9] shadow-sm cursor-ew-resize group"
+              className="relative w-full h-[380px] sm:h-[440px] md:h-[480px] rounded-2xl overflow-hidden select-none border border-[#E1E5E9] shadow-sm cursor-ew-resize group"
               onMouseDown={(e) => {
                 isDraggingRef.current = true;
                 const rect = e.currentTarget.getBoundingClientRect();
@@ -596,7 +601,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                 if (e.touches[0]) handleSliderMove(e.touches[0].clientX, rect);
               }}
             >
-              {/* RIGHT SIDE: The Smyl Card */}
+              {/* RIGHT SIDE: Smyl Card */}
               <div className="absolute inset-0 bg-[#0F172A] overflow-hidden flex items-center justify-center">
                 <img
                   src={PLACEHOLDER_IMAGES.comparison.after}
@@ -604,12 +609,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-5 right-5 bg-emerald-600/95 backdrop-blur-md text-white text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-xs flex items-center gap-1.5 z-20">
-                  <IoCheckmarkCircle className="w-3.5 h-3.5" />
+                  <CheckCircle className="w-3.5 h-3.5" />
                   <span>The Smyl Card</span>
                 </div>
               </div>
 
-              {/* LEFT SIDE: Messy Screenshot */}
+              {/* LEFT SIDE: Screenshot */}
               <div
                 className="absolute inset-0 bg-[#1E293B] overflow-hidden flex items-center justify-center"
                 style={{ clipPath: `polygon(0 0, ${sliderPosition}% 0, ${sliderPosition}% 100%, 0 100%)` }}
@@ -620,12 +625,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-5 left-5 bg-rose-600/95 backdrop-blur-md text-white text-xs font-semibold px-3.5 py-1.5 rounded-full shadow-xs flex items-center gap-1.5 z-20">
-                  <IoCloseCircle className="w-3.5 h-3.5 shrink-0" />
+                  <Info className="w-3.5 h-3.5 shrink-0" />
                   <span>Plain Screenshot</span>
                 </div>
               </div>
 
-              {/* Slider Handle */}
+              {/* Handle */}
               <div
                 className="absolute top-0 bottom-0 w-[2px] bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] z-40 pointer-events-none -translate-x-1/2"
                 style={{ left: `${sliderPosition}%` }}
@@ -639,230 +644,295 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
               </div>
             </div>
 
-            <div className="text-center mt-3 text-xs text-[#626A73]">
-              Drag handle left and right to inspect the visual contrast
+            {/* Comparison Highlights */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 max-w-3xl mx-auto text-center">
+              <div className="p-3 bg-brand-soft/40 border border-brand-primary/5 rounded-xl">
+                <span className="block font-bold text-xs text-[#17191C]">Cleaner presentation</span>
+              </div>
+              <div className="p-3 bg-brand-soft/40 border border-brand-primary/5 rounded-xl">
+                <span className="block font-bold text-xs text-[#17191C]">Better readability</span>
+              </div>
+              <div className="p-3 bg-brand-soft/40 border border-brand-primary/5 rounded-xl">
+                <span className="block font-bold text-xs text-[#17191C]">Intentional dimensions</span>
+              </div>
+              <div className="p-3 bg-brand-soft/40 border border-brand-primary/5 rounded-xl">
+                <span className="block font-bold text-xs text-[#17191C]">Easier sharing</span>
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* 4. HOW IT WORKS SECTION */}
-      <section className="py-20 md:py-24 px-4 max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-2xl mx-auto space-y-3 mb-12 sm:mb-16"
-        >
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-soft text-brand-primary text-xs font-bold border border-brand-primary/15 uppercase tracking-wider">
-            <span className="w-2 h-2 rounded-xs bg-brand-primary inline-block shrink-0" />
-            <span>HOW IT WORKS</span>
+      {/* 5. HOW IT WORKS SECTION */}
+      <section className="py-20 px-4 max-w-7xl mx-auto">
+        <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
+          <div className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-brand-soft text-brand-primary text-[10px] font-bold uppercase tracking-wider">
+            <span>Flow</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-[#17191C] tracking-tight">
+            Turn an idea into a shareable asset in three steps.
+          </h2>
+        </div>
+
+        {/* 3 Step Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-brand-primary text-white font-black flex items-center justify-center text-lg">
+              01
+            </div>
+            <h3 className="font-bold text-lg text-[#17191C]">Paste what you already have</h3>
+            <p className="text-sm text-[#626A73] leading-relaxed">
+              Drop in an X or LinkedIn post, URL, or draft. Smyl handles the formatting.
+            </p>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#17191C] tracking-tight leading-tight">
-            From post to shareable card in 3 simple steps.
-          </h2>
-        </motion.div>
+          <div className="space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-brand-primary text-white font-black flex items-center justify-center text-lg">
+              02
+            </div>
+            <h3 className="font-bold text-lg text-[#17191C]">Make it look right</h3>
+            <p className="text-sm text-[#626A73] leading-relaxed">
+              Choose the platform, typography, theme, background, and layout.
+            </p>
+          </div>
 
-        {/* 3 Step Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
-          {[
-            {
-              step: "01",
-              title: "Paste your post",
-              desc: "Paste plain text or enter a URL from X or LinkedIn to parse author details and content automatically.",
-              image: PLACEHOLDER_IMAGES.howItWorks[0].imageUrl,
-              alt: PLACEHOLDER_IMAGES.howItWorks[0].alt,
-            },
-            {
-              step: "02",
-              title: "Make it yours",
-              desc: "Customize platform layout, light/dark theme, background gradients, and font pairings in real-time.",
-              image: PLACEHOLDER_IMAGES.howItWorks[1].imageUrl,
-              alt: PLACEHOLDER_IMAGES.howItWorks[1].alt,
-            },
-            {
-              step: "03",
-              title: "Export & share",
-              desc: "Download high-DPI, 100% watermark-free PNG visual cards ready to share on any platform.",
-              image: PLACEHOLDER_IMAGES.howItWorks[2].imageUrl,
-              alt: PLACEHOLDER_IMAGES.howItWorks[2].alt,
-            },
-          ].map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.6, delay: idx * 0.12, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col group cursor-pointer"
-              onClick={() => onOpenGenerator()}
-            >
-              <div className="w-full bg-[#F4F6F9] border border-[#E8ECF0] rounded-3xl p-5 sm:p-6 aspect-[4/3] relative overflow-hidden flex items-center justify-center shadow-2xs group-hover:border-[#CBD5E1] transition-colors duration-200">
-                <img
-                  src={item.image}
-                  alt={item.alt}
-                  className="w-full h-full object-cover rounded-2xl border border-white/60 shadow-xs transition-transform duration-500 group-hover:scale-[1.03]"
-                />
-              </div>
-
-              <div className="pt-4 px-1 space-y-1">
-                <span className="text-xs font-extrabold text-brand-primary uppercase tracking-wider block">
-                  Step {item.step}
-                </span>
-                <h3 className="text-base sm:text-lg font-bold text-[#17191C] leading-snug">
-                  {item.title}
-                </h3>
-                <p className="text-xs sm:text-sm text-[#626A73] leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+          <div className="space-y-4">
+            <div className="w-12 h-12 rounded-xl bg-brand-primary text-white font-black flex items-center justify-center text-lg">
+              03
+            </div>
+            <h3 className="font-bold text-lg text-[#17191C]">Share it</h3>
+            <p className="text-sm text-[#626A73] leading-relaxed">
+              Export a clean, high-resolution visual or keep the design in your Smyl account.
+            </p>
+          </div>
         </div>
 
         <div className="mt-12 text-center">
-          <motion.button
-            whileHover={{ scale: 1.02, y: -1 }}
-            whileTap={{ scale: 0.98, y: 0 }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          <button
             onClick={() => onOpenGenerator()}
-            className="h-10 px-6 rounded-xl bg-brand-primary text-white font-semibold text-xs inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+            className="h-12 px-8 rounded-xl bg-brand-primary text-white font-bold text-sm inline-flex items-center justify-center gap-2 hover:bg-brand-hover transition-colors cursor-pointer"
           >
-            <span>Visit Studio</span>
-            <FiArrowRight className="w-3.5 h-3.5" />
-          </motion.button>
+            <span>Create yours for free</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </section>
 
-      {/* 6. BENEFIT CARDS SECTION */}
-      <section className="py-20 bg-white border-t border-[#E1E5E9]">
+      {/* 6. FREE TOOLS SECTION */}
+      <section id="free-tools" className="py-20 bg-[#F8FAFC] border-y border-[#E1E5E9]">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="text-center max-w-2xl mx-auto space-y-3 mb-12"
-          >
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#17191C] tracking-tight">
-              Everything you need for a post that looks shareable.
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand-primary text-[10px] sm:text-xs font-bold tracking-wider uppercase border border-brand-primary/10">
+              <Settings className="w-3.5 h-3.5" />
+              <span>Free Utility Suite</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#17191C] tracking-tight">
+              One place for the link-sharing jobs you do every week.
             </h2>
-            <p className="text-sm sm:text-base text-[#626A73]">
-              Designed to elevate your text into clean, engaging visuals.
-            </p>
-          </motion.div>
-
-          {/* 4 Benefit Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto px-4">
-            {[
-              {
-                num: "01",
-                title: "Platform-inspired layouts",
-                desc: "Designed specifically to mirror the authentic structure of X and LinkedIn posts so your content looks native and credible.",
-              },
-              {
-                num: "02",
-                title: "Clean, readable formatting",
-                desc: "Optimized typography, line heights, and padding that make your post effortless to read across all feed sizes.",
-              },
-              {
-                num: "03",
-                title: "Customizable styles",
-                desc: "Pick from clean light and dark themes, background gradients, and font pairings that align with your personal brand.",
-              },
-              {
-                num: "04",
-                title: "Ready to export",
-                desc: "Download high-DPI, 100% watermark-free PNG images instantly ready for newsletters, blogs, or social feeds.",
-              },
-            ].map((card, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                whileHover={{ y: -3 }}
-                transition={{ duration: 0.5, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
-                className="relative group"
-              >
-                {/* Offset Bottom-Left Notch Accent */}
-                <div className="absolute -bottom-2.5 -left-2.5 w-24 sm:w-28 h-12 sm:h-14 rounded-bl-2xl rounded-tr-lg bg-brand-primary opacity-90 transition-transform duration-300 group-hover:translate-x-[-2px] group-hover:translate-y-[2px]" />
-
-                {/* Main White Card Box */}
-                <div className="relative z-10 bg-white border border-[#E1E5E9] shadow-md hover:shadow-lg transition-all rounded-2xl p-6 sm:p-7 flex items-start gap-4 sm:gap-5">
-                  <span className="text-3xl sm:text-4xl font-black tracking-tight shrink-0 select-none leading-none pt-0.5 text-brand-primary">
-                    {card.num}
-                  </span>
-
-                  <div className="space-y-1.5">
-                    <h3 className="text-sm sm:text-base font-bold text-[#17191C]">
-                      {card.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-[#626A73] leading-relaxed font-normal">
-                      {card.desc}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
           </div>
 
-          <div className="mt-12 text-center">
-            <motion.button
-              whileHover={{ scale: 1.02, y: -1 }}
-              whileTap={{ scale: 0.98, y: 0 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              onClick={() => onOpenGenerator()}
-              className="h-10 px-6 rounded-xl bg-brand-primary text-white font-semibold text-xs inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {/* 1. Link Shortener */}
+            <div 
+              onClick={() => onTabChange?.("shortener")}
+              className="bg-white border border-[#E1E5E9] hover:border-brand-primary/40 rounded-2xl p-6 flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all group"
             >
-              <span>Visit Studio</span>
-              <FiArrowRight className="w-3.5 h-3.5" />
-            </motion.button>
+              <div className="space-y-4">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center">
+                  <LinkIcon className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17191C]">Link Shortener</h3>
+                  <p className="text-xs text-[#626A73] mt-1.5 leading-relaxed">
+                    Turn long URLs into clean, shareable links.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-5 border-t border-[#ECEEF1] mt-5">
+                <span className="text-xs font-bold text-brand-primary group-hover:underline inline-flex items-center gap-1">
+                  Shorten a link <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
+
+            {/* 2. QR Code Generator */}
+            <div 
+              onClick={() => onTabChange?.("qr")}
+              className="bg-white border border-[#E1E5E9] hover:border-brand-primary/40 rounded-2xl p-6 flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all group"
+            >
+              <div className="space-y-4">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center">
+                  <QrCode className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17191C]">QR Code Generator</h3>
+                  <p className="text-xs text-[#626A73] mt-1.5 leading-relaxed">
+                    Turn any URL into a downloadable QR code.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-5 border-t border-[#ECEEF1] mt-5">
+                <span className="text-xs font-bold text-brand-primary group-hover:underline inline-flex items-center gap-1">
+                  Create a QR code <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
+
+            {/* 3. Link Preview */}
+            <div 
+              onClick={() => onTabChange?.("preview")}
+              className="bg-white border border-[#E1E5E9] hover:border-brand-primary/40 rounded-2xl p-6 flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all group"
+            >
+              <div className="space-y-4">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center">
+                  <Eye className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17191C]">Link Preview</h3>
+                  <p className="text-xs text-[#626A73] mt-1.5 leading-relaxed">
+                    See exactly how your URL looks when shared.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-5 border-t border-[#ECEEF1] mt-5">
+                <span className="text-xs font-bold text-brand-primary group-hover:underline inline-flex items-center gap-1">
+                  Preview a link <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
+
+            {/* 4. OG Debugger */}
+            <div 
+              onClick={() => onTabChange?.("ogdebug")}
+              className="bg-white border border-[#E1E5E9] hover:border-brand-primary/40 rounded-2xl p-6 flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all group"
+            >
+              <div className="space-y-4">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center">
+                  <Bug className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17191C]">OG Debugger</h3>
+                  <p className="text-xs text-[#626A73] mt-1.5 leading-relaxed">
+                    Find missing or broken Open Graph metadata before you share.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-5 border-t border-[#ECEEF1] mt-5">
+                <span className="text-xs font-bold text-brand-primary group-hover:underline inline-flex items-center gap-1">
+                  Debug a URL <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
+
+            {/* 5. UTM Builder */}
+            <div 
+              onClick={() => onTabChange?.("utm")}
+              className="bg-white border border-[#E1E5E9] hover:border-brand-primary/40 rounded-2xl p-6 flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all group"
+            >
+              <div className="space-y-4">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center font-bold">
+                  U
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17191C]">UTM Builder</h3>
+                  <p className="text-xs text-[#626A73] mt-1.5 leading-relaxed">
+                    Build campaign URLs without manually writing UTM parameters.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-5 border-t border-[#ECEEF1] mt-5">
+                <span className="text-xs font-bold text-brand-primary group-hover:underline inline-flex items-center gap-1">
+                  Build a UTM link <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
+
+            {/* 6. Link Hub */}
+            <div 
+              onClick={() => onTabChange?.("hubs")}
+              className="bg-white border border-[#E1E5E9] hover:border-brand-primary/40 rounded-2xl p-6 flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all group"
+            >
+              <div className="space-y-4">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center">
+                  <Compass className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17191C]">Link Hub</h3>
+                  <p className="text-xs text-[#626A73] mt-1.5 leading-relaxed">
+                    Create one clean page for all your important links.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-5 border-t border-[#ECEEF1] mt-5">
+                <span className="text-xs font-bold text-brand-primary group-hover:underline inline-flex items-center gap-1">
+                  Create a Link Hub <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
+
+            {/* 7. Screenshot Generator */}
+            <div 
+              onClick={() => onTabChange?.("screenshot")}
+              className="bg-white border border-[#E1E5E9] hover:border-brand-primary/40 rounded-2xl p-6 flex flex-col justify-between cursor-pointer hover:shadow-lg transition-all group"
+            >
+              <div className="space-y-4">
+                <div className="w-9 h-9 rounded-xl bg-brand-soft text-brand-primary flex items-center justify-center">
+                  <ImageIcon className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#17191C]">Screenshot Generator</h3>
+                  <p className="text-xs text-[#626A73] mt-1.5 leading-relaxed">
+                    Capture any public webpage as a clean, high-resolution image.
+                  </p>
+                </div>
+              </div>
+              <div className="pt-5 border-t border-[#ECEEF1] mt-5">
+                <span className="text-xs font-bold text-brand-primary group-hover:underline inline-flex items-center gap-1">
+                  Capture a webpage <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* 7. FAQ SECTION */}
       <section className="py-20 md:py-24 px-4 max-w-3xl mx-auto space-y-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center space-y-2"
-        >
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#17191C] tracking-tight">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-black text-[#17191C] tracking-tight">
             Frequently Asked Questions
           </h2>
-          <p className="text-sm sm:text-base text-[#626A73]">
-            Everything you need to know about Smyl card generation and usage.
+          <p className="text-sm text-[#626A73]">
+            Everything you need to know about Smyl and how our utilities help you share better content.
           </p>
-        </motion.div>
+        </div>
 
         <div className="divide-y divide-[#ECEEF1] border-y border-[#ECEEF1]">
           {[
             {
               q: "What is Smyl?",
-              a: "Smyl is a web tool that transforms social text posts and links into clean, platform-inspired visual cards ready to share.",
+              a: "Smyl is a single workspace built for the link-sharing and social-sharing tasks you do every week. Create visual cards, shorten URLs, generate QR codes, preview links, debug metadata, build UTMs, and capture webpages from one place."
             },
             {
-              q: "What posts can I use?",
-              a: "You can paste text from X (Twitter), LinkedIn, or notes, or paste a public post URL to parse content automatically.",
+              q: "Do I need design skills to use Smyl?",
+              a: "None at all. Smyl handles layout, contrast, font pairings, and safe-padding automatically so everything you output looks like it was created by a designer."
             },
             {
-              q: "Do I need design skills?",
-              a: "No design skills required. Smyl handles layout, font pairings, padding, and contrast automatically.",
+              q: "Can I customize my visual cards?",
+              a: "Yes. You can change themes (light, dark, retro), pick background gradients, customize font styles, toggle engagement stats, and edit the text directly on the card."
             },
             {
-              q: "Can I customize my card?",
-              a: "Yes. You can switch between light, dark, and retro themes, pick background colors, customize font styles, and toggle post metadata.",
+              q: "How do the link tools work?",
+              a: "Every link you shorten or turn into a QR code is tracked securely. You can see real-time clicks, preview how links will render on social networks, and generate clean UTM campaigns."
             },
             {
-              q: "Can I use exported cards commercially?",
-              a: "Yes. All exported cards are 100% watermark-free and yours to use in newsletters, presentations, blogs, or social feeds.",
+              q: "Are there watermark or credit card requirements?",
+              a: "None. All tools are completely free to use, and all exported cards and files are 100% watermark-free. You do not need a credit card to create an account."
             },
+            {
+              q: "What are the benefits of creating a free account?",
+              a: "A free account lets you \"keep what you create.\" All your cards, custom links, QR codes, and Link Hubs are saved securely so you can access, edit, or re-download them anytime from any device."
+            }
           ].map((faq, idx) => {
             const isOpen = openFaq === idx;
             return (
@@ -872,15 +942,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   onClick={() => setOpenFaq(isOpen ? null : idx)}
                   className="w-full text-left flex items-center justify-between gap-4 transition-colors cursor-pointer group"
                 >
-                  <span className="font-semibold text-base sm:text-lg text-[#17191C] group-hover:text-brand-primary transition-colors">
+                  <span className="font-bold text-base sm:text-lg text-[#17191C] group-hover:text-brand-primary transition-colors">
                     {faq.q}
                   </span>
                   <motion.div
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[#626A73] group-hover:bg-[#F5F7F9] transition-colors flex-shrink-0"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[#626A73] hover:bg-[#F5F7F9] transition-colors flex-shrink-0"
                   >
-                    <IoChevronDown className={`w-4 h-4 ${isOpen ? "text-brand-primary" : ""}`} />
+                    <ChevronDown className={`w-4 h-4 ${isOpen ? "text-brand-primary" : ""}`} />
                   </motion.div>
                 </button>
 
@@ -894,7 +964,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                       transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
                       className="overflow-hidden"
                     >
-                      <div className="pt-3 pr-10 text-sm text-[#626A73] leading-relaxed">
+                      <div className="pt-3 pr-10 text-xs sm:text-sm text-[#626A73] leading-relaxed">
                         {faq.a}
                       </div>
                     </motion.div>
@@ -922,30 +992,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
 
           <div className="space-y-4 max-w-lg text-center md:text-left z-10">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Your next shareable post is already written.
+              You already have the link. Smyl handles the rest.
             </h2>
             <p className="text-sm sm:text-base text-white/90 leading-relaxed max-w-md">
-              Paste it into Smyl and turn it into a polished visual.
+              Shorten it. Preview it. Track it. Turn it into a QR code. Or turn your post into something worth sharing.
             </p>
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
               <motion.button
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98, y: 0 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 onClick={() => onOpenGenerator()}
-                className="w-full sm:w-auto h-11 px-7 rounded-xl bg-white text-brand-primary font-semibold text-sm inline-flex items-center justify-center gap-2 hover:bg-[#F5F7F9] active:bg-[#EEF1F4] transition-all cursor-pointer shadow-md"
+                className="w-full sm:w-auto h-11 px-7 rounded-xl bg-white text-brand-primary font-bold text-sm inline-flex items-center justify-center gap-2 hover:bg-[#F5F7F9] active:bg-[#EEF1F4] transition-all cursor-pointer shadow-md"
               >
-                <span>Visit Studio</span>
-                <FiArrowRight className="w-4 h-4" />
+                <span>Create something with Smyl</span>
+                <ArrowRight className="w-4 h-4" />
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98, y: 0 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                onClick={onBecomeUser}
-                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-brand-hover text-white border border-white/20 font-semibold text-sm inline-flex items-center justify-center gap-2 hover:bg-brand-pressed transition-all cursor-pointer"
+                onClick={() => scrollToSection("free-tools")}
+                className="w-full sm:w-auto h-11 px-6 rounded-xl bg-brand-hover text-white border border-white/20 font-bold text-sm inline-flex items-center justify-center gap-2 hover:bg-brand-pressed transition-all cursor-pointer"
               >
-                <span>Become a user!</span>
+                <span>Explore all tools</span>
               </motion.button>
             </div>
           </div>

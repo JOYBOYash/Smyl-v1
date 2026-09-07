@@ -109,10 +109,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="p-6 space-y-4">
           <div>
             <h3 className="font-bold text-[#17191C] text-lg tracking-tight">
-              {mode === "signin" ? "Welcome back" : "Create your Smyl account"}
+              {mode === "signin" ? "Sign in to Smyl" : "Create your free account"}
             </h3>
-            <p className="text-xs text-[#626A73] mt-0.5">
-              Sync your card designs, custom avatars, and exports seamlessly.
+            <p className="text-xs font-semibold text-brand-primary mt-1">
+              Keep what you create.
+            </p>
+            <p className="text-xs text-[#626A73] mt-1 leading-relaxed">
+              Save your cards, links, QR codes, and Link Hub so they're available the next time you need them.
             </p>
           </div>
 
@@ -156,7 +159,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="relative flex py-1 items-center">
             <div className="flex-grow border-t border-[#ECEEF1]"></div>
             <span className="flex-shrink mx-3 text-[10px] font-bold text-[#8D959F] uppercase tracking-wider">
-              Or with email
+              OR
             </span>
             <div className="flex-grow border-t border-[#ECEEF1]"></div>
           </div>
@@ -182,7 +185,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="name@work.com"
+                placeholder="you@example.com"
                 className="w-full h-9.5 pl-9 pr-3 text-xs rounded-xl border border-[#D0D7DE] bg-white text-[#17191C] placeholder-[#8D959F] focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
             </div>
@@ -194,7 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Password (min 6 characters)"
+                placeholder="Your password"
                 className="w-full h-9.5 pl-9 pr-3 text-xs rounded-xl border border-[#D0D7DE] bg-white text-[#17191C] placeholder-[#8D959F] focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
             </div>
@@ -204,12 +207,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               disabled={isLoading}
               className="w-full h-10 rounded-xl bg-brand-primary text-white font-semibold text-xs flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-colors disabled:opacity-50 cursor-pointer shadow-xs mt-2"
             >
-              <span>{isLoading ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}</span>
+              <span>{isLoading ? "Please wait..." : mode === "signin" ? "Sign in" : "Create Account"}</span>
             </button>
           </form>
 
           {/* Switch Mode */}
-          <div className="pt-2 text-center">
+          <div className="pt-2 text-center flex flex-col gap-3">
             <button
               type="button"
               onClick={() => {
@@ -220,11 +223,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               className="text-xs text-[#626A73] hover:text-brand-primary font-medium cursor-pointer"
             >
               {mode === "signin" ? (
-                <>Don't have an account? <span className="font-bold text-brand-primary">Sign up</span></>
+                <>New to Smyl? <span className="font-bold text-brand-primary">Create a free account</span></>
               ) : (
                 <>Already have an account? <span className="font-bold text-brand-primary">Sign in</span></>
               )}
             </button>
+
+            <p className="text-[10px] text-[#8D959F] font-medium">
+              Free to use. No credit card required.
+            </p>
           </div>
         </div>
       </div>
