@@ -580,6 +580,229 @@ async function startServer() {
     }
   });
 
+  // Webpage Screenshot Generator endpoint with strict SSRF protection and bounding
+  app.post("/api/utilities/screenshot", async (req, res) => {
+    try {
+      const { 
+        url, 
+        viewport = "desktop", 
+        fullPage = false, 
+        waitForTimeout = 3000, 
+        waitUntil = "networkidle2" 
+      } = req.body;
+
+      if (!url || typeof url !== "string" || url.trim().length === 0) {
+        return res.status(400).json({ error: "URL parameter is required." });
+      }
+
+      if (viewport !== "desktop" && viewport !== "mobile") {
+        return res.status(400).json({ error: "Viewport must be 'desktop' or 'mobile'." });
+      }
+
+      let parsedWaitForTimeout = parseInt(waitForTimeout, 10);
+      if (isNaN(parsedWaitForTimeout) || parsedWaitForTimeout < 0 || parsedWaitForTimeout > 10000) {
+        parsedWaitForTimeout = 3000;
+      }
+
+      const validWaitUntil = ["load", "domcontentloaded", "networkidle0", "networkidle2", "auto"];
+      const parsedWaitUntil = validWaitUntil.includes(waitUntil) ? waitUntil : "networkidle2";
+
+      const trimmedUrl = url.trim();
+
+      // 1. URL Security and SSRF validation
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(trimmedUrl);
+      } catch (err) {
+        return res.status(400).json({ error: "Invalid URL format." });
+      }
+
+      const protocol = parsedUrl.protocol.toLowerCase();
+      if (protocol !== "http:" && protocol !== "https:") {
+        return res.status(400).json({ error: "Only HTTP and HTTPS protocols are allowed." });
+      }
+
+      const hostname = parsedUrl.hostname.toLowerCase();
+
+      // Strict check for simple hostname blocks
+      if (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "[::1]" ||
+        hostname.endsWith(".local") ||
+        hostname.endsWith(".internal") ||
+        hostname.endsWith(".lan")
+      ) {
+        return res.status(400).json({ error: "Access to private or local addresses is strictly forbidden." });
+      }
+
+      // DNS lookup to fetch resolved IP to prevent DNS Rebinding / bypasses
+      let resolvedIp: string;
+      try {
+        const lookupResult = await dnsLookup(parsedUrl.hostname);
+        resolvedIp = lookupResult.address;
+      } catch (dnsErr) {
+        return res.status(400).json({ error: `Failed to resolve host: ${parsedUrl.hostname}` });
+      }
+
+      // Validate IP address
+      function isPrivateOrInternalIp(ip: string): boolean {
+        if (/^(127\.|10\.|192\.168\.)/.test(ip)) return true;
+        if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip)) return true;
+        if (/^169\.254\./.test(ip)) return true;
+        if (ip === "0.0.0.0" || ip === "255.255.255.255") return true;
+
+        const ipv6Lower = ip.toLowerCase();
+        if (
+          ipv6Lower === "::1" ||
+          ipv6Lower.startsWith("fe80:") ||
+          ipv6Lower.startsWith("fc00:") ||
+          ipv6Lower.startsWith("fd00:") ||
+          ipv6Lower.startsWith("::ffff:127.") ||
+          ipv6Lower.startsWith("::ffff:10.") ||
+          ipv6Lower.startsWith("::ffff:192.168.")
+        ) return true;
+        if (ipv6Lower.startsWith("::ffff:172.")) {
+          const parts = ipv6Lower.split(".");
+          if (parts.length >= 2) {
+            const secondPart = parseInt(parts[1], 10);
+            if (secondPart >= 16 && secondPart <= 31) return true;
+          }
+        }
+        return false;
+      }
+
+      if (isPrivateOrInternalIp(resolvedIp)) {
+        return res.status(400).json({ error: "Access to private or internal IP addresses is strictly forbidden." });
+      }
+
+      // 2. Screenshot generation via Microlink with robust automatic fallback retry
+      let buffer: Buffer;
+      let usedFallback = false;
+
+      async function attemptCapture(waitUntilParam: string, waitForTimeoutParam: number, timeoutMs: number): Promise<Buffer> {
+        const queryUrl = `https://api.microlink.io?url=${encodeURIComponent(trimmedUrl)}&screenshot=true&embed=screenshot.url` +
+          (viewport === "mobile" ? "&viewport.isMobile=true&viewport.width=375&viewport.height=812" : "&viewport.width=1280&viewport.height=800") +
+          (fullPage ? "&screenshot.fullPage=true" : "") +
+          `&waitUntil=${waitUntilParam}` +
+          `&waitForTimeout=${waitForTimeoutParam}`;
+
+        const controller = new AbortController();
+        const localTimeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+          const response = await fetch(queryUrl, { signal: controller.signal });
+          clearTimeout(localTimeoutId);
+
+          if (!response.ok) {
+            const contentType = response.headers.get("content-type") || "";
+            if (contentType.includes("application/json")) {
+              try {
+                const errJson = await response.json();
+                throw new Error(errJson.message || errJson.error || `External engine code ${response.status}`);
+              } catch (_) {
+                throw new Error(`External screenshot engine returned status code ${response.status}`);
+              }
+            }
+            throw new Error(`External screenshot engine returned status code ${response.status}`);
+          }
+
+          const arrayBuffer = await response.arrayBuffer();
+          return Buffer.from(arrayBuffer);
+        } catch (err) {
+          clearTimeout(localTimeoutId);
+          throw err;
+        }
+      }
+
+      try {
+        // Try the primary user-specified combination with a 14s budget
+        buffer = await attemptCapture(parsedWaitUntil, parsedWaitForTimeout, 14000);
+      } catch (firstErr: any) {
+        console.warn("First capture attempt failed or timed out. Retrying with ultra-robust safe settings...", firstErr);
+        
+        // If the primary attempt failed or timed out, automatically fallback to a safe 'load' configuration.
+        // This avoids hang-ups on long polling or trackers while still waiting 1.5s for basic JS rendering.
+        try {
+          usedFallback = true;
+          buffer = await attemptCapture("load", 1500, 10000); // 10s budget for fallback
+        } catch (secondErr: any) {
+          console.error("Fallback capture attempt also failed:", secondErr);
+          
+          const errMsg = secondErr.message || "Unreachable page or capture engine failed.";
+          if (secondErr.name === "AbortError" || errMsg.includes("timed out") || errMsg.includes("timeout")) {
+            return res.status(408).json({ 
+              error: "Webpage screenshot capture timed out. The target site might be loading extremely slowly or blocking automated browsers." 
+            });
+          }
+          return res.status(502).json({ error: `Capture failed: ${errMsg}` });
+        }
+      }
+
+      // Max size check: e.g. 8MB
+      if (buffer.length > 8 * 1024 * 1024) {
+        return res.status(400).json({ error: "The captured screenshot exceeds the maximum allowed file size of 8MB." });
+      }
+
+      const base64Image = `data:image/png;base64,${buffer.toString("base64")}`;
+      let returnedImage = base64Image;
+
+      // 3. Optional persistent storage upload if authenticated
+      const userId = await getAuthenticatedUser(req);
+      if (userId && userId !== "anonymous-local-user" && isSupabaseConfigured) {
+        try {
+          const uuid = Math.random().toString(36).substring(2, 15) + "-" + Math.random().toString(36).substring(2, 15);
+          const storagePath = `screenshots/${userId}/${uuid}.png`;
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from("user-assets")
+            .upload(storagePath, buffer, {
+              contentType: "image/png",
+              upsert: true,
+            });
+
+          if (!uploadError && uploadData) {
+            // Retrieve signed URL for private access
+            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+              .from("user-assets")
+              .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7 days expiry
+
+            if (!signedUrlError && signedUrlData) {
+              returnedImage = signedUrlData.signedUrl;
+
+              // Save to user_assets metadata table
+              await supabase.from("user_assets").insert({
+                user_id: userId,
+                storage_path: storagePath,
+                type: "screenshot",
+                mime_type: "image/png",
+                size: buffer.length,
+              });
+            }
+          }
+        } catch (storageErr) {
+          console.error("Storage upload error (falling back to base64):", storageErr);
+        }
+      }
+
+      // Return standardized metadata response
+      return res.json({
+        image: returnedImage,
+        normalizedUrl: trimmedUrl,
+        viewport,
+        fullPage,
+        createdAt: new Date().toISOString(),
+        metadata: {
+          sizeBytes: buffer.length,
+          dimensions: viewport === "mobile" ? "375x812" : "1280x800",
+        },
+      });
+    } catch (err: any) {
+      console.error("Screenshot route crashed:", err);
+      return res.status(500).json({ error: err.message || "An unexpected error occurred during screenshotting." });
+    }
+  });
+
   // Parse post API using Gemini
   app.post("/api/parse-post", async (req, res) => {
     try {
@@ -773,7 +996,7 @@ ${scrapedMetadata}`;
         // ignore
       }
     }
-    return "anonymous-local-user";
+    return null;
   }
 
   const fallbackLinkHubs = new Map<string, any>(); // Key: id, or slug
@@ -790,7 +1013,7 @@ ${scrapedMetadata}`;
       let hubs: any[] = [];
       let dbError: any = null;
 
-      if (isSupabaseConfigured && userId !== "anonymous-local-user") {
+      if (isSupabaseConfigured) {
         try {
           const { data, error } = await supabase
             .from("link_hubs")
@@ -808,8 +1031,8 @@ ${scrapedMetadata}`;
         }
       }
 
-      // If database is not configured or table missing or user is anonymous, return from memory fallback
-      if (!isSupabaseConfigured || userId === "anonymous-local-user" || (dbError && isTableMissingError(dbError))) {
+      // If database is not configured or table missing, return from memory fallback
+      if (!isSupabaseConfigured || (dbError && isTableMissingError(dbError))) {
         hubs = Array.from(fallbackLinkHubs.values()).filter(h => h.user_id === userId);
       } else if (dbError) {
         console.error("Database error fetching hubs:", dbError);
@@ -822,7 +1045,7 @@ ${scrapedMetadata}`;
         let items: any[] = [];
         let itemsError: any = null;
 
-        if (isSupabaseConfigured && userId !== "anonymous-local-user" && !isTableMissingError(dbError)) {
+        if (isSupabaseConfigured && !isTableMissingError(dbError)) {
           try {
             const { data, error } = await supabase
               .from("link_hub_items")
@@ -836,7 +1059,7 @@ ${scrapedMetadata}`;
           }
         }
 
-        if (!isSupabaseConfigured || userId === "anonymous-local-user" || (itemsError && isTableMissingError(itemsError)) || (dbError && isTableMissingError(dbError))) {
+        if (!isSupabaseConfigured || (itemsError && isTableMissingError(itemsError)) || (dbError && isTableMissingError(dbError))) {
           items = fallbackLinkHubItems.get(hub.id) || [];
           items.sort((a, b) => a.position - b.position);
         }
@@ -889,7 +1112,7 @@ ${scrapedMetadata}`;
       let existingHubId: string | null = null;
       let checkError: any = null;
 
-      if (isSupabaseConfigured && userId !== "anonymous-local-user") {
+      if (isSupabaseConfigured) {
         try {
           const { data, error } = await supabase
             .from("link_hubs")
@@ -910,7 +1133,7 @@ ${scrapedMetadata}`;
       }
 
       // Memory check fallback
-      if (!isSupabaseConfigured || userId === "anonymous-local-user" || (checkError && isTableMissingError(checkError))) {
+      if (!isSupabaseConfigured || (checkError && isTableMissingError(checkError))) {
         const memHub = Array.from(fallbackLinkHubs.values()).find(h => h.slug === slug);
         if (memHub) {
           if (memHub.user_id !== userId) {
@@ -943,9 +1166,9 @@ ${scrapedMetadata}`;
 
       let savedHub: any = null;
       let writeError: any = null;
-      let useFallback = !isSupabaseConfigured || userId === "anonymous-local-user";
+      let useFallback = !isSupabaseConfigured;
 
-      if (isSupabaseConfigured && userId !== "anonymous-local-user") {
+      if (isSupabaseConfigured) {
         try {
           // Check ownership if update
           if (hub.id) {
@@ -981,7 +1204,7 @@ ${scrapedMetadata}`;
         }
       }
 
-      if (!isSupabaseConfigured || userId === "anonymous-local-user" || (writeError && isTableMissingError(writeError))) {
+      if (!isSupabaseConfigured || (writeError && isTableMissingError(writeError))) {
         useFallback = true;
         const oldHub = fallbackLinkHubs.get(finalHubId);
         savedHub = {

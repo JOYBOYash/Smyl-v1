@@ -45,6 +45,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
 
   // UI state
   const [generatedUrl, setGeneratedUrl] = useState("");
+  const [building, setBuilding] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -218,6 +219,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     setError(null);
     setSuccess(null);
     setGeneratedUrl("");
+    setBuilding(true);
 
     // Standard field length limits
     const maxUrlLength = 2048;
@@ -226,6 +228,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
     const rawUrl = websiteUrl.trim();
     if (!rawUrl) {
       setError("Website URL is required.");
+      setBuilding(false);
       return;
     }
 
@@ -233,6 +236,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
 
     if (cleanUrl.length > maxUrlLength) {
       setError(`URL exceeds sensible length limit of ${maxUrlLength} characters.`);
+      setBuilding(false);
       return;
     }
 
@@ -245,11 +249,13 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
       lowerUrl.startsWith("file:")
     ) {
       setError("Forbidden protocol. Only http:// or https:// URLs are allowed.");
+      setBuilding(false);
       return;
     }
 
     if (!lowerUrl.startsWith("http://") && !lowerUrl.startsWith("https://")) {
       setError("Website URL must start with http:// or https://");
+      setBuilding(false);
       return;
     }
 
@@ -260,6 +266,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
 
     if (!sourceClean || !mediumClean || !campaignClean) {
       setError("Source, Medium, and Campaign name parameters are required.");
+      setBuilding(false);
       return;
     }
 
@@ -272,6 +279,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
       utmContent.trim().length > maxParamLength
     ) {
       setError(`Campaign parameter values cannot exceed ${maxParamLength} characters.`);
+      setBuilding(false);
       return;
     }
 
@@ -360,6 +368,8 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
       }
     } catch (err) {
       setError("Invalid website URL format. Please double check.");
+    } finally {
+      setBuilding(false);
     }
   };
 
@@ -617,8 +627,27 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten }) => {
           </form>
 
           {/* Generated Link Card */}
-          <AnimatePresence>
-            {generatedUrl && (
+          <AnimatePresence mode="wait">
+            {building ? (
+              <motion.div
+                key="building-skeleton"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="bg-white border border-[#E1E5E9] rounded-2xl shadow-sm p-6 space-y-4 animate-pulse"
+              >
+                <div className="flex items-center justify-between border-b border-[#ECEEF1] pb-3">
+                  <div className="h-4 bg-[#EDF1F5] rounded w-1/3" />
+                  <div className="h-5 bg-[#EDF1F5] rounded w-16" />
+                </div>
+                <div className="h-12 bg-[#EDF1F5]/60 rounded-xl w-full" />
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
+                  <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
+                  <div className="h-10 bg-[#EDF1F5] rounded-lg w-full" />
+                </div>
+              </motion.div>
+            ) : generatedUrl && (
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}

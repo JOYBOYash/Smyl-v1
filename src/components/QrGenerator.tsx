@@ -596,7 +596,15 @@ export const QrGenerator: React.FC<QrGeneratorProps> = ({
 
             {/* Canvas container with beautiful presentation layout */}
             <div className="bg-[#EDF1F5] p-6 rounded-2xl flex items-center justify-center min-h-[260px] max-h-[300px] border border-[#D0D7DE] shadow-inner relative overflow-hidden group">
-              {qrCodeDataUrl ? (
+              {loading ? (
+                <div className="w-full h-full flex flex-col justify-center items-center space-y-3 animate-pulse">
+                  {/* Pulsing QR Code Box */}
+                  <div className="w-40 h-40 bg-white border border-[#D0D7DE] rounded-xl flex items-center justify-center shadow-xs">
+                    <IoQrCode className="w-24 h-24 text-[#CBD5E1] animate-spin duration-3000" />
+                  </div>
+                  <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">Generating QR...</p>
+                </div>
+              ) : qrCodeDataUrl ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}

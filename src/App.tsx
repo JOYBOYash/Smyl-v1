@@ -17,6 +17,7 @@ import { LinkPreviewGenerator } from "./components/LinkPreviewGenerator";
 import { OgDebugger } from "./components/OgDebugger";
 import { UtmBuilder } from "./components/UtmBuilder";
 import { LinkHubWorkspace, PublicLinkHub } from "./components/LinkHub";
+import { ScreenshotGenerator } from "./components/ScreenshotGenerator";
 import { ExportModal } from "./components/ExportModal";
 import { ParsingModal } from "./components/ParsingModal";
 import { KeyboardShortcutsModal } from "./components/KeyboardShortcutsModal";
@@ -29,6 +30,7 @@ import { SmylLogo, SmylIcon, SmylHeaderLogo, SmylLoader } from "./components/Smy
 import { CardDatabase, SavedCard } from "./utils/db";
 import { CardRepository } from "./services/cardService";
 import { useAuth } from "./context/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
 import { parsePostClientFallback } from "./utils/parser";
 import { toPng } from "html-to-image";
 import { motion, AnimatePresence } from "motion/react";
@@ -257,7 +259,39 @@ const DEFAULT_CUSTOMIZATION: CardCustomization = {
   backgroundBlur: 10,
 };
 
+const PATH_TO_TAB: Record<string, "landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug" | "utm" | "hubs" | "screenshot"> = {
+  "/": "landing",
+  "/customize": "customize",
+  "/history": "history",
+  "/link-shortener": "shortener",
+  "/qr-generator": "qr",
+  "/link-preview": "preview",
+  "/og-debugger": "ogdebug",
+  "/utm-builder": "utm",
+  "/hubs": "hubs",
+  "/screenshot-generator": "screenshot",
+};
+
+const TAB_TO_PATH: Record<string, string> = {
+  "landing": "/",
+  "customize": "/customize",
+  "history": "/history",
+  "shortener": "/link-shortener",
+  "qr": "/qr-generator",
+  "preview": "/link-preview",
+  "ogdebug": "/og-debugger",
+  "utm": "/utm-builder",
+  "hubs": "/hubs",
+  "screenshot": "/screenshot-generator",
+};
+
 export const App: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Determine activeTab based on pathname
+  const activeTab = PATH_TO_TAB[location.pathname] || "landing";
+
   const { user, session, profile, isAuthenticated, isConfigured, signOut } = useAuth();
   const [post, setPost] = useState<ParsedPost>(DEFAULT_POST);
   const [customization, setCustomization] = useState<CardCustomization>(DEFAULT_CUSTOMIZATION);
@@ -267,7 +301,6 @@ export const App: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [history, setHistory] = useState<SavedCard[]>([]);
-  const [activeTab, setActiveTab] = useState<"landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug" | "utm" | "hubs">("landing");
   const [shortenerInitialUrl, setShortenerInitialUrl] = useState("");
   const [qrInitialUrl, setQrInitialUrl] = useState("");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -414,7 +447,7 @@ export const App: React.FC = () => {
       if (decoded) {
         setPost(decoded.post);
         setCustomization(decoded.customization);
-        setActiveTab("customize");
+        navigate("/customize");
         setSuccessMsg("Loaded shared card layout!");
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
@@ -556,11 +589,11 @@ export const App: React.FC = () => {
   };
 
   // Page Transition Handler with silky smooth ease in and ease out
-  const handleTabChange = (nextTab: "landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug" | "utm" | "hubs") => {
+  const handleTabChange = (nextTab: "landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug" | "utm" | "hubs" | "screenshot") => {
     if (nextTab === activeTab) return;
     setIsPageTransitioning(true);
     setTimeout(() => {
-      setActiveTab(nextTab);
+      navigate(TAB_TO_PATH[nextTab] || "/");
       window.scrollTo({ top: 0, behavior: "smooth" });
       setTimeout(() => {
         setIsPageTransitioning(false);
@@ -598,7 +631,7 @@ export const App: React.FC = () => {
           platform: samplePost.platform,
         }));
       }
-      setActiveTab("customize");
+      navigate("/customize");
       window.scrollTo({ top: 0, behavior: "smooth" });
       setTimeout(() => {
         setIsPageTransitioning(false);
@@ -790,7 +823,7 @@ export const App: React.FC = () => {
     setTimeout(() => {
       setPost(item.post);
       setCustomization(item.customization);
-      setActiveTab("customize");
+      navigate("/customize");
       window.scrollTo({ top: 0, behavior: "smooth" });
       setSuccessMsg(`Loaded "${item.name}"`);
       setTimeout(() => {
@@ -989,7 +1022,7 @@ export const App: React.FC = () => {
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
                   className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                    ["shortener", "qr", "preview", "ogdebug", "hubs"].includes(activeTab) ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                    ["shortener", "qr", "preview", "ogdebug", "hubs", "screenshot"].includes(activeTab) ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
                   }`}
                 >
                   <IoApps className="w-3.5 h-3.5 shrink-0" />
@@ -1165,6 +1198,25 @@ export const App: React.FC = () => {
                                 <p className="text-[10px] text-[#626A73] truncate">Trackable custom links micro-page</p>
                               </div>
                             </button>
+
+                            <button
+                              onClick={() => {
+                                handleTabChange("screenshot");
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                                activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                                activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                              }`}>
+                                <IoImage className="w-4 h-4 text-cyan-600" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-xs">Screenshot Generator</p>
+                                <p className="text-[10px] text-[#626A73] truncate">Capture webpage to customizable card</p>
+                              </div>
+                            </button>
                           </>
                         )}
                       </motion.div>
@@ -1253,7 +1305,7 @@ export const App: React.FC = () => {
                       onClick={async () => {
                         setIsProfileDropdownOpen(false);
                         if (activeTab === "history") {
-                          setActiveTab("landing");
+                          navigate("/");
                         }
                         await signOut();
                         setSuccessMsg("Signed out successfully");
@@ -1410,6 +1462,20 @@ export const App: React.FC = () => {
                           <IoCompass className="w-4 h-4" />
                         </div>
                         <span className="font-bold text-xs">Link Hub</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleTabChange("screenshot")}
+                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
+                          activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                        }`}
+                      >
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                        }`}>
+                          <IoImage className="w-4 h-4 text-cyan-600" />
+                        </div>
+                        <span className="font-bold text-xs">Screenshot Generator</span>
                       </button>
                     </div>
                   </div>
@@ -2255,7 +2321,19 @@ export const App: React.FC = () => {
         ) : activeTab === "utm" ? (
           <UtmBuilder onShorten={handleUtmToShortener} />
         ) : activeTab === "hubs" ? (
-          <LinkHubWorkspace token={token} />
+          <LinkHubWorkspace token={token} onTriggerAuth={() => setIsAuthModalOpen(true)} />
+        ) : activeTab === "screenshot" ? (
+          <ScreenshotGenerator
+            onHandoffToStudio={(handedPost, customizationFields) => {
+              setPost(handedPost);
+              if (customizationFields) {
+                setCustomization((prev) => ({ ...prev, ...customizationFields }));
+              }
+              // Change tab with clean scrolling
+              navigate("/customize");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
         ) : (
           /* SAVED HISTORY TAB */
           <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">

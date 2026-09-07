@@ -283,7 +283,25 @@ export const LinkShortener: React.FC<{
             className="bg-white border border-[#E1E5E9] shadow-[0_4px_16px_rgba(0,0,0,0.04)] rounded-xl p-5 md:p-6 space-y-6"
           >
             <AnimatePresence mode="wait">
-              {!result ? (
+              {loading ? (
+                <div className="space-y-5 animate-pulse">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-[#EDF1F5] rounded-md w-32" />
+                    <div className="h-10 bg-[#EDF1F5]/60 rounded-lg w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-[#EDF1F5] rounded-md w-24" />
+                    <div className="h-10 bg-[#EDF1F5]/60 rounded-lg w-full" />
+                  </div>
+                  <div className="h-10 bg-[#EDF1F5] rounded-lg w-full flex items-center justify-center text-[#626A73] text-xs font-semibold gap-2">
+                    <svg className="animate-spin h-4 w-4 text-brand-primary" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>Generating short link & sync database...</span>
+                  </div>
+                </div>
+              ) : !result ? (
                 <form onSubmit={handleShorten} className="space-y-5">
                   {/* Long URL Input */}
                   <div className="space-y-2">

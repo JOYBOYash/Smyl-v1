@@ -166,9 +166,29 @@ export const PublicLinkHub: React.FC<PublicLinkHubProps> = ({ slug }) => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-6">
-        <Loader className="h-10 w-10 animate-spin text-[#1E293B]" />
-        <p className="mt-4 text-slate-500 font-medium text-sm animate-pulse">Resolving Smyl Link Hub...</p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 py-16 px-4 animate-pulse">
+        <div className="w-full max-w-xl flex flex-col items-center text-center space-y-4">
+          {/* Avatar Skeleton */}
+          <div className="h-24 w-24 rounded-full bg-slate-200" />
+          
+          {/* Name & Bio Skeleton */}
+          <div className="space-y-2 w-full flex flex-col items-center">
+            <div className="h-6 bg-slate-200 rounded w-1/3" />
+            <div className="h-4 bg-slate-200 rounded w-1/2" />
+          </div>
+
+          {/* Buttons Skeleton */}
+          <div className="w-full space-y-4 pt-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 w-full rounded-xl bg-slate-200/80" />
+            ))}
+          </div>
+
+          <div className="pt-6 flex items-center gap-2 text-xs text-slate-400 font-bold uppercase tracking-widest">
+            <Loader className="h-4.5 w-4.5 animate-spin text-slate-400" />
+            <span>Resolving Smyl Link Hub...</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -272,9 +292,10 @@ export const PublicLinkHub: React.FC<PublicLinkHubProps> = ({ slug }) => {
 // ==========================================
 interface LinkHubWorkspaceProps {
   token: string | null;
+  onTriggerAuth: () => void;
 }
 
-export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token }) => {
+export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token, onTriggerAuth }) => {
   // Hub state
   const [hubId, setHubId] = useState<string>("");
   const [slug, setSlug] = useState<string>("");
@@ -590,6 +611,26 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({ token }) => 
   };
 
   const selectedTheme = THEMES.find(t => t.id === selectedThemeId) || THEMES[0];
+
+  if (!token) {
+    return (
+      <div className="mx-auto max-w-md p-6 sm:p-8 mt-12 bg-white rounded-2xl border border-[#E1E5E9] shadow-lg text-center animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="mx-auto w-12 h-12 rounded-full bg-brand-soft/60 text-brand-primary flex items-center justify-center mb-4">
+          <Lock className="h-6 w-6" />
+        </div>
+        <h2 className="text-xl font-bold text-[#17191C] mb-2">Authentication Required</h2>
+        <p className="text-sm text-[#626A73] mb-6 leading-relaxed">
+          To build, customize, and publish your personal social landing page profile, you must be signed in with a Smyl account.
+        </p>
+        <button
+          onClick={onTriggerAuth}
+          className="w-full inline-flex items-center justify-center rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-primary/90 cursor-pointer hover:shadow-md active:scale-[0.98]"
+        >
+          Sign In or Register Now
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

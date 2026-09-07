@@ -29,6 +29,7 @@ export interface ParsedPost {
   content: PostContent;
   timestamp: string;
   engagement: PostEngagement;
+  imageUrl?: string;
 }
 
 export type CardTheme = 'light' | 'dark' | 'retro';

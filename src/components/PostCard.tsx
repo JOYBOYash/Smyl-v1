@@ -402,6 +402,28 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
             ) : (
               <div>{renderFormattedText(post.content.text)}</div>
             )}
+
+            {post.imageUrl && (
+              <div className="mt-4 overflow-hidden rounded-xl border border-[#ECEEF1]/60 shadow-sm relative group max-w-full">
+                <img
+                  src={post.imageUrl}
+                  alt="Screenshot Attachment"
+                  className="w-full object-cover max-h-[320px]"
+                  referrerPolicy="no-referrer"
+                />
+                {isEditable && (
+                  <button
+                    onClick={() => onUpdatePost?.({ imageUrl: undefined })}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                    title="Remove attachment"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
           {/* Hashtag Cloud Badges */}
           {showHashtagCloud && extractedHashtags.length > 0 && (
@@ -631,6 +653,28 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
               />
             ) : (
               <div>{renderFormattedText(post.content.text)}</div>
+            )}
+
+            {post.imageUrl && (
+              <div className="mt-4 overflow-hidden rounded-xl border border-[#ECEEF1]/60 shadow-sm relative group max-w-full">
+                <img
+                  src={post.imageUrl}
+                  alt="Screenshot Attachment"
+                  className="w-full object-cover max-h-[320px]"
+                  referrerPolicy="no-referrer"
+                />
+                {isEditable && (
+                  <button
+                    onClick={() => onUpdatePost?.({ imageUrl: undefined })}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+                    title="Remove attachment"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             )}
           </div>
           {/* Hashtag Cloud Badges */}

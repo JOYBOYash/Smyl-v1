@@ -1442,4 +1442,172 @@ Fix the "Save error: Unauthorized access." error inside the Link Hub feature.
 Completed
 
 
+## 2026-09-06 (Strict Authorization Enforcement)
 
+### Request
+Revert all mock/anonymous fallback structures. Ensure strict database and session authorization is enforced, and display a proper authentication modal gate for unauthenticated users in the Link Hub workspace.
+
+### Analysis
+- Removed the previous `"anonymous-local-user"` dummy fallback values.
+- Re-enforced strict backend session checks: unauthenticated requests to `/api/hubs` and `/api/hubs/save` receive real `401 Unauthorized access` errors.
+- Handled authentication gracefully on the frontend by showing an exquisite "Authentication Required" card lock inside the Link Hub workspace, offering a clear button to trigger Smyl's native Auth Modal.
+
+### Implementation
+- Restored strict `null` return in `getAuthenticatedUser(req)` inside `/server.ts` for invalid/missing tokens.
+- Reverted GET `/api/hubs` and POST `/api/hubs/save` in `/server.ts` back to direct relational Supabase operations when Supabase is configured.
+- Modified `/src/components/LinkHub.tsx` to add `onTriggerAuth` to workspace props, rendering an elegant Lock card when unauthenticated.
+- Connected the `onTriggerAuth` callback to switch `isAuthModalOpen(true)` inside `/src/App.tsx`.
+
+### Security
+- Standardized strict API-level security boundaries.
+- Blocked unauthenticated requests with real 401 statuses.
+
+### Files Changed
+- `/server.ts`
+- `/src/components/LinkHub.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran full linter check returning 100% success.
+- Checked production build compilation (passed successfully).
+- Reloaded and restarted development dev server.
+
+### Result
+Completed
+
+
+## 2026-09-07 (Secure Website Screenshot Generator)
+
+### Request
+Implement a secure, resource-bounded Website Screenshot Generator with standard design aesthetics and direct handoff to the customized card editor.
+
+### Analysis
+- Server-side capturing: Used an external engine (Microlink) with standard Viewport and Height configurations.
+- SSRF Security Protection: Configured strict DNS lookup and IP validation to prevent DNS Rebinding / local address access.
+- Resource Bounds: Applied 15-second AbortController timeout limits and 8MB maximum response size checks.
+- Cloud Integration: Automatically uploaded captured screenshots for authenticated users directly to Supabase storage with private signed URLs.
+- Studio Integration: Added "Create Card" handoff to directly populate the customized Studio workspace.
+
+### Implementation
+- Added secure POST `/api/utilities/screenshot` endpoint in `/server.ts`.
+- Created `/src/components/ScreenshotGenerator.tsx` React component.
+- Updated `/src/types.ts` adding `imageUrl?: string` to `ParsedPost`.
+- Updated `/src/components/PostCard.tsx` rendering screenshot attachments in both X and LinkedIn.
+- Integrated screenshot generator into Desktop and Mobile navigation tabs in `/src/App.tsx`.
+
+### Security
+- Strictly blocked private and internal IPs (IPv4 / IPv6) on DNS resolution levels.
+- Applied absolute file size limits and timed abort rules.
+- Isolated storage uploads under authenticated user paths with secure signed access.
+
+### Files Changed
+- `/server.ts`
+- `/src/components/ScreenshotGenerator.tsx`
+- `/src/types.ts`
+- `/src/components/PostCard.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Checked linter rules and verified production compilation checks successfully.
+
+### Result
+Completed
+
+
+## 2026-09-07 (Self-Healing Screenshot Retry Mechanism)
+
+### Request
+Fix screenshot capture timeouts and AbortController cancellations occurring on heavy, long-polling, or analytics-heavy URLs.
+
+### Analysis
+Urls with continuous network traffic (Google Analytics, open WebSockets, long polling) block `networkidle2` or `networkidle0` listeners indefinitely, causing the entire endpoint to exceed execution limits (25s) and cancel with AbortError.
+
+### Implementation
+- Added a robust multi-stage fetch wrapper in `/server.ts` with separate time budgets.
+- If the primary custom wait setting times out or fails (14s budget), the backend automatically falls back to a safe rendering combo: `waitUntil="load"` combined with a `1500ms` sleep delay to allow compilation while avoiding any network hang-ups.
+- Upgraded error parsing to extract and report specific JSON-based error details from Microlink.
+
+### Security
+- Retained strict local/private range checks on DNS lookup resolved addresses.
+- Validated fallback options strictly with time budgets.
+
+### Files Changed
+- `/server.ts`
+- `/implementation-log.md`
+
+### Verification
+- Ran linter validation (passed).
+- Compiled project build successfully.
+- Restarted development container.
+
+### Result
+Completed
+
+
+## 2026-09-07 (Microlink Query Param and JSON Parsing Fix)
+
+### Request
+Fix status 400 Bad Request error returned by Microlink and handle non-JSON responses gracefully on the frontend.
+
+### Analysis
+- The top-level `timeout` query parameter passed as raw milliseconds (e.g., 12000) was rejected by Microlink's query parser with a 400 Bad Request.
+- When the backend or proxy returned an HTML error payload (such as `<!doctype html>`), the frontend fetch logic crashed with an uncaught `Unexpected token '<'` JSON parsing error instead of displaying the underlying error cleanly.
+
+### Implementation
+- Removed the `&timeout=` parameter from the constructed query URL in `/server.ts`, relying on our local `AbortController` time budgets to handle timeouts cleanly.
+- Updated `/src/components/ScreenshotGenerator.tsx` to inspect the response `content-type` header and check `res.ok` status prior to parsing JSON, ensuring graceful fallback messages.
+
+### Security
+- Bounded operations cleanly without compromising on private IP restriction ranges.
+
+### Files Changed
+- `/server.ts`
+- `/src/components/ScreenshotGenerator.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Verified static linter analyses (passed).
+- Successfully built full production application artifacts (passed).
+- Restarted application dev container.
+
+### Result
+Completed
+
+
+## 2026-09-07 (SEO Slug Routing & Skeleton State Implementation)
+
+### Request
+1. Migrated all tools/utilities (screenshot, link shortener, qr, link preview, og debugger, utm builder, link hubs) into dedicated, SEO-friendly page URLs and slugs (PSEO / SEO optimization).
+2. Added visual progress skeleton indicators to all components during server/backend operations to prevent perceived UI hanging.
+
+### Analysis
+- URL Routing: Switched `App.tsx` from tab state navigation to full `react-router-dom` client-side routes, serving all paths via express server SPA fallback wildcard.
+- Skeleton UI: Implemented beautiful animated placeholder blocks (`animate-pulse`) in all main tool components to provide dynamic visual feedback during asynchronous queries and database syncs.
+
+### Implementation
+- Added router links, route declarations, and navigation state matching in `/src/App.tsx`.
+- Integrated pulsing skeletons for loading states in `/src/components/ScreenshotGenerator.tsx`, `/src/components/LinkShortener.tsx`, `/src/components/QrGenerator.tsx`, `/src/components/LinkPreviewGenerator.tsx`, `/src/components/OgDebugger.tsx`, `/src/components/UtmBuilder.tsx`, and `/src/components/LinkHub.tsx`.
+
+### Security
+- Verified path validation and authenticated sessions across custom URL routes.
+- Maintained strict input/output bounds across all page transitions.
+
+### Files Changed
+- `/src/App.tsx`
+- `/src/components/ScreenshotGenerator.tsx`
+- `/src/components/LinkShortener.tsx`
+- `/src/components/QrGenerator.tsx`
+- `/src/components/LinkPreviewGenerator.tsx`
+- `/src/components/OgDebugger.tsx`
+- `/src/components/UtmBuilder.tsx`
+- `/src/components/LinkHub.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Verified static linter analyses cleanly (passed).
+- Successfully built full production application artifacts (passed).
+
+### Result
+Completed

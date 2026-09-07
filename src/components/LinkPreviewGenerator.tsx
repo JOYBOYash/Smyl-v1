@@ -220,8 +220,26 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
           </motion.div>
 
           {/* Detailed extracted fields metadata display */}
-          <AnimatePresence>
-            {metadata && (
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <div className="bg-white border border-[#E1E5E9] shadow-[0_4px_16px_rgba(0,0,0,0.04)] rounded-xl p-5 md:p-6 space-y-4 animate-pulse">
+                <div className="flex items-center gap-2 pb-2.5 border-b border-[#ECEEF1]">
+                  <div className="w-8 h-8 rounded bg-[#EDF1F5]" />
+                  <div className="space-y-1.5 flex-1">
+                    <div className="h-4 bg-[#EDF1F5] rounded w-32" />
+                    <div className="h-2.5 bg-[#EDF1F5] rounded w-20" />
+                  </div>
+                </div>
+                <div className="space-y-4 pt-2">
+                  {[1, 2, 3].map((idx) => (
+                    <div key={idx} className="grid grid-cols-4 gap-2">
+                      <div className="h-3.5 bg-[#EDF1F5] rounded col-span-1" />
+                      <div className="h-8 bg-[#EDF1F5]/60 rounded col-span-3" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : metadata && (
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -356,7 +374,27 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
             {/* Actual dynamic simulated social cards */}
             <div className="bg-[#EDF1F5]/40 border border-[#D0D7DE]/50 rounded-xl p-5 flex flex-col justify-center min-h-[320px] relative overflow-hidden">
               <AnimatePresence mode="wait">
-                {metadata ? (
+                {loading ? (
+                  <div className="w-full space-y-4 animate-pulse">
+                    {/* Simulated Social Header */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#EDF1F5]" />
+                      <div className="space-y-1.5 flex-1">
+                        <div className="h-3 bg-[#EDF1F5] rounded w-1/4" />
+                        <div className="h-2.5 bg-[#EDF1F5]/70 rounded w-1/6" />
+                      </div>
+                    </div>
+                    {/* Simulated Text Lines */}
+                    <div className="space-y-2 pt-1">
+                      <div className="h-3 bg-[#EDF1F5] rounded w-5/6" />
+                      <div className="h-3 bg-[#EDF1F5] rounded w-2/3" />
+                    </div>
+                    {/* Simulated Card Image */}
+                    <div className="h-36 bg-[#EDF1F5] rounded-xl w-full flex items-center justify-center text-[#8D959F]">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-[#8D959F]/60">Extracting Social tags...</span>
+                    </div>
+                  </div>
+                ) : metadata ? (
                   <motion.div
                     key={`${activePlatformTab}-${previewViewportMode}`}
                     initial={{ opacity: 0, scale: 0.98 }}

@@ -312,7 +312,38 @@ export const OgDebugger: React.FC = () => {
         {/* Right hand Diagnostic Analysis & Reports */}
         <div className="lg:col-span-8 space-y-6">
           <AnimatePresence mode="wait">
-            {debugData ? (
+            {loading ? (
+              <div className="space-y-6 animate-pulse">
+                {/* Health Rating Status Banner Skeleton */}
+                <div className="p-5 rounded-xl border border-[#E1E5E9] bg-white flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-[#EDF1F5] rounded w-32" />
+                    <div className="h-3 bg-[#EDF1F5]/80 rounded w-48" />
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-[#EDF1F5]" />
+                </div>
+
+                {/* Tab layout skeleton */}
+                <div className="bg-white border border-[#E1E5E9] rounded-xl p-5 md:p-6 space-y-4">
+                  <div className="flex gap-2 border-b border-[#ECEEF1] pb-3 overflow-x-auto">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="h-8 bg-[#EDF1F5] rounded-lg w-20 shrink-0" />
+                    ))}
+                  </div>
+
+                  {/* Diagnostic details skeleton lines */}
+                  <div className="space-y-3 pt-2">
+                    <div className="h-4 bg-[#EDF1F5] rounded w-3/4" />
+                    <div className="h-3.5 bg-[#EDF1F5]/70 rounded w-5/6" />
+                    <div className="h-3.5 bg-[#EDF1F5]/70 rounded w-2/3" />
+                    <div className="h-24 bg-[#EDF1F5]/40 rounded-xl w-full flex items-center justify-center text-xs text-[#8D959F] font-bold">
+                      <Search className="w-5 h-5 animate-spin mr-1.5 text-brand-primary" />
+                      <span>Requesting & analyzing target markup tags...</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : debugData ? (
               <motion.div
                 key={debugData.url}
                 initial={{ opacity: 0 }}
