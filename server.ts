@@ -5,8 +5,15 @@ import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import dns from "dns";
 import { promisify } from "util";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { extractLinkMetadata, debugLinkMetadata } from "./src/services/metadataService";
+import {
+  validateAndNormalizeUrl,
+  validateUrlStructure,
+  isPrivateIp,
+  secureHttpAgent,
+  secureHttpsAgent
+} from "./src/server/security/urlSecurity";
 
 dotenv.config();
 
@@ -15,6 +22,8 @@ const dnsLookup = promisify(dns.lookup);
 // Initialize Supabase Client
 const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
 const isSupabaseConfigured = Boolean(
   supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith("http")
 );
@@ -23,6 +32,263 @@ const supabase = createClient(
   supabaseUrl || "https://placeholder.supabase.co",
   supabaseAnonKey || "placeholder-anon-key"
 );
+
+// Server-only administrative client (Bypasses RLS for safe server operations)
+const adminClient = isSupabaseConfigured && supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    })
+  : supabase;
+
+// Database Availability Guard Middleware (Returns 503 instead of silent fallbacks in production)
+function dbAvailabilityGuard(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  if (!isSupabaseConfigured) {
+    return res.status(503).json({
+      error: "Database Service Unavailable. The persistent backend store is currently offline or unconfigured."
+    });
+  }
+  next();
+}
+
+// Helper to authenticate user and create a request-scoped Supabase client
+async function getAuthenticatedUserContext(req: any): Promise<{ userId: string | null; client: SupabaseClient }> {
+  if (!isSupabaseConfigured) {
+    return { userId: "anonymous-local-user", client: supabase };
+  }
+  
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    if (token) {
+      const client = createClient(supabaseUrl, supabaseAnonKey, {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        }
+      });
+      try {
+        const { data: { user }, error } = await client.auth.getUser();
+        if (!error && user) {
+          return { userId: user.id, client };
+        }
+      } catch (err) {
+        // Ignore
+      }
+    }
+  }
+  return { userId: null, client: supabase };
+}
+
+// Backward-compatible helper
+async function getAuthenticatedUser(req: any): Promise<string | null> {
+  const { userId } = await getAuthenticatedUserContext(req);
+  return userId;
+}
+
+const memoryRateLimits = new Map<string, { count: number; resetTime: number }>();
+const activeConcurrency = new Map<string, number>();
+const MAX_CONCURRENT_PER_IP = 8; // Concurrency limit to prevent socket/resource exhaustion and abusive parallel spam
+
+function getClientIp(req: express.Request): string {
+  const forwarded = req.headers["x-forwarded-for"];
+  const ip = (typeof forwarded === "string" ? forwarded : req.socket.remoteAddress || "anonymous")
+    .split(",")[0]
+    .trim();
+  return ip;
+}
+
+// Concurrency Limiter Middleware
+function concurrencyLimiter(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const ip = getClientIp(req);
+  const currentActive = activeConcurrency.get(ip) || 0;
+  
+  if (currentActive >= MAX_CONCURRENT_PER_IP) {
+    return res.status(429).json({
+      error: "Too many concurrent requests in progress. Please wait for your other operations to complete."
+    });
+  }
+  
+  // Register active request
+  activeConcurrency.set(ip, currentActive + 1);
+  
+  let finished = false;
+  const decrement = () => {
+    if (!finished) {
+      finished = true;
+      const count = activeConcurrency.get(ip) || 0;
+      if (count <= 1) {
+        activeConcurrency.delete(ip);
+      } else {
+        activeConcurrency.set(ip, count - 1);
+      }
+    }
+  };
+  
+  res.on("finish", decrement);
+  res.on("close", decrement);
+  
+  next();
+}
+
+// Stateless database-backed rate limiting helper
+async function dbRateLimiter(
+  key: string,
+  maxRequests: number,
+  windowMs: number
+): Promise<{ allowed: boolean; retryAfterSecs: number }> {
+  const now = Date.now();
+  const resetTime = now + windowMs;
+  
+  const getMemoryLimitFallback = () => {
+    const record = memoryRateLimits.get(key);
+    if (!record || now > record.resetTime) {
+      memoryRateLimits.set(key, { count: 1, resetTime });
+      return { allowed: true, retryAfterSecs: 0 };
+    }
+    
+    if (record.count >= maxRequests) {
+      const retryAfterSecs = Math.max(1, Math.ceil((record.resetTime - now) / 1000));
+      return { allowed: false, retryAfterSecs };
+    }
+    
+    record.count += 1;
+    return { allowed: true, retryAfterSecs: 0 };
+  };
+
+  if (!isSupabaseConfigured) {
+    return getMemoryLimitFallback();
+  }
+  
+  try {
+    const { data, error } = await adminClient
+      .from("rate_limits")
+      .select("*")
+      .eq("key", key)
+      .maybeSingle();
+      
+    if (error) {
+      console.error("Rate limit check db error, falling back to memory:", error);
+      return getMemoryLimitFallback();
+    }
+    
+    if (!data) {
+      await adminClient
+        .from("rate_limits")
+        .insert({ key, count: 1, reset_time: resetTime });
+      return { allowed: true, retryAfterSecs: 0 };
+    }
+    
+    if (now > Number(data.reset_time)) {
+      await adminClient
+        .from("rate_limits")
+        .update({ count: 1, reset_time: resetTime })
+        .eq("key", key);
+      return { allowed: true, retryAfterSecs: 0 };
+    }
+    
+    if (data.count >= maxRequests) {
+      const retryAfterSecs = Math.max(1, Math.ceil((Number(data.reset_time) - now) / 1000));
+      return { allowed: false, retryAfterSecs };
+    }
+    
+    await adminClient
+      .from("rate_limits")
+      .update({ count: data.count + 1 })
+      .eq("key", key);
+      
+    return { allowed: true, retryAfterSecs: 0 };
+  } catch (err) {
+    console.error("Rate limit database exception, falling back to memory:", err);
+    return getMemoryLimitFallback();
+  }
+}
+
+// Rate Limiter Middlewares
+async function apiRateLimiter(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const ip = getClientIp(req);
+  const key = `rate:api:${ip}`;
+  const limit = await dbRateLimiter(key, 60, 60 * 1000); // 60 requests per minute
+  
+  if (!limit.allowed) {
+    return res.status(429).json({
+      error: `Too many requests. Please try again in ${limit.retryAfterSecs} seconds.`
+    });
+  }
+  next();
+}
+
+async function shortenRateLimiter(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const ip = getClientIp(req);
+  const key = `rate:shorten:${ip}`;
+  const limit = await dbRateLimiter(key, 10, 60 * 1000); // 10 per minute
+  
+  if (!limit.allowed) {
+    return res.status(429).json({
+      error: `Too many shorten requests. Please try again in ${limit.retryAfterSecs} seconds.`
+    });
+  }
+  next();
+}
+
+async function utilitiesRateLimiter(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const ip = getClientIp(req);
+  const key = `rate:utils:${ip}`;
+  const limit = await dbRateLimiter(key, 15, 60 * 1000); // 15 per minute for utilities
+  
+  if (!limit.allowed) {
+    return res.status(429).json({
+      error: `Too many utility requests. Please try again in ${limit.retryAfterSecs} seconds.`
+    });
+  }
+  next();
+}
+
+async function authRateLimiter(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  const ip = getClientIp(req);
+  const key = `rate:auth:${ip}`;
+  const limit = await dbRateLimiter(key, 30, 60 * 1000); // 30 requests per minute for write/db-saving actions
+  
+  if (!limit.allowed) {
+    return res.status(429).json({
+      error: `Too many secure operation requests. Please try again in ${limit.retryAfterSecs} seconds.`
+    });
+  }
+  next();
+}
 
 // In-memory fallback for short links if the database table is missing or unconfigured
 const shortLinksFallback = new Map<string, {
@@ -49,208 +315,10 @@ function isTableMissingError(error: any): boolean {
   );
 }
 
-// Private IP ranges validation for SSRF Protection
-function isPrivateIp(ip: string): boolean {
-  // Check IPv4 format
-  if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
-    const parts = ip.split(".").map(Number);
-    if (parts.some((p) => p < 0 || p > 255)) return true;
-
-    // Loopback (127.0.0.0/8)
-    if (parts[0] === 127) return true;
-
-    // RFC 1918 Private Ranges:
-    // 10.0.0.0/8
-    if (parts[0] === 10) return true;
-    // 172.16.0.0/12
-    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
-    // 192.168.0.0/16
-    if (parts[0] === 192 && parts[1] === 168) return true;
-
-    // Link-local (169.254.0.0/16)
-    if (parts[0] === 169 && parts[1] === 254) return true;
-
-    // Multicast (224.0.0.0/4)
-    if (parts[0] >= 224 && parts[0] <= 239) return true;
-
-    // Broadcast (255.255.255.255)
-    if (parts[0] === 255) return true;
-
-    // Unspecified (0.0.0.0)
-    if (parts[0] === 0) return true;
-
-    return false;
-  }
-
-  // Check IPv6 format
-  if (ip.includes(":")) {
-    const normalized = ip.toLowerCase();
-    // Loopback (::1)
-    if (normalized === "::1" || normalized === "0:0:0:0:0:0:0:1") return true;
-    // Unspecified (::)
-    if (normalized === "::" || normalized === "0:0:0:0:0:0:0:0") return true;
-    // Link-local (fe80::/10)
-    if (normalized.startsWith("fe80")) return true;
-    // Unique local (fc00::/7)
-    if (normalized.startsWith("fc") || normalized.startsWith("fd")) return true;
-
-    return false;
-  }
-
-  return true; // Block anything that doesn't parse cleanly as standard IP
-}
-
-// Full server-side URL validation (blocks SSRF, non-http/https, and private ranges)
+// Backward compatible helper routing to hardened security
 async function validateUrl(urlStr: string): Promise<boolean> {
-  try {
-    const parsed = new URL(urlStr);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return false;
-    }
-
-    const hostname = parsed.hostname;
-
-    // Block common local hostnames instantly
-    if (
-      hostname === "localhost" ||
-      hostname === "127.0.0.1" ||
-      hostname === "::1" ||
-      hostname.endsWith(".local")
-    ) {
-      return false;
-    }
-
-    // Resolve DNS safely
-    try {
-      const { address } = await dnsLookup(hostname);
-      if (isPrivateIp(address)) {
-        return false;
-      }
-    } catch (dnsErr) {
-      // Failed to resolve -> not a valid public target
-      return false;
-    }
-
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
-
-// Slug validation checks
-function validateSlug(slug: string): { isValid: boolean; error?: string } {
-  const normalized = slug.trim().toLowerCase();
-
-  if (normalized.length < 3 || normalized.length > 32) {
-    return { isValid: false, error: "Slug must be between 3 and 32 characters." };
-  }
-
-  // Allow lowercase alphanumeric and hyphen only
-  if (!/^[a-z0-9-]+$/.test(normalized)) {
-    return {
-      isValid: false,
-      error: "Slug must contain only lowercase letters, numbers, and hyphens.",
-    };
-  }
-
-  // Reject consecutive or leading/trailing hyphens for aesthetic consistency
-  if (normalized.startsWith("-") || normalized.endsWith("-") || normalized.includes("--")) {
-    return {
-      isValid: false,
-      error: "Slug cannot start/end with hyphens or have multiple hyphens in a row.",
-    };
-  }
-
-  // Reserved platform routes
-  const reserved = [
-    "api",
-    "auth",
-    "login",
-    "signup",
-    "dashboard",
-    "settings",
-    "utilities",
-    "admin",
-    "s",
-    "static",
-    "assets",
-    "public",
-    "dist",
-  ];
-  if (reserved.includes(normalized)) {
-    return { isValid: false, error: "This slug is reserved for platform use." };
-  }
-
-  // Basic abusive terms filter
-  const prohibited = [
-    "phishing",
-    "scam",
-    "spam",
-    "malware",
-    "virus",
-    "hack",
-    "admin",
-    "root",
-    "support",
-    "billing",
-    "help",
-    "security",
-  ];
-  if (prohibited.includes(normalized)) {
-    return { isValid: false, error: "This slug contains prohibited terms." };
-  }
-
-  return { isValid: true };
-}
-
-// Generates a clean random slug
-function generateRandomSlug(length = 6): string {
-  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-// In-memory rate limiting map for shorten endpoint (10 requests per minute per IP)
-const rateLimits = new Map<string, { count: number; resetTime: number }>();
-
-function shortenRateLimiter(
-  req: express.Request,
-  res: express.Response,
-  next: express.NextFunction
-) {
-  const ip = (
-    (req.headers["x-forwarded-for"] as string) ||
-    req.socket.remoteAddress ||
-    "anonymous"
-  )
-    .split(",")[0]
-    .trim();
-  const now = Date.now();
-  const windowMs = 60 * 1000;
-  const maxRequests = 10;
-
-  const limit = rateLimits.get(ip);
-  if (!limit) {
-    rateLimits.set(ip, { count: 1, resetTime: now + windowMs });
-    return next();
-  }
-
-  if (now > limit.resetTime) {
-    rateLimits.set(ip, { count: 1, resetTime: now + windowMs });
-    return next();
-  }
-
-  if (limit.count >= maxRequests) {
-    return res.status(429).json({
-      error: "Too many shorten requests. Please try again in 1 minute.",
-    });
-  }
-
-  limit.count++;
-  next();
+  const result = await validateAndNormalizeUrl(urlStr);
+  return result !== null;
 }
 
 async function startServer() {
@@ -274,13 +342,16 @@ async function startServer() {
     },
   });
 
+  // Apply Concurrency Limiter globally to all API routes
+  app.use("/api", concurrencyLimiter);
+
   // Health check API
-  app.get("/api/health", (req, res) => {
+  app.get("/api/health", apiRateLimiter, (req, res) => {
     res.json({ status: "ok" });
   });
 
   // Shortener GET Redirect Route: Resolves formatted slugs and redirects users
-  app.get("/s/:slug", async (req, res) => {
+  app.get("/s/:slug", dbAvailabilityGuard, concurrencyLimiter, apiRateLimiter, async (req, res) => {
     try {
       const { slug } = req.params;
       if (!slug || typeof slug !== "string") {
@@ -293,21 +364,12 @@ async function startServer() {
         return res.status(400).send("Malformed short URL slug.");
       }
 
-      if (!isSupabaseConfigured) {
-        const link = shortLinksFallback.get(cleanSlug);
-        if (!link) {
-          return res.status(404).send("Short link not found or has been removed (unconfigured Supabase).");
-        }
-        link.click_count++;
-        return res.redirect(301, link.destination_url);
-      }
-
-      // Fetch the link record
+      // Fetch the link record using adminClient for reliable routing resolution
       let link: any = null;
       let dbError: any = null;
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await adminClient
           .from("short_links")
           .select("*")
           .eq("slug", cleanSlug)
@@ -319,17 +381,8 @@ async function startServer() {
       }
 
       if (dbError) {
-        if (isTableMissingError(dbError)) {
-          console.warn(`Table 'short_links' is missing. Falling back to in-memory store for slug: ${cleanSlug}`);
-          link = shortLinksFallback.get(cleanSlug) || null;
-        } else {
-          console.error("Database check error during redirection lookup:", dbError);
-          return res.status(500).send("Database check error during redirection.");
-        }
-      }
-
-      if (!link) {
-        link = shortLinksFallback.get(cleanSlug) || null;
+        console.error("Database check error during redirection lookup:", dbError);
+        return res.status(500).send("Database check error during redirection.");
       }
 
       if (!link) {
@@ -342,21 +395,22 @@ async function startServer() {
         return res.status(400).send("Invalid redirection destination scheme.");
       }
 
-      // Increment click count (either in-memory or database)
-      if (shortLinksFallback.has(cleanSlug)) {
-        const item = shortLinksFallback.get(cleanSlug)!;
-        item.click_count++;
-      } else {
-        // Fire-and-forget: safely increment the click count
-        const currentClicks = typeof link.click_count === "string" ? parseInt(link.click_count, 10) : Number(link.click_count || 0);
-        supabase
-          .from("short_links")
-          .update({ click_count: currentClicks + 1 })
-          .eq("id", link.id)
-          .then(({ error: updateErr }) => {
-            if (updateErr) console.error("Failed to update click count:", updateErr);
-          });
-      }
+      // Fire-and-forget atomic concurrency-safe click count update via Postgres RPC
+      adminClient
+        .rpc("increment_click_count", { link_id: link.id })
+        .then(({ error: rpcErr }) => {
+          if (rpcErr) {
+            console.error("Failed to update click count via RPC, attempting fallback update:", rpcErr);
+            const currentClicks = typeof link.click_count === "string" ? parseInt(link.click_count, 10) : Number(link.click_count || 0);
+            adminClient
+              .from("short_links")
+              .update({ click_count: currentClicks + 1 })
+              .eq("id", link.id)
+              .then(({ error: updateErr }) => {
+                if (updateErr) console.error("Failed to update click count via standard fallback:", updateErr);
+              });
+          }
+        });
 
       // Clear, absolute 301 Redirect
       res.redirect(301, dest);
@@ -366,8 +420,28 @@ async function startServer() {
     }
   });
 
+  function validateSlug(slugStr: string): { isValid: boolean; error?: string } {
+    const normalized = slugStr.trim().toLowerCase();
+    if (normalized.length < 3 || normalized.length > 30) {
+      return { isValid: false, error: "Slug must be between 3 and 30 characters." };
+    }
+    if (!/^[a-z0-9-]+$/.test(normalized)) {
+      return { isValid: false, error: "Slug can only contain lowercase letters, numbers, and hyphens." };
+    }
+    return { isValid: true };
+  }
+
+  function generateRandomSlug(length: number): string {
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
   // Shortener POST Creation Route
-  app.post("/api/utilities/shorten", shortenRateLimiter, async (req, res) => {
+  app.post("/api/utilities/shorten", dbAvailabilityGuard, shortenRateLimiter, async (req, res) => {
     try {
       const { url, slug } = req.body;
       if (!url || typeof url !== "string" || url.trim().length === 0) {
@@ -375,12 +449,15 @@ async function startServer() {
       }
 
       const cleanUrl = url.trim();
+      if (cleanUrl.length > 2048) {
+        return res.status(400).json({ error: "Destination URL exceeds maximum length of 2048 characters." });
+      }
 
       // Check security boundaries of target URL
       const isSafe = await validateUrl(cleanUrl);
       if (!isSafe) {
         return res.status(400).json({
-          error: "Invalid URL destination. It must be a valid public HTTP/HTTPS address.",
+          error: "Invalid URL destination. It must be a valid public HTTP/HTTPS address and cannot contain credentials.",
         });
       }
 
@@ -395,53 +472,32 @@ async function startServer() {
         finalSlug = generateRandomSlug(6);
       }
 
-      // Optionally authenticate user via client Authorization header
-      let userId: string | null = null;
-      if (isSupabaseConfigured) {
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith("Bearer ")) {
-          const token = authHeader.split(" ")[1];
-          try {
-            const { data: { user }, error } = await supabase.auth.getUser(token);
-            if (!error && user) {
-              userId = user.id;
-            }
-          } catch (authErr) {
-            // Fallback to anonymous creation if token is expired/invalid
-          }
-        }
+      if (finalSlug.length > 32) {
+        return res.status(400).json({ error: "Slug exceeds maximum length of 32 characters." });
       }
+
+      // Authenticate user via request-scoped helper
+      const { userId, client: requestClient } = await getAuthenticatedUserContext(req);
 
       // Perform a lookup to guarantee uniqueness of the custom slug
       let existing: any = null;
       let checkErr: any = null;
-      let useFallback = !isSupabaseConfigured;
 
-      if (isSupabaseConfigured) {
-        try {
-          const { data, error } = await supabase
-            .from("short_links")
-            .select("id")
-            .eq("slug", finalSlug)
-            .maybeSingle();
-          existing = data;
-          checkErr = error;
-        } catch (err) {
-          checkErr = err;
-        }
+      try {
+        const { data, error } = await requestClient
+          .from("short_links")
+          .select("id")
+          .eq("slug", finalSlug)
+          .maybeSingle();
+        existing = data;
+        checkErr = error;
+      } catch (err) {
+        checkErr = err;
+      }
 
-        if (checkErr) {
-          if (isTableMissingError(checkErr)) {
-            console.warn(`Table 'short_links' is missing. Verifying slug availability in-memory for: ${finalSlug}`);
-            useFallback = true;
-            existing = shortLinksFallback.get(finalSlug) ? { id: "fallback" } : null;
-          } else {
-            console.error("Database check error during creation lookup:", checkErr);
-            return res.status(500).json({ error: "Failed to verify slug availability." });
-          }
-        }
-      } else {
-        existing = shortLinksFallback.get(finalSlug) ? { id: "fallback" } : null;
+      if (checkErr) {
+        console.error("Database check error during creation lookup:", checkErr);
+        return res.status(500).json({ error: "Failed to verify slug availability." });
       }
 
       if (existing) {
@@ -450,59 +506,31 @@ async function startServer() {
         } else {
           // Regenerate one more time for extremely rare random collision
           finalSlug = generateRandomSlug(7);
-          if (useFallback && shortLinksFallback.has(finalSlug)) {
-            finalSlug = generateRandomSlug(8);
-          }
         }
       }
 
       let createdLink: any = null;
-      if (useFallback) {
-        createdLink = {
-          id: Math.random().toString(36).substring(2, 15),
-          slug: finalSlug,
-          destination_url: cleanUrl,
-          user_id: userId,
-          click_count: 0,
-          created_at: new Date().toISOString(),
-        };
-        shortLinksFallback.set(finalSlug, createdLink);
-      } else {
-        try {
-          const { data, error: insertErr } = await supabase
-            .from("short_links")
-            .insert({
-              slug: finalSlug,
-              destination_url: cleanUrl,
-              user_id: userId,
-              click_count: 0,
-            })
-            .select()
-            .single();
+      try {
+        const { data, error: insertErr } = await requestClient
+          .from("short_links")
+          .insert({
+            slug: finalSlug,
+            destination_url: cleanUrl,
+            user_id: userId,
+            click_count: 0,
+          })
+          .select()
+          .single();
 
-          if (insertErr) {
-            if (isTableMissingError(insertErr)) {
-              console.warn(`Table 'short_links' is missing during insert. Falling back to in-memory store for slug: ${finalSlug}`);
-              createdLink = {
-                id: Math.random().toString(36).substring(2, 15),
-                slug: finalSlug,
-                destination_url: cleanUrl,
-                user_id: userId,
-                click_count: 0,
-                created_at: new Date().toISOString(),
-              };
-              shortLinksFallback.set(finalSlug, createdLink);
-            } else {
-              console.error("Database insertion error:", insertErr);
-              return res.status(500).json({ error: "Failed to register shortened URL." });
-            }
-          } else {
-            createdLink = data;
-          }
-        } catch (err) {
-          console.error("Database insertion crash:", err);
+        if (insertErr) {
+          console.error("Database insertion error:", insertErr);
           return res.status(500).json({ error: "Failed to register shortened URL." });
+        } else {
+          createdLink = data;
         }
+      } catch (err) {
+        console.error("Database insertion crash:", err);
+        return res.status(500).json({ error: "Failed to register shortened URL." });
       }
 
       // Construct short URL using host of current request
@@ -524,7 +552,7 @@ async function startServer() {
   });
 
   // Link Preview Generator endpoint
-  app.post("/api/utilities/link-preview", async (req, res) => {
+  app.post("/api/utilities/link-preview", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
     try {
       const { url } = req.body;
       if (!url || typeof url !== "string" || url.trim().length === 0) {
@@ -532,6 +560,10 @@ async function startServer() {
       }
 
       const trimmedUrl = url.trim();
+      if (trimmedUrl.length > 2048) {
+        return res.status(400).json({ error: "URL exceeds maximum length of 2048 characters." });
+      }
+
       const metadata = await extractLinkMetadata(trimmedUrl);
       res.json(metadata);
     } catch (err: any) {
@@ -553,7 +585,7 @@ async function startServer() {
   });
 
   // Open Graph Debugger API endpoint
-  app.post("/api/utilities/og-debug", async (req, res) => {
+  app.post("/api/utilities/og-debug", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
     try {
       const { url } = req.body;
       if (!url || typeof url !== "string" || url.trim().length === 0) {
@@ -561,6 +593,10 @@ async function startServer() {
       }
 
       const trimmedUrl = url.trim();
+      if (trimmedUrl.length > 2048) {
+        return res.status(400).json({ error: "URL exceeds maximum length of 2048 characters." });
+      }
+
       const diagnosticsData = await debugLinkMetadata(trimmedUrl);
       res.json(diagnosticsData);
     } catch (err: any) {
@@ -580,8 +616,19 @@ async function startServer() {
     }
   });
 
+  let activeCapturesCount = 0;
+  const MAX_CONCURRENT_CAPTURES = 3;
+
   // Webpage Screenshot Generator endpoint with strict SSRF protection and bounding
-  app.post("/api/utilities/screenshot", async (req, res) => {
+  app.post("/api/utilities/screenshot", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
+    if (activeCapturesCount >= MAX_CONCURRENT_CAPTURES) {
+      return res.status(503).json({
+        error: "The server is currently busy processing other screenshot requests. Please try again shortly."
+      });
+    }
+
+    activeCapturesCount++;
+
     try {
       const { 
         url, 
@@ -645,34 +692,7 @@ async function startServer() {
         return res.status(400).json({ error: `Failed to resolve host: ${parsedUrl.hostname}` });
       }
 
-      // Validate IP address
-      function isPrivateOrInternalIp(ip: string): boolean {
-        if (/^(127\.|10\.|192\.168\.)/.test(ip)) return true;
-        if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(ip)) return true;
-        if (/^169\.254\./.test(ip)) return true;
-        if (ip === "0.0.0.0" || ip === "255.255.255.255") return true;
-
-        const ipv6Lower = ip.toLowerCase();
-        if (
-          ipv6Lower === "::1" ||
-          ipv6Lower.startsWith("fe80:") ||
-          ipv6Lower.startsWith("fc00:") ||
-          ipv6Lower.startsWith("fd00:") ||
-          ipv6Lower.startsWith("::ffff:127.") ||
-          ipv6Lower.startsWith("::ffff:10.") ||
-          ipv6Lower.startsWith("::ffff:192.168.")
-        ) return true;
-        if (ipv6Lower.startsWith("::ffff:172.")) {
-          const parts = ipv6Lower.split(".");
-          if (parts.length >= 2) {
-            const secondPart = parseInt(parts[1], 10);
-            if (secondPart >= 16 && secondPart <= 31) return true;
-          }
-        }
-        return false;
-      }
-
-      if (isPrivateOrInternalIp(resolvedIp)) {
+      if (isPrivateIp(resolvedIp)) {
         return res.status(400).json({ error: "Access to private or internal IP addresses is strictly forbidden." });
       }
 
@@ -707,8 +727,26 @@ async function startServer() {
             throw new Error(`External screenshot engine returned status code ${response.status}`);
           }
 
-          const arrayBuffer = await response.arrayBuffer();
-          return Buffer.from(arrayBuffer);
+          // Chunk-by-chunk stream download with strict 5MB limit
+          const reader = response.body;
+          if (!reader) {
+            throw new Error("Unable to read screenshot response stream");
+          }
+
+          const chunks: Buffer[] = [];
+          let totalBytes = 0;
+          const maxScreenshotBytes = 5 * 1024 * 1024; // 5MB safe limit
+
+          for await (const chunk of reader as any) {
+            totalBytes += chunk.length;
+            if (totalBytes > maxScreenshotBytes) {
+              controller.abort();
+              throw new Error("Screenshot exceeds safe size threshold of 5MB");
+            }
+            chunks.push(Buffer.from(chunk));
+          }
+
+          return Buffer.concat(chunks);
         } catch (err) {
           clearTimeout(localTimeoutId);
           throw err;
@@ -721,8 +759,6 @@ async function startServer() {
       } catch (firstErr: any) {
         console.warn("First capture attempt failed or timed out. Retrying with ultra-robust safe settings...", firstErr);
         
-        // If the primary attempt failed or timed out, automatically fallback to a safe 'load' configuration.
-        // This avoids hang-ups on long polling or trackers while still waiting 1.5s for basic JS rendering.
         try {
           usedFallback = true;
           buffer = await attemptCapture("load", 1500, 10000); // 10s budget for fallback
@@ -739,49 +775,53 @@ async function startServer() {
         }
       }
 
-      // Max size check: e.g. 8MB
-      if (buffer.length > 8 * 1024 * 1024) {
-        return res.status(400).json({ error: "The captured screenshot exceeds the maximum allowed file size of 8MB." });
-      }
-
       const base64Image = `data:image/png;base64,${buffer.toString("base64")}`;
       let returnedImage = base64Image;
 
-      // 3. Optional persistent storage upload if authenticated
-      const userId = await getAuthenticatedUser(req);
-      if (userId && userId !== "anonymous-local-user" && isSupabaseConfigured) {
-        try {
-          const uuid = Math.random().toString(36).substring(2, 15) + "-" + Math.random().toString(36).substring(2, 15);
-          const storagePath = `screenshots/${userId}/${uuid}.png`;
+      // 3. Request-scoped authenticated storage upload if user is signed in
+      const { userId, client: requestClient } = await getAuthenticatedUserContext(req);
+      if (userId && userId !== "anonymous-local-user") {
+        const uuid = Math.random().toString(36).substring(2, 15) + "-" + Math.random().toString(36).substring(2, 15);
+        const storagePath = `screenshots/${userId}/${uuid}.png`;
 
-          const { data: uploadData, error: uploadError } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await requestClient.storage
+          .from("user-assets")
+          .upload(storagePath, buffer, {
+            contentType: "image/png",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error("Storage upload failed:", uploadError);
+          return res.status(403).json({ error: `Storage upload failed: ${uploadError.message}` });
+        }
+
+        if (uploadData) {
+          // Retrieve signed URL for private access
+          const { data: signedUrlData, error: signedUrlError } = await requestClient.storage
             .from("user-assets")
-            .upload(storagePath, buffer, {
-              contentType: "image/png",
-              upsert: true,
+            .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7 days expiry
+
+          if (signedUrlError) {
+            return res.status(403).json({ error: `Failed to create secure access URL: ${signedUrlError.message}` });
+          }
+
+          if (signedUrlData) {
+            returnedImage = signedUrlData.signedUrl;
+
+            // Save to user_assets metadata table
+            const { error: metaError } = await requestClient.from("user_assets").insert({
+              user_id: userId,
+              storage_path: storagePath,
+              type: "screenshot",
+              mime_type: "image/png",
+              size: buffer.length,
             });
 
-          if (!uploadError && uploadData) {
-            // Retrieve signed URL for private access
-            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-              .from("user-assets")
-              .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7 days expiry
-
-            if (!signedUrlError && signedUrlData) {
-              returnedImage = signedUrlData.signedUrl;
-
-              // Save to user_assets metadata table
-              await supabase.from("user_assets").insert({
-                user_id: userId,
-                storage_path: storagePath,
-                type: "screenshot",
-                mime_type: "image/png",
-                size: buffer.length,
-              });
+            if (metaError) {
+              console.error("Asset metadata insert failed:", metaError);
             }
           }
-        } catch (storageErr) {
-          console.error("Storage upload error (falling back to base64):", storageErr);
         }
       }
 
@@ -800,11 +840,13 @@ async function startServer() {
     } catch (err: any) {
       console.error("Screenshot route crashed:", err);
       return res.status(500).json({ error: err.message || "An unexpected error occurred during screenshotting." });
+    } finally {
+      activeCapturesCount--;
     }
   });
 
   // Parse post API using Gemini
-  app.post("/api/parse-post", async (req, res) => {
+  app.post("/api/parse-post", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
     try {
       const { content } = req.body;
       if (!content || typeof content !== "string" || content.trim().length === 0) {
@@ -812,36 +854,22 @@ async function startServer() {
       }
 
       const trimmedContent = content.trim();
+      if (trimmedContent.length > 5000) {
+        return res.status(400).json({ error: "Post content exceeds maximum length of 5000 characters." });
+      }
+
       let scrapedMetadata = "";
 
-      // If it's a standalone URL, attempt to scrape OpenGraph title and description
+      // If it's a standalone URL, attempt to scrape OpenGraph title and description via hardened service
       const isSingleUrl = /^https?:\/\/[^\s]+$/i.test(trimmedContent);
       if (isSingleUrl) {
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 2500);
-          const pageRes = await fetch(trimmedContent, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-            },
-            signal: controller.signal
-          });
-          clearTimeout(timeoutId);
-
-          if (pageRes.ok) {
-            const html = await pageRes.text();
-            const ogTitleMatch = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([^"']*)["']/i) || html.match(/<title[^>]*>([^<]*)<\/title>/i);
-            const ogDescMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']*)["']/i) || html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
-            const ogSiteMatch = html.match(/<meta[^>]*property=["']og:site_name["'][^>]*content=["']([^"']*)["']/i);
-
-            const title = ogTitleMatch ? ogTitleMatch[1] : "";
-            const desc = ogDescMatch ? ogDescMatch[1] : "";
-            const site = ogSiteMatch ? ogSiteMatch[1] : "";
-
-            if (title || desc) {
-              scrapedMetadata = `\nScraped Webpage Metadata:\nSite: ${site}\nTitle: ${title}\nDescription: ${desc}\n`;
-            }
+          const meta = await extractLinkMetadata(trimmedContent);
+          if (meta && (meta.title || meta.description)) {
+            const site = meta.siteName || "";
+            const title = meta.title || "";
+            const desc = meta.description || "";
+            scrapedMetadata = `\nScraped Webpage Metadata:\nSite: ${site}\nTitle: ${title}\nDescription: ${desc}\n`;
           }
         } catch (scrapeErr) {
           // Graceful fallback if scraping fails
@@ -860,7 +888,7 @@ CRITICAL INSTRUCTIONS:
    - If the input contains linkedin.com/lnkd.in, or mentions career, milestones, teams, gratitude, launches, leadership, or professional announcements, set platform to 'linkedin'.
 4. Author & Engagement Calculation:
    - If author details (name, handle/title) are found or inferable from the text, use them.
-   - METRICS CALCULATION: If explicit engagement metrics (likes, reactions, reposts, comments, views) or timestamps are present in the text, extract their exact values (e.g., convert "3.8k" to 3800). If no engagement counts are provided, calculate realistic, authentic, proportional social engagement metrics based on the platform and post quality.
+   - METRICS CALCULATION: If explicit engagement metrics (likes, reactions, reposts, comments, views) or timestamps are present in the text, extract their exact values (e.g., convert "3.8k" to 3800). If no engagement counts are explicitly provided, set likes, comments, reposts, and views to exactly 0. DO NOT hallucinate, fabricate, or guess fake engagement metrics.
 
 User Input:
 """
@@ -918,12 +946,12 @@ ${scrapedMetadata}`;
               timestamp: { type: Type.STRING, description: "The post timestamp or relative time. e.g., '10:30 AM · Aug 24, 2026' or '2h ago'." },
               engagement: {
                 type: Type.OBJECT,
-                description: "Realistic engagement counts if none are specified. Make them feel authentic.",
+                description: "Engagement metrics which default to exactly 0 if not explicitly defined.",
                 properties: {
-                  likes: { type: Type.INTEGER, description: "Number of likes/reactions." },
-                  comments: { type: Type.INTEGER, description: "Number of comments." },
-                  reposts: { type: Type.INTEGER, description: "Number of reposts/shares." },
-                  views: { type: Type.INTEGER, description: "Number of views (only relevant for X posts; default to null or a realistic high number if platform is X)." }
+                  likes: { type: Type.INTEGER, description: "Number of likes/reactions. Defaults to 0." },
+                  comments: { type: Type.INTEGER, description: "Number of comments. Defaults to 0." },
+                  reposts: { type: Type.INTEGER, description: "Number of reposts/shares. Defaults to 0." },
+                  views: { type: Type.INTEGER, description: "Number of views (default to 0)." }
                 },
                 required: ["likes", "comments", "reposts"]
               }
@@ -979,33 +1007,10 @@ ${scrapedMetadata}`;
     }
   }
 
-  // Helper to authenticate
-  async function getAuthenticatedUser(req: any): Promise<string | null> {
-    if (!isSupabaseConfigured) {
-      return "anonymous-local-user";
-    }
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.split(" ")[1];
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser(token);
-        if (!error && user) {
-          return user.id;
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-    return null;
-  }
-
-  const fallbackLinkHubs = new Map<string, any>(); // Key: id, or slug
-  const fallbackLinkHubItems = new Map<string, any[]>(); // Key: hub_id
-
   // 1. GET User Link Hubs
-  app.get("/api/hubs", async (req, res) => {
+  app.get("/api/hubs", dbAvailabilityGuard, apiRateLimiter, async (req, res) => {
     try {
-      const userId = await getAuthenticatedUser(req);
+      const { userId, client: requestClient } = await getAuthenticatedUserContext(req);
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized access." });
       }
@@ -1013,28 +1018,23 @@ ${scrapedMetadata}`;
       let hubs: any[] = [];
       let dbError: any = null;
 
-      if (isSupabaseConfigured) {
-        try {
-          const { data, error } = await supabase
-            .from("link_hubs")
-            .select("*")
-            .eq("user_id", userId)
-            .order("created_at", { ascending: false });
-          
-          if (error) {
-            dbError = error;
-          } else {
-            hubs = data || [];
-          }
-        } catch (err) {
-          dbError = err;
+      try {
+        const { data, error } = await requestClient
+          .from("link_hubs")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+        
+        if (error) {
+          dbError = error;
+        } else {
+          hubs = data || [];
         }
+      } catch (err) {
+        dbError = err;
       }
 
-      // If database is not configured or table missing, return from memory fallback
-      if (!isSupabaseConfigured || (dbError && isTableMissingError(dbError))) {
-        hubs = Array.from(fallbackLinkHubs.values()).filter(h => h.user_id === userId);
-      } else if (dbError) {
+      if (dbError) {
         console.error("Database error fetching hubs:", dbError);
         return res.status(500).json({ error: "Failed to load link hubs from database." });
       }
@@ -1045,23 +1045,21 @@ ${scrapedMetadata}`;
         let items: any[] = [];
         let itemsError: any = null;
 
-        if (isSupabaseConfigured && !isTableMissingError(dbError)) {
-          try {
-            const { data, error } = await supabase
-              .from("link_hub_items")
-              .select("*")
-              .eq("hub_id", hub.id)
-              .order("position", { ascending: true });
-            if (error) itemsError = error;
-            else items = data || [];
-          } catch (err) {
-            itemsError = err;
-          }
+        try {
+          const { data, error } = await requestClient
+            .from("link_hub_items")
+            .select("*")
+            .eq("hub_id", hub.id)
+            .order("position", { ascending: true });
+          if (error) itemsError = error;
+          else items = data || [];
+        } catch (err) {
+          itemsError = err;
         }
 
-        if (!isSupabaseConfigured || (itemsError && isTableMissingError(itemsError)) || (dbError && isTableMissingError(dbError))) {
-          items = fallbackLinkHubItems.get(hub.id) || [];
-          items.sort((a, b) => a.position - b.position);
+        if (itemsError) {
+          console.error("Database error fetching hub items:", itemsError);
+          return res.status(500).json({ error: "Failed to load link hub items." });
         }
 
         enrichedHubs.push({
@@ -1078,9 +1076,9 @@ ${scrapedMetadata}`;
   });
 
   // 2. POST Save/Upsert Link Hub and Items
-  app.post("/api/hubs/save", async (req, res) => {
+  app.post("/api/hubs/save", authRateLimiter, async (req, res) => {
     try {
-      const userId = await getAuthenticatedUser(req);
+      const { userId, client: requestClient } = await getAuthenticatedUserContext(req);
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized access." });
       }
@@ -1112,42 +1110,34 @@ ${scrapedMetadata}`;
       let existingHubId: string | null = null;
       let checkError: any = null;
 
-      if (isSupabaseConfigured) {
-        try {
-          const { data, error } = await supabase
-            .from("link_hubs")
-            .select("id, user_id")
-            .eq("slug", slug)
-            .maybeSingle();
-          if (error) {
-            checkError = error;
-          } else if (data) {
-            if (data.user_id !== userId) {
-              isSlugTaken = true;
-            }
-            existingHubId = data.id;
-          }
-        } catch (err) {
-          checkError = err;
-        }
-      }
-
-      // Memory check fallback
-      if (!isSupabaseConfigured || (checkError && isTableMissingError(checkError))) {
-        const memHub = Array.from(fallbackLinkHubs.values()).find(h => h.slug === slug);
-        if (memHub) {
-          if (memHub.user_id !== userId) {
+      try {
+        const { data, error } = await requestClient
+          .from("link_hubs")
+          .select("id, user_id")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (error) {
+          checkError = error;
+        } else if (data) {
+          if (data.user_id !== userId) {
             isSlugTaken = true;
           }
-          existingHubId = memHub.id;
+          existingHubId = data.id;
         }
+      } catch (err) {
+        checkError = err;
+      }
+
+      if (checkError) {
+        console.error("Database check error during hub save:", checkError);
+        return res.status(500).json({ error: "Failed to verify slug availability." });
       }
 
       if (isSlugTaken) {
         return res.status(400).json({ error: `The custom URL alias "smyl.link/h/${slug}" is already taken by another profile.` });
       }
 
-      let finalHubId = hub.id || existingHubId || Math.random().toString(36).substring(2, 15);
+      let finalHubId = hub.id || existingHubId || gen_random_uuid_local();
       const hubData = {
         id: finalHubId,
         user_id: userId,
@@ -1166,53 +1156,42 @@ ${scrapedMetadata}`;
 
       let savedHub: any = null;
       let writeError: any = null;
-      let useFallback = !isSupabaseConfigured;
 
-      if (isSupabaseConfigured) {
-        try {
-          // Check ownership if update
-          if (hub.id) {
-            const { data: ownershipCheck, error: ownerError } = await supabase
-              .from("link_hubs")
-              .select("user_id")
-              .eq("id", hub.id)
-              .maybeSingle();
-            
-            if (ownerError) throw ownerError;
-            if (ownershipCheck && ownershipCheck.user_id !== userId) {
-              return res.status(403).json({ error: "Access denied. You do not own this Link Hub." });
-            }
-          }
-
-          // Upsert Hub
-          const { data, error } = await supabase
+      try {
+        // Check ownership if update
+        if (hub.id) {
+          const { data: ownershipCheck, error: ownerError } = await requestClient
             .from("link_hubs")
-            .upsert({
-              ...hubData,
-              created_at: hub.created_at || new Date().toISOString()
-            })
-            .select()
-            .single();
-
-          if (error) {
-            writeError = error;
-          } else {
-            savedHub = data;
+            .select("user_id")
+            .eq("id", hub.id)
+            .maybeSingle();
+          
+          if (ownerError) throw ownerError;
+          if (ownershipCheck && ownershipCheck.user_id !== userId) {
+            return res.status(403).json({ error: "Access denied. You do not own this Link Hub." });
           }
-        } catch (err) {
-          writeError = err;
         }
+
+        // Upsert Hub
+        const { data, error } = await requestClient
+          .from("link_hubs")
+          .upsert({
+            ...hubData,
+            created_at: hub.created_at || new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (error) {
+          writeError = error;
+        } else {
+          savedHub = data;
+        }
+      } catch (err) {
+        writeError = err;
       }
 
-      if (!isSupabaseConfigured || (writeError && isTableMissingError(writeError))) {
-        useFallback = true;
-        const oldHub = fallbackLinkHubs.get(finalHubId);
-        savedHub = {
-          ...hubData,
-          created_at: oldHub ? oldHub.created_at : new Date().toISOString()
-        };
-        fallbackLinkHubs.set(finalHubId, savedHub);
-      } else if (writeError) {
+      if (writeError) {
         console.error("Database save error:", writeError);
         return res.status(500).json({ error: "Failed to save Link Hub to database." });
       }
@@ -1221,80 +1200,55 @@ ${scrapedMetadata}`;
       const savedItems: any[] = [];
       const itemIdsToKeep = new Set<string>();
 
-      if (useFallback) {
-        const fallbacks: any[] = [];
-        validatedItems.forEach((item, index) => {
-          const itemId = item.id || Math.random().toString(36).substring(2, 15);
-          itemIdsToKeep.add(itemId);
-          const oldItem = (fallbackLinkHubItems.get(finalHubId) || []).find(i => i.id === itemId);
-          const newItem = {
-            id: itemId,
-            hub_id: finalHubId,
-            title: String(item.title).trim(),
-            description: String(item.description || "").trim(),
-            destination_url: String(item.destination_url).trim(),
-            image_path: item.image_path || null,
-            position: index,
-            is_enabled: item.is_enabled !== false,
-            click_count: oldItem ? oldItem.click_count : 0,
-            created_at: oldItem ? oldItem.created_at : new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          fallbacks.push(newItem);
-          savedItems.push(newItem);
-        });
-        fallbackLinkHubItems.set(finalHubId, fallbacks);
+      // Find existing IDs to delete from db if not in payload
+      validatedItems.forEach(item => {
+        if (item.id) itemIdsToKeep.add(item.id);
+      });
+
+      // Delete removed items
+      if (itemIdsToKeep.size > 0) {
+        await requestClient
+          .from("link_hub_items")
+          .delete()
+          .eq("hub_id", finalHubId)
+          .not("id", "in", `(${Array.from(itemIdsToKeep).join(",")})`);
       } else {
-        // Find existing IDs to delete from db if not in payload
-        validatedItems.forEach(item => {
-          if (item.id) itemIdsToKeep.add(item.id);
-        });
+        await requestClient
+          .from("link_hub_items")
+          .delete()
+          .eq("hub_id", finalHubId);
+      }
 
-        // Delete removed items
-        if (itemIdsToKeep.size > 0) {
-          await supabase
-            .from("link_hub_items")
-            .delete()
-            .eq("hub_id", finalHubId)
-            .not("id", "in", `(${Array.from(itemIdsToKeep).join(",")})`);
+      // Upsert new ones
+      for (let i = 0; i < validatedItems.length; i++) {
+        const item = validatedItems[i];
+        const itemId = item.id || gen_random_uuid_local();
+        const itemPayload = {
+          id: itemId,
+          hub_id: finalHubId,
+          title: String(item.title).trim(),
+          description: String(item.description || "").trim(),
+          destination_url: String(item.destination_url).trim(),
+          image_path: item.image_path || null,
+          position: i,
+          is_enabled: item.is_enabled !== false,
+          click_count: item.click_count || 0,
+          updated_at: new Date().toISOString()
+        };
+
+        const { data: savedItem, error: itemErr } = await requestClient
+          .from("link_hub_items")
+          .upsert({
+            ...itemPayload,
+            created_at: item.created_at || new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (itemErr) {
+          console.error("Failed to upsert link hub item:", itemErr);
         } else {
-          await supabase
-            .from("link_hub_items")
-            .delete()
-            .eq("hub_id", finalHubId);
-        }
-
-        // Upsert new ones
-        for (let i = 0; i < validatedItems.length; i++) {
-          const item = validatedItems[i];
-          const itemId = item.id || gen_random_uuid_local();
-          const itemPayload = {
-            id: itemId,
-            hub_id: finalHubId,
-            title: String(item.title).trim(),
-            description: String(item.description || "").trim(),
-            destination_url: String(item.destination_url).trim(),
-            image_path: item.image_path || null,
-            position: i,
-            is_enabled: item.is_enabled !== false,
-            click_count: item.click_count || 0,
-            updated_at: new Date().toISOString()
-          };
-
-          const { data: savedItem, error: itemErr } = await supabase
-            .from("link_hub_items")
-            .upsert({
-              ...itemPayload,
-              created_at: item.created_at || new Date().toISOString()
-            })
-            .select()
-            .single();
-
-          if (itemErr) {
-            console.error("Failed to upsert link hub item:", itemErr);
-          } else {
-            savedItems.push(savedItem);
-          }
+          savedItems.push(savedItem);
         }
       }
 
@@ -1316,29 +1270,28 @@ ${scrapedMetadata}`;
   }
 
   // 3. GET Public Link Hub by Slug
-  app.get("/api/hubs/public/:slug", async (req, res) => {
+  app.get("/api/hubs/public/:slug", dbAvailabilityGuard, apiRateLimiter, async (req, res) => {
     try {
       const slug = String(req.params.slug).trim().toLowerCase();
       
       let hub: any = null;
       let dbError: any = null;
 
-      if (isSupabaseConfigured) {
-        try {
-          const { data, error } = await supabase
-            .from("link_hubs")
-            .select("*")
-            .eq("slug", slug)
-            .maybeSingle();
-          hub = data;
-          dbError = error;
-        } catch (err) {
-          dbError = err;
-        }
+      try {
+        const { data, error } = await adminClient
+          .from("link_hubs")
+          .select("*")
+          .eq("slug", slug)
+          .maybeSingle();
+        hub = data;
+        dbError = error;
+      } catch (err) {
+        dbError = err;
       }
 
-      if (!isSupabaseConfigured || (dbError && isTableMissingError(dbError))) {
-        hub = Array.from(fallbackLinkHubs.values()).find(h => h.slug === slug) || null;
+      if (dbError) {
+        console.error("Database check error during public hub lookup:", dbError);
+        return res.status(500).json({ error: "Failed to fetch link hub details." });
       }
 
       if (!hub) {
@@ -1347,7 +1300,7 @@ ${scrapedMetadata}`;
 
       // Check draft state -> if not published, the active user MUST be the owner to view it
       if (!hub.is_published) {
-        const userId = await getAuthenticatedUser(req);
+        const { userId } = await getAuthenticatedUserContext(req);
         if (hub.user_id !== userId) {
           return res.status(403).json({ error: "This Link Hub is currently offline (draft mode)." });
         }
@@ -1357,33 +1310,47 @@ ${scrapedMetadata}`;
       let items: any[] = [];
       let itemsError: any = null;
 
-      if (isSupabaseConfigured && (!dbError || !isTableMissingError(dbError))) {
-        try {
-          const { data, error } = await supabase
-            .from("link_hub_items")
-            .select("*")
-            .eq("hub_id", hub.id)
-            .order("position", { ascending: true });
-          
-          items = data || [];
-          itemsError = error;
-        } catch (err) {
-          itemsError = err;
-        }
+      try {
+        const { data, error } = await adminClient
+          .from("link_hub_items")
+          .select("*")
+          .eq("hub_id", hub.id)
+          .order("position", { ascending: true });
+        
+        items = data || [];
+        itemsError = error;
+      } catch (err) {
+        itemsError = err;
       }
 
-      if (!isSupabaseConfigured || (itemsError && isTableMissingError(itemsError)) || (dbError && isTableMissingError(dbError))) {
-        items = fallbackLinkHubItems.get(hub.id) || [];
-        items.sort((a, b) => a.position - b.position);
+      if (itemsError) {
+        console.error("Database check error during public hub items fetch:", itemsError);
+        return res.status(500).json({ error: "Failed to fetch link hub items." });
       }
 
       // Filter enabled links for public view
       const activeItems = items.filter(i => i.is_enabled);
 
-      res.json({
-        ...hub,
-        items: activeItems
-      });
+      // Standardize display-only fields for safety (Blocker 7)
+      const displayHub = {
+        id: hub.id,
+        slug: hub.slug,
+        display_name: hub.display_name,
+        bio: hub.bio || "",
+        avatar_path: hub.avatar_path || null,
+        theme_config: hub.theme_config || {},
+        is_published: hub.is_published,
+        items: activeItems.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description || "",
+          destination_url: item.destination_url,
+          image_path: item.image_path || null,
+          position: item.position,
+        }))
+      };
+
+      res.json(displayHub);
     } catch (err: any) {
       console.error("GET /api/hubs/public error:", err);
       res.status(500).json({ error: err.message || "Failed to load public Link Hub." });
@@ -1391,58 +1358,54 @@ ${scrapedMetadata}`;
   });
 
   // 4. GET Redirect / Tracking endpoint
-  app.get("/api/hubs/redirect/:itemId", async (req, res) => {
+  app.get("/api/hubs/redirect/:itemId", dbAvailabilityGuard, apiRateLimiter, async (req, res) => {
     try {
       const itemId = req.params.itemId;
 
       let item: any = null;
       let dbError: any = null;
 
-      if (isSupabaseConfigured) {
-        try {
-          const { data, error } = await supabase
-            .from("link_hub_items")
-            .select("*")
-            .eq("id", itemId)
-            .maybeSingle();
-          item = data;
-          dbError = error;
-        } catch (err) {
-          dbError = err;
-        }
+      try {
+        const { data, error } = await adminClient
+          .from("link_hub_items")
+          .select("*")
+          .eq("id", itemId)
+          .maybeSingle();
+        item = data;
+        dbError = error;
+      } catch (err) {
+        dbError = err;
       }
 
-      if (!isSupabaseConfigured || (dbError && isTableMissingError(dbError))) {
-        // Look in all fallback hub arrays
-        for (const list of fallbackLinkHubItems.values()) {
-          const found = list.find(i => i.id === itemId);
-          if (found) {
-            item = found;
-            break;
-          }
-        }
+      if (dbError) {
+        console.error("Database query error during hub item redirection:", dbError);
+        return res.status(500).send("Database redirection query failed.");
       }
 
       if (!item) {
         return res.status(404).send("Link item not found or has been removed.");
       }
 
-      if (!validateDestinationUrl(item.destination_url)) {
+      const isSafe = await validateUrl(item.destination_url);
+      if (!isSafe) {
         return res.status(400).send("The stored destination URL is insecure or invalid.");
       }
 
-      // Safe Server Redirect with click count increment
-      if (isSupabaseConfigured && (!dbError || !isTableMissingError(dbError))) {
-        supabase
-          .from("link_hub_items")
-          .update({ click_count: Number(item.click_count || 0) + 1 })
-          .eq("id", item.id)
-          .then(({ error: clickErr }) => {
-            if (clickErr) console.error("Failed to update link click count:", clickErr);
-          });
-      } else {
-        item.click_count = Number(item.click_count || 0) + 1;
-      }
+      // Safe Server Redirect with atomic click count increment via Postgres RPC
+      adminClient
+        .rpc("increment_hub_item_click_count", { item_id: item.id })
+        .then(({ error: clickErr }) => {
+          if (clickErr) {
+            console.error("Failed to update link click count via RPC, doing fallback update:", clickErr);
+            adminClient
+              .from("link_hub_items")
+              .update({ click_count: Number(item.click_count || 0) + 1 })
+              .eq("id", item.id)
+              .then(({ error: updateErr }) => {
+                if (updateErr) console.error("Failed to update click count via standard fallback:", updateErr);
+              });
+          }
+        });
 
       // Redirect safely to destination URL (HTTP/HTTPS guaranteed)
       res.redirect(302, item.destination_url);

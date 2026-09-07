@@ -1638,33 +1638,69 @@ Verify and complete integration of dynamic SEO tags using react-helmet-async, re
 ### Result
 Completed
 
-## 2026-09-06 (LinkHub processing triggers & Global Active Background Processing Indicators)
+## 2026-09-07 (Image SSRF Protection & Compilation Hardening)
 
 ### Request
-1. Apply the `onProcessingChange` pattern and glassy spinner overlay to `src/components/LinkHub.tsx` (the Link Hub Creator).
-2. Wire up a global "active background processing" visual indicator inside `src/App.tsx` responding to utility operations.
+1. Prevent SSRF and local IP leaks on metadata image fetching paths.
+2. Fix database short links creation for anonymous users.
+3. Fix TypeScript compilation and non-existent icon imports.
 
 ### Analysis
-- Extended the `LinkHubWorkspace` to support the custom `onProcessingChange` callback parameter.
-- Triggered `onProcessingChange` during the workspace profile loading cycle and database/cloud draft saves.
-- Integrated `isProcessing` state tracking at the top application layer (`src/App.tsx`).
-- Created an elegant, non-obtrusive visual indicator system: a thin animated glowing progress bar at the very top of the viewport, paired with a subtle blinking status badge at the bottom-left.
+- SSRF Prevention: Applied `checkImageUrl` on extracted images and favicons during standard link metadata generation.
+- Database: Modified insert security policy for `short_links` to permit anonymous inserts (where `user_id` is null).
+- Types: Added DNS callback types and replaced obsolete icons with standard equivalents (`LuPen` -> `Edit3`, `LuCheck` -> `Check`, `LuInfo` -> `AlertTriangle`).
 
 ### Implementation
-- Updated `/src/components/LinkHub.tsx` injecting prop-handlers, async state updates, and loading layout improvements.
-- Updated `/src/App.tsx` incorporating the `isProcessing` state hook, distributing it to all utility tool components via `onProcessingChange`, and rendering the animated top-bar and bottom-left badge overlays.
+- Updated `/supabase/migrations/20260905_short_links.sql` insert policy.
+- Updated `/src/services/metadataService.ts` to validate extracted images using `checkImageUrl`.
+- Corrected icon imports and variable redeclarations in `/src/components/LinkHub.tsx`, `/src/components/OgDebugger.tsx`, `/src/components/ScreenshotGenerator.tsx`, and `/server.ts`.
+- Typed custom DNS lookup responses in `/src/server/security/urlSecurity.ts`.
 
 ### Security
-- Standardized handlers with zero secret leakage and verified safe sandbox environment execution.
+- Hardened all server image extraction with DNS and local IP range checks to prevent SSRF redirects.
 
 ### Files Changed
+- `/supabase/migrations/20260905_short_links.sql`
+- `/src/services/metadataService.ts`
 - `/src/components/LinkHub.tsx`
+- `/src/components/OgDebugger.tsx`
+- `/src/components/ScreenshotGenerator.tsx`
+- `/src/server/security/urlSecurity.ts`
+- `/server.ts`
+- `/implementation-log.md`
+
+### Verification
+- Ran linter checking static analyses and typescript errors (passed).
+- Successfully compiled the full production build cleanly (passed).
+
+### Result
+Completed
+
+## 2026-09-07 (Server-side Rate Limiting & Dropdown Icon Color Unification)
+
+### Request
+1. Add server-side rate limiting and concurrency limits for all endpoints.
+2. Fix color disparity on screenshot generator icon and unify active menu utility colors under theme.
+
+### Analysis
+- Concurrency & Usage Caps: Created concurrency trackers and IP caps. Configured fallback in-memory limits alongside DB-backed limits.
+- UI Disparity: Found hardcoded `text-cyan-600` on the screenshot generator icon which overrode state inheritance. Active utilities used custom colors (indigo, purple, etc.). Unified all active items under the primary brand theme.
+
+### Implementation
+- Added concurrency and IP limiters in `/server.ts` and mounted on `/api` and `/s/`.
+- Replaced custom states and hardcoded classes in `/src/App.tsx` (both dropdown and mobile sidebar menus) with master theme-appropriate style bindings.
+
+### Security
+- Added active concurrency constraints (max 8) and standard IP-based rate limiting (60/min) on all routes.
+
+### Files Changed
+- `/server.ts`
 - `/src/App.tsx`
 - `/implementation-log.md`
 
 ### Verification
-- Ran linter (`lint_applet`) successfully.
-- Compiled the production-ready React application cleanly with `compile_applet`.
+- Linter completed successfully.
+- Full build compiled cleanly.
 
 ### Result
 Completed

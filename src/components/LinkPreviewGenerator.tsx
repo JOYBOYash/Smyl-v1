@@ -10,7 +10,6 @@ import {
   IoInformationCircleOutline,
   IoPhonePortrait,
   IoDesktop,
-  IoSparkles,
 } from "react-icons/io5";
 
 interface LinkPreviewGeneratorProps {
@@ -404,7 +403,7 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
                       <div className="relative">
                         <div className="w-10 h-10 rounded-full border-4 border-brand-primary/10 border-t-brand-primary animate-spin" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <IoSparkles className="w-4 h-4 text-brand-primary animate-pulse" />
+                          <IoLink className="w-4 h-4 text-brand-primary animate-pulse" />
                         </div>
                       </div>
                       <span className="text-[10px] font-bold text-[#17191C] bg-white/95 px-3 py-1.5 rounded-full border border-[#D0D7DE]/50 shadow-sm animate-pulse">
@@ -434,7 +433,7 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
                     animate={{ opacity: 1 }}
                     className="text-center py-12 text-xs text-[#8D959F] space-y-2.5"
                   >
-                    <IoSparkles className="w-10 h-10 mx-auto text-[#CBD5E1] animate-bounce" />
+                    <IoGlobe className="w-10 h-10 mx-auto text-[#CBD5E1] animate-bounce" />
                     <div className="space-y-1">
                       <p className="font-bold text-[#626A73]">Waiting for active URL input</p>
                       <p className="text-[11px]">Paste a valid address and hit "Preview link" to see results</p>

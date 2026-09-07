@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   IoClose,
   IoCheckmarkCircle,
-  IoSparkles,
+  IoBulbOutline,
 } from "react-icons/io5";
 import { FaKeyboard } from "react-icons/fa";
 
@@ -168,7 +168,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({
           {/* Footer Note */}
           <div className="p-4 bg-[#F8FAFC] border-t border-[#E1E5E9] flex items-center justify-between text-xs shrink-0">
             <div className="flex items-center gap-1.5 text-[#626A73] text-[11px]">
-              <IoSparkles className="w-3.5 h-3.5 text-brand-primary" />
+              <IoBulbOutline className="w-3.5 h-3.5 text-brand-primary" />
               <span>Tip: Press <kbd className="font-mono bg-white px-1 border border-[#D0D7DE] rounded">?</kbd> anytime to open this helper</span>
             </div>
 

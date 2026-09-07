@@ -51,7 +51,7 @@ import {
   IoClose,
   IoSunny,
   IoMoon,
-  IoSparkles,
+  IoTerminal,
   IoChevronDown,
   IoBookmark,
   IoCheckmark,
@@ -1178,7 +1178,7 @@ export const App: React.FC = () => {
                               </div>
                             </button>
 
-                            <button
+                             <button
                               onClick={() => {
                                 handleTabChange("shortener");
                               }}
@@ -1187,7 +1187,7 @@ export const App: React.FC = () => {
                               }`}
                             >
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "shortener" ? "bg-indigo-50 text-indigo-600" : "bg-[#F5F7F9] text-[#626A73]"
+                                activeTab === "shortener" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                               }`}>
                                 <IoLink className="w-4 h-4" />
                               </div>
@@ -1206,7 +1206,7 @@ export const App: React.FC = () => {
                               }`}
                             >
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "qr" ? "bg-purple-50 text-purple-600" : "bg-[#F5F7F9] text-[#626A73]"
+                                activeTab === "qr" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                               }`}>
                                 <IoQrCode className="w-4 h-4" />
                               </div>
@@ -1225,7 +1225,7 @@ export const App: React.FC = () => {
                               }`}
                             >
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "preview" ? "bg-emerald-50 text-emerald-600" : "bg-[#F5F7F9] text-[#626A73]"
+                                activeTab === "preview" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                               }`}>
                                 <IoGlobe className="w-4 h-4" />
                               </div>
@@ -1244,7 +1244,7 @@ export const App: React.FC = () => {
                               }`}
                             >
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "ogdebug" ? "bg-rose-50 text-rose-600" : "bg-[#F5F7F9] text-[#626A73]"
+                                activeTab === "ogdebug" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                               }`}>
                                 <IoBug className="w-4 h-4" />
                               </div>
@@ -1263,9 +1263,9 @@ export const App: React.FC = () => {
                               }`}
                             >
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "utm" ? "bg-amber-50 text-amber-600" : "bg-[#F5F7F9] text-[#626A73]"
+                                activeTab === "utm" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                               }`}>
-                                <IoSparkles className="w-4 h-4" />
+                                <IoLink className="w-4 h-4" />
                               </div>
                               <div className="min-w-0">
                                 <p className="font-bold text-xs">UTM Link Builder</p>
@@ -1282,7 +1282,7 @@ export const App: React.FC = () => {
                               }`}
                             >
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                                activeTab === "hubs" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                               }`}>
                                 <IoCompass className="w-4 h-4" />
                               </div>
@@ -1301,9 +1301,9 @@ export const App: React.FC = () => {
                               }`}
                             >
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                                activeTab === "screenshot" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                               }`}>
-                                <IoImage className="w-4 h-4 text-cyan-600" />
+                                <IoImage className="w-4 h-4" />
                               </div>
                               <div className="min-w-0">
                                 <p className="font-bold text-xs">Screenshot Generator</p>
@@ -1480,7 +1480,7 @@ export const App: React.FC = () => {
                         }`}
                       >
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "shortener" ? "bg-indigo-50 text-indigo-600" : "bg-[#F5F7F9] text-[#626A73]"
+                          activeTab === "shortener" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                         }`}>
                           <IoLink className="w-4 h-4" />
                         </div>
@@ -1494,7 +1494,7 @@ export const App: React.FC = () => {
                         }`}
                       >
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "qr" ? "bg-purple-50 text-purple-600" : "bg-[#F5F7F9] text-[#626A73]"
+                          activeTab === "qr" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                         }`}>
                           <IoQrCode className="w-4 h-4" />
                         </div>
@@ -1508,7 +1508,7 @@ export const App: React.FC = () => {
                         }`}
                       >
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "preview" ? "bg-emerald-50 text-emerald-600" : "bg-[#F5F7F9] text-[#626A73]"
+                          activeTab === "preview" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                         }`}>
                           <IoGlobe className="w-4 h-4" />
                         </div>
@@ -1522,7 +1522,7 @@ export const App: React.FC = () => {
                         }`}
                       >
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "ogdebug" ? "bg-rose-50 text-rose-600" : "bg-[#F5F7F9] text-[#626A73]"
+                          activeTab === "ogdebug" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                         }`}>
                           <IoBug className="w-4 h-4" />
                         </div>
@@ -1536,9 +1536,9 @@ export const App: React.FC = () => {
                         }`}
                       >
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "utm" ? "bg-amber-50 text-amber-600" : "bg-[#F5F7F9] text-[#626A73]"
+                          activeTab === "utm" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                         }`}>
-                          <IoSparkles className="w-4 h-4" />
+                          <IoLink className="w-4 h-4" />
                         </div>
                         <span className="font-bold text-xs">UTM Link Builder</span>
                       </button>
@@ -1550,7 +1550,7 @@ export const App: React.FC = () => {
                         }`}
                       >
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                          activeTab === "hubs" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                         }`}>
                           <IoCompass className="w-4 h-4" />
                         </div>
@@ -1564,9 +1564,9 @@ export const App: React.FC = () => {
                         }`}
                       >
                         <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
+                          activeTab === "screenshot" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
                         }`}>
-                          <IoImage className="w-4 h-4 text-cyan-600" />
+                          <IoImage className="w-4 h-4" />
                         </div>
                         <span className="font-bold text-xs">Screenshot Generator</span>
                       </button>
@@ -1698,7 +1698,7 @@ export const App: React.FC = () => {
                                   <div className={`w-4 h-4 rounded-full ${activePreset.swatch} flex-shrink-0`} />
                                 ) : (
                                   <div className="w-4 h-4 rounded-full bg-brand-soft border border-brand-primary flex items-center justify-center flex-shrink-0">
-                                    <IoSparkles className="w-2.5 h-2.5 text-brand-primary" />
+                                    <IoOptions className="w-2.5 h-2.5 text-brand-primary" />
                                   </div>
                                 )}
                                 <span className="text-[#17191C] font-semibold truncate">
@@ -2268,7 +2268,7 @@ export const App: React.FC = () => {
                             transition={{ type: "spring", stiffness: 450, damping: 35 }}
                           />
                         )}
-                        <IoSparkles className="w-4 h-4" />
+                        <IoTerminal className="w-4 h-4" />
                       </button>
                     </div>
 

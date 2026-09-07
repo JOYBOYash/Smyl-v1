@@ -19,32 +19,26 @@ ALTER TABLE public.short_links ENABLE ROW LEVEL SECURITY;
 
 -- Short Links RLS Policies:
 
--- 1. Anyone can read short links (crucial for server-side redirection and lookups)
-CREATE POLICY "Anyone can read short links"
+-- 1. Only authenticated owners can read their own short links
+CREATE POLICY "Users can read own short links"
   ON public.short_links
   FOR SELECT
-  USING (true);
+  USING (auth.uid() = user_id);
 
--- 2. Authenticated users can insert short links linked to their user_id
+-- 2. Users can insert short links linked to their user_id, or anonymous short links (where user_id is null)
 CREATE POLICY "Authenticated users can create short links"
   ON public.short_links
   FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
 
--- 3. Anyone can create anonymous short links (where user_id is null)
-CREATE POLICY "Anonymous users can create anonymous short links"
-  ON public.short_links
-  FOR INSERT
-  WITH CHECK (user_id IS NULL);
-
--- 4. Users can update their own short links (restricted to user_id ownership)
+-- 3. Users can update their own short links (restricted to user_id ownership)
 CREATE POLICY "Users can update own short links"
   ON public.short_links
   FOR UPDATE
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- 5. Users can delete their own short links (restricted to user_id ownership)
+-- 4. Users can delete their own short links (restricted to user_id ownership)
 CREATE POLICY "Users can delete own short links"
   ON public.short_links
   FOR DELETE
@@ -60,3 +54,13 @@ CREATE TRIGGER set_short_links_updated_at
   BEFORE UPDATE ON public.short_links
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
+
+-- RPC Function for Atomic Click Count Increments (Resolves click count race conditions)
+CREATE OR REPLACE FUNCTION public.increment_click_count(link_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.short_links
+  SET click_count = click_count + 1
+  WHERE id = link_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -3,21 +3,20 @@ import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
 import { 
-  Link, 
-  Download, 
-  Copy, 
-  Sparkles, 
-  Monitor, 
-  Smartphone, 
-  Maximize2, 
-  Minimize2, 
-  AlertCircle, 
-  Check, 
-  Image, 
-  ArrowRight,
-  RefreshCw,
-  Sliders
-} from "lucide-react";
+  LuLink as Link, 
+  LuDownload as Download, 
+  LuCopy as Copy, 
+  LuMonitor as Monitor, 
+  LuSmartphone as Smartphone, 
+  LuMaximize2 as Maximize2, 
+  LuMinimize2 as Minimize2, 
+  LuInfo as AlertCircle, 
+  LuCheck as Check, 
+  LuImage as Image, 
+  LuArrowRight as ArrowRight,
+  LuRefreshCw as RefreshCw,
+  LuSettings as Sliders
+} from "react-icons/lu";
 
 interface ScreenshotResult {
   image: string;
@@ -190,7 +189,7 @@ export const ScreenshotGenerator: React.FC<{
       {/* Exquisite Header */}
       <div className="text-center space-y-2">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-soft text-brand-primary text-xs font-semibold mb-2">
-          <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+          <Image className="w-3.5 h-3.5 animate-pulse" />
           <span>Website Screenshot Utility</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#17191C] tracking-tight">

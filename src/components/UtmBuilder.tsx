@@ -13,7 +13,6 @@ import {
   IoRefresh,
   IoFlame,
   IoBookmark,
-  IoSparkles,
 } from "react-icons/io5";
 
 interface SavedUtm {
@@ -629,7 +628,7 @@ export const UtmBuilder: React.FC<UtmBuilderProps> = ({ onShorten, onProcessingC
                 type="submit"
                 className="w-full sm:w-auto h-10 px-6 rounded-lg bg-brand-primary hover:bg-brand-hover text-white font-bold text-xs transition-colors cursor-pointer shadow-xs flex items-center justify-center gap-2"
               >
-                <IoSparkles className="w-4 h-4" />
+                <IoLink className="w-4 h-4" />
                 <span>Build UTM link</span>
               </button>
             </div>

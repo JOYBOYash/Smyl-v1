@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Link as LinkIcon, Compass, Plus, Trash2, Edit3, Save, Globe, Settings, 
-  Share2, Copy, ExternalLink, Lock, Eye, EyeOff, Check, ChevronUp, 
-  ChevronDown, User, Loader, ArrowLeft, Palette, Power
-} from "lucide-react";
+  LuLink as LinkIcon, LuCompass as Compass, LuPlus as Plus, LuTrash2 as Trash2, LuPen as Edit3, LuSave as Save, LuGlobe as Globe, LuSettings as Settings, 
+  LuShare2 as Share2, LuCopy as Copy, LuExternalLink as ExternalLink, LuLock as Lock, LuEye as Eye, LuEyeOff as EyeOff, LuCheck as Check, LuChevronUp as ChevronUp, 
+  LuChevronDown as ChevronDown, LuUser as User, LuLoader as Loader, LuArrowLeft as ArrowLeft, LuPalette as Palette, LuPower as Power
+} from "react-icons/lu";
 import { isSupabaseConfigured } from "../lib/supabase";
 
 // 1. Definition of Link Hub Themes

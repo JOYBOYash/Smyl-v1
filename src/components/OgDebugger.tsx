@@ -1,24 +1,22 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
-  Link,
-  AlertTriangle,
-  CheckCircle2,
-  HelpCircle,
-  Copy,
-  Check,
-  Search,
-  Globe,
-  FileCode,
-  ShieldCheck,
-  RotateCcw,
-  ExternalLink,
-  ChevronDown,
-  ChevronRight,
-  Eye,
-  Settings,
-  Image as ImageIcon,
-} from "lucide-react";
+  LuLink as Link,
+  LuInfo as AlertTriangle,
+  LuCopy as Copy,
+  LuCheck as Check,
+  LuSearch as Search,
+  LuGlobe as Globe,
+  LuFileCode as FileCode,
+  LuShieldCheck as ShieldCheck,
+  LuRotateCcw as RotateCcw,
+  LuExternalLink as ExternalLink,
+  LuChevronDown as ChevronDown,
+  LuChevronRight as ChevronRight,
+  LuEye as Eye,
+  LuSettings as Settings,
+  LuImage as ImageIcon,
+} from "react-icons/lu";
 import { SocialPreviewCard } from "./SocialPreviewCard";
 
 export interface DiagnosticItem {
@@ -379,7 +377,7 @@ export const OgDebugger: React.FC<{
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       {overallStatus === "healthy" ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                        <Check className="w-5 h-5 text-emerald-600" />
                       ) : (
                         <AlertTriangle className="w-5 h-5 text-amber-600" />
                       )}
@@ -495,7 +493,7 @@ export const OgDebugger: React.FC<{
                           className="w-full bg-emerald-50/40 p-3.5 text-xs font-bold text-emerald-800 flex items-center justify-between border-b border-emerald-100"
                         >
                           <span className="flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            <Check className="w-4 h-4 text-emerald-600" />
                             <span>Passed Checks ({goods.length})</span>
                           </span>
                           {expandedDiagnostics.good ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -505,7 +503,7 @@ export const OgDebugger: React.FC<{
                           <div className="divide-y divide-emerald-100 bg-white">
                             {goods.map((item, idx) => (
                               <div key={idx} className="p-3.5 flex items-start gap-3 text-xs text-left">
-                                <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                                <Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
                                 <div className="space-y-0.5">
                                   <span className="font-bold text-[#17191C] mr-2">[{item.code}]</span>
                                   <p className="text-[#626A73] leading-relaxed">{item.message}</p>

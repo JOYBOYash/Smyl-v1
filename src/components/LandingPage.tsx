@@ -17,7 +17,7 @@ import {
   IoCreate,
   IoSunny,
   IoMoon,
-  IoSparkles,
+  IoTerminal,
   IoHeart,
   IoCheckmark,
 } from "react-icons/io5";
@@ -421,7 +421,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                         className="absolute inset-0 bg-[#0B0F19] ring-1 ring-cyan-400/50 rounded-lg shadow-xs -z-10"
                       />
                     )}
-                    <IoSparkles className="w-4 h-4" />
+                    <IoTerminal className="w-4 h-4" />
                   </button>
                 </div>
 

@@ -14,7 +14,6 @@ import {
   IoThumbsUpOutline,
   IoThumbsUp,
   IoPaperPlaneOutline,
-  IoSparkles,
   IoBulb,
 } from "react-icons/io5";
 import { FiHash } from "react-icons/fi";
@@ -702,7 +701,6 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
                 <div className="flex items-center gap-1">
                   <IoThumbsUp className="w-3.5 h-3.5 text-[#0A66C2]" />
                   <IoHeart className="w-3.5 h-3.5 text-[#E0245E]" />
-                  <IoSparkles className="w-3.5 h-3.5 text-[#059669]" />
                   <IoBulb className="w-3.5 h-3.5 text-[#D97706]" />
                 </div>
                 {isEditable ? (
