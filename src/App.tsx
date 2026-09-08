@@ -1099,23 +1099,23 @@ export const App: React.FC = () => {
 
             {/* Col 2: Navigation Items Centered */}
             <div className="hidden md:flex items-center justify-center gap-6">
-              {/* Studio Button directly visible (out alive) without background */}
+              {/* Studio */}
               <button
                 onClick={() => handleTabChange("customize")}
                 className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                  activeTab === "customize" ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                  activeTab === "customize" ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
                 }`}
               >
                 <IoCreate className="w-3.5 h-3.5 shrink-0" />
                 <span>Studio</span>
               </button>
 
-              {/* Tools Dropdown Button without background */}
+              {/* Tools Dropdown - Optimized, no redundant load states */}
               <div className="relative">
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
                   className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                    ["shortener", "qr", "preview", "ogdebug", "hubs", "screenshot"].includes(activeTab) ? "text-brand-primary font-bold" : "text-[#626A73] hover:text-[#17191C]"
+                    ["shortener", "qr", "preview", "ogdebug", "hubs", "screenshot", "utm"].includes(activeTab) ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
                   }`}
                 >
                   <IoApps className="w-3.5 h-3.5 shrink-0" />
@@ -1139,287 +1139,313 @@ export const App: React.FC = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 md:w-[560px] bg-white border border-[#E1E5E9] rounded-2xl shadow-xl p-2 md:p-4 z-50 flex flex-col md:grid md:grid-cols-2 gap-1 md:gap-3"
+                        className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 md:w-[560px] bg-white border border-[#E1E5E9] rounded-2xl shadow-xl p-2 md:p-4 z-50 grid grid-cols-2 gap-1 md:gap-3"
                       >
-                        <div className="px-3 py-1.5 border-b border-[#ECEEF1] mb-1 md:col-span-2">
+                        <div className="px-3 py-1.5 border-b border-[#ECEEF1] mb-1 col-span-2">
                           <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider">SMYL Tools</p>
                         </div>
 
-                        {isPageTransitioning ? (
-                          <div className="flex flex-col md:grid md:grid-cols-2 gap-2 md:col-span-2">
-                            {[1, 2, 3, 4].map((idx) => (
-                              <div key={idx} className="flex items-start gap-2.5 px-3 py-2 rounded-xl animate-pulse">
-                                <div className="w-7 h-7 rounded-lg bg-[#E1E5E9]/60 shrink-0" />
-                                <div className="min-w-0 flex-grow space-y-1.5 py-0.5">
-                                  <div className="h-3 bg-[#E1E5E9]/60 rounded w-24" />
-                                  <div className="h-2 bg-[#E1E5E9]/60 rounded w-40" />
-                                </div>
-                              </div>
-                            ))}
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("customize");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "customize" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "customize" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoCreate className="w-4 h-4" />
                           </div>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => {
-                                handleTabChange("customize");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "customize" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "customize" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoCreate className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">Post Card Studio</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Transform links into image cards</p>
-                              </div>
-                            </button>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">Post Card Studio</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Transform links into image cards</p>
+                          </div>
+                        </button>
 
-                             <button
-                              onClick={() => {
-                                handleTabChange("shortener");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "shortener" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoLink className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">Link Shortener</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Shorten URLs & track clean clicks</p>
-                              </div>
-                            </button>
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("shortener");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "shortener" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoLink className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">Link Shortener</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Shorten URLs & track clean clicks</p>
+                          </div>
+                        </button>
 
-                            <button
-                              onClick={() => {
-                                handleTabChange("qr");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "qr" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoQrCode className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">QR Code Generator</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Download clean SVG/PNG codes</p>
-                              </div>
-                            </button>
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("qr");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "qr" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoQrCode className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">QR Code Generator</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Download clean SVG/PNG codes</p>
+                          </div>
+                        </button>
 
-                            <button
-                              onClick={() => {
-                                handleTabChange("preview");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "preview" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoGlobe className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">Link Previewer</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Social media share previewer</p>
-                              </div>
-                            </button>
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("preview");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "preview" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoGlobe className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">Link Previewer</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Social media share previewer</p>
+                          </div>
+                        </button>
 
-                            <button
-                              onClick={() => {
-                                handleTabChange("ogdebug");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "ogdebug" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoBug className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">OG Debugger</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Diagnose open graph share tags</p>
-                              </div>
-                            </button>
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("ogdebug");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "ogdebug" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoBug className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">OG Debugger</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Diagnose open graph share tags</p>
+                          </div>
+                        </button>
 
-                            <button
-                              onClick={() => {
-                                handleTabChange("utm");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "utm" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoLink className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">UTM Link Builder</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Generate trackable marketing URLs</p>
-                              </div>
-                            </button>
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("utm");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "utm" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoLink className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">UTM Link Builder</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Generate trackable marketing URLs</p>
+                          </div>
+                        </button>
 
-                            <button
-                              onClick={() => {
-                                handleTabChange("hubs");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "hubs" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoCompass className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">Link Hub</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Trackable custom links micro-page</p>
-                              </div>
-                            </button>
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("hubs");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "hubs" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoCompass className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">Link Hub</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Trackable custom links micro-page</p>
+                          </div>
+                        </button>
 
-                            <button
-                              onClick={() => {
-                                handleTabChange("screenshot");
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                                activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                                activeTab === "screenshot" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                              }`}>
-                                <IoImage className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-xs">Screenshot Generator</p>
-                                <p className="text-[10px] text-[#626A73] truncate">Capture webpage to customizable card</p>
-                              </div>
-                            </button>
-                          </>
-                        )}
+                        <button
+                          onClick={() => {
+                            setIsProductsDropdownOpen(false);
+                            handleTabChange("screenshot");
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
+                            activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            activeTab === "screenshot" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
+                          }`}>
+                            <IoImage className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-bold text-xs">Screenshot Generator</p>
+                            <p className="text-[10px] text-[#626A73] truncate">Capture webpage to customizable card</p>
+                          </div>
+                        </button>
                       </motion.div>
                     </>
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* History Link */}
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setIsAuthModalOpen(true);
+                  } else {
+                    handleTabChange("history");
+                  }
+                }}
+                className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
+                  activeTab === "history" ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
+                }`}
+              >
+                <IoBookmark className="w-3.5 h-3.5 shrink-0" />
+                <span>History</span>
+              </button>
+
+              {/* Account Link */}
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setIsAuthModalOpen(true);
+                  } else {
+                    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+                  }
+                }}
+                className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
+                  activeTab === "history" && isProfileDropdownOpen ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
+                }`}
+              >
+                <IoPerson className="w-3.5 h-3.5 shrink-0" />
+                <span>Account</span>
+              </button>
             </div>
 
             {/* Col 3: Right Actions: Faded Shortcuts & Auth Account */}
             <div className="flex items-center justify-end gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setIsShortcutsModalOpen(true)}
-              className="p-1.5 text-[#8D959F] hover:text-[#17191C] hover:bg-[#F5F7F9] rounded-lg transition-colors cursor-pointer relative flex items-center justify-center"
-              title="Keyboard Shortcuts (Press ?)"
-            >
-              <IoKeypad className="w-4 h-4 text-current opacity-70 hover:opacity-100" />
-              <span
-                className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${
-                  shortcutsEnabled ? "bg-emerald-500 animate-pulse" : "bg-[#8D959F]"
-                }`}
-                title={shortcutsEnabled ? "Shortcuts Active" : "Shortcuts Inactive"}
-              />
-            </button>
-
-            {/* Auth Sign In / User Profile Button */}
-            {isAuthenticated && user ? (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
-                  className="h-8 px-2.5 rounded-lg border border-[#D0D7DE] bg-white text-xs font-semibold text-[#17191C] flex items-center gap-2 hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-xs"
-                >
-                  {profile?.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt={profile.display_name || "Profile"}
-                      className="w-5 h-5 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full bg-brand-primary text-white text-[10px] font-bold flex items-center justify-center">
-                      {(profile?.display_name || user.email || "U").charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <span className="hidden md:inline max-w-[100px] truncate text-[11px]">
-                    {profile?.display_name || user.email?.split("@")[0]}
-                  </span>
-                  <IoChevronDown className="w-3 h-3 text-[#626A73]" />
-                </button>
-
-                {/* Profile Dropdown */}
-                {isProfileDropdownOpen && (
-                  <div
-                    className="absolute right-0 mt-1.5 w-48 bg-white rounded-xl border border-[#E1E5E9] shadow-xl p-1.5 z-50 text-xs animate-in fade-in duration-150"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="px-3 py-2 border-b border-[#ECEEF1] mb-1">
-                      <p className="font-bold text-[#17191C] truncate">{profile?.display_name || "Account"}</p>
-                      <p className="text-[10px] text-[#626A73] truncate">{user.email}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileDropdownOpen(false);
-                        handleTabChange("history");
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-[#17191C] hover:bg-[#F5F7F9] font-medium flex items-center gap-2 cursor-pointer transition-colors"
-                    >
-                      <IoBookmark className="w-3.5 h-3.5 text-brand-primary" />
-                      <span>Saved Templates ({history.length})</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileDropdownOpen(false);
-                        setIsOnboardingModalOpen(true);
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-[#17191C] hover:bg-[#F5F7F9] font-medium flex items-center gap-2 cursor-pointer transition-colors"
-                    >
-                      <IoPerson className="w-3.5 h-3.5 text-[#626A73]" />
-                      <span>Edit Profile</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setIsProfileDropdownOpen(false);
-                        if (activeTab === "history") {
-                          navigate("/");
-                        }
-                        await signOut();
-                        setSuccessMsg("Signed out successfully");
-                      }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 font-medium flex items-center gap-2 cursor-pointer transition-colors"
-                    >
-                      <IoLogOut className="w-3.5 h-3.5 text-rose-600" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
               <button
                 type="button"
-                onClick={() => setIsAuthModalOpen(true)}
-                className="h-8 px-3.5 rounded-lg bg-brand-primary text-white font-semibold text-xs flex items-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+                onClick={() => setIsShortcutsModalOpen(true)}
+                className="p-1.5 text-[#8D959F] hover:text-[#17191C] hover:bg-[#F5F7F9] rounded-lg transition-colors cursor-pointer relative flex items-center justify-center"
+                title="Keyboard Shortcuts (Press ?)"
               >
-                <span>Try Now</span>
+                <IoKeypad className="w-4 h-4 text-current opacity-70 hover:opacity-100" />
+                <span
+                  className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${
+                    shortcutsEnabled ? "bg-emerald-500 animate-pulse" : "bg-[#8D959F]"
+                  }`}
+                  title={shortcutsEnabled ? "Shortcuts Active" : "Shortcuts Inactive"}
+                />
               </button>
-            )}
+
+              {/* Auth Sign In / User Profile Button */}
+              {isAuthenticated && user ? (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
+                    className="h-8 px-2.5 rounded-lg border border-[#D0D7DE] bg-white text-xs font-semibold text-[#17191C] flex items-center gap-2 hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-xs"
+                  >
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={profile.display_name || "Profile"}
+                        className="w-5 h-5 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-brand-primary text-white text-[10px] font-bold flex items-center justify-center">
+                        {(profile?.display_name || user.email || "U").charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="hidden md:inline max-w-[100px] truncate text-[11px]">
+                      {profile?.display_name || user.email?.split("@")[0]}
+                    </span>
+                    <IoChevronDown className="w-3 h-3 text-[#626A73]" />
+                  </button>
+
+                  {/* Profile Dropdown */}
+                  {isProfileDropdownOpen && (
+                    <div
+                      className="absolute right-0 mt-1.5 w-48 bg-white rounded-xl border border-[#E1E5E9] shadow-xl p-1.5 z-50 text-xs animate-in fade-in duration-150"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="px-3 py-2 border-b border-[#ECEEF1] mb-1">
+                        <p className="font-bold text-[#17191C] truncate">{profile?.display_name || "Account"}</p>
+                        <p className="text-[10px] text-[#626A73] truncate">{user.email}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileDropdownOpen(false);
+                          handleTabChange("history");
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-[#17191C] hover:bg-[#F5F7F9] font-medium flex items-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <IoBookmark className="w-3.5 h-3.5 text-brand-primary" />
+                        <span>Saved Templates ({history.length})</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsProfileDropdownOpen(false);
+                          setIsOnboardingModalOpen(true);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-[#17191C] hover:bg-[#F5F7F9] font-medium flex items-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <IoPerson className="w-3.5 h-3.5 text-[#626A73]" />
+                        <span>Edit Profile</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setIsProfileDropdownOpen(false);
+                          if (activeTab === "history") {
+                            navigate("/");
+                          }
+                          await signOut();
+                          setSuccessMsg("Signed out successfully");
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 font-medium flex items-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <IoLogOut className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="h-8 px-3.5 rounded-lg bg-brand-primary text-white font-semibold text-xs flex items-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+                >
+                  <span>Try Now</span>
+                </button>
+              )}
 
             {/* Mobile Hamburger Toggle Button */}
             <button

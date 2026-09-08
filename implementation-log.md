@@ -1781,3 +1781,29 @@ Remove the landing page sticky navigation bar since a primary global navbar is a
 
 ### Result
 Completed
+
+## 2026-09-07 (Streamlined Header & Blended Scrollbar)
+
+### Request
+Simplify the header navigation in `src/App.tsx` by streamlining the layout and removing redundant dropdown loading states to display Studio, Tools, History, and Account links clearly. Update CSS in `index.css` to make the scrollbar thinnest (3px) and almost invisible by merging the track color with the website background and making the thumb transparent.
+
+### Analysis
+- Streamlined `App.tsx` navigation bar by providing clear direct inline buttons for **Studio**, **Tools**, **History**, and **Account**.
+- Removed redundant page transitioning skeletons inside the Tools dropdown component to provide an instant, clean popover menu.
+- Blended the scrollbar globally by mapping the track background to `#EDF1F5` and setting the thumb to `transparent` (only showing an ultra-subtle `rgba` highlight on hover) with an ultra-thin `3px` width.
+
+### Implementation
+- Edited `/src/App.tsx` to display direct links for Studio, Tools, History, and Account clearly.
+- Edited `/src/index.css` to apply thin, transparent-thumb scrollbar styles.
+
+### Files Changed
+- `/src/App.tsx`
+- `/src/index.css`
+- `/implementation-log.md`
+
+### Verification
+- Linter passed cleanly.
+- Build compilation completed with zero errors.
+
+### Result
+Completed
