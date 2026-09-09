@@ -667,11 +667,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   Paste a link, post, or piece of content into Smyl.
                 </p>
               </div>
-              <div className="bg-[#EDF1F5] rounded-2xl border border-[#E1E5E9]/40 overflow-hidden flex items-center justify-center p-4 h-[240px] sm:h-[260px] xl:h-[280px] relative">
+              <div className="overflow-hidden flex items-center justify-center h-[240px] sm:h-[260px] xl:h-[280px] relative w-full mt-auto">
                 <img
                   src="/assets/landing/1_add-content.webp"
                   alt="Add your content graphic"
-                  className="w-full h-full object-contain block group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+                  className="w-full h-full object-contain block scale-110 group-hover:scale-[1.18] transition-transform duration-500 ease-out"
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -690,11 +690,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   Choose the format and customize how it looks.
                 </p>
               </div>
-              <div className="bg-[#EDF1F5] rounded-2xl border border-[#E1E5E9]/40 overflow-hidden flex items-center justify-center p-4 h-[240px] sm:h-[260px] xl:h-[280px] relative">
+              <div className="overflow-hidden flex items-center justify-center h-[240px] sm:h-[260px] xl:h-[280px] relative w-full mt-auto">
                 <img
                   src="/assets/landing/2_make-yours.webp"
                   alt="Make it yours graphic"
-                  className="w-full h-full object-contain block group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+                  className="w-full h-full object-contain block scale-110 group-hover:scale-[1.18] transition-transform duration-500 ease-out"
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -713,11 +713,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   Export, copy, or share your finished result.
                 </p>
               </div>
-              <div className="bg-[#EDF1F5] rounded-2xl border border-[#E1E5E9]/40 overflow-hidden flex items-center justify-center p-4 h-[240px] sm:h-[260px] xl:h-[280px] relative">
+              <div className="overflow-hidden flex items-center justify-center h-[240px] sm:h-[260px] xl:h-[280px] relative w-full mt-auto">
                 <img
                   src="/assets/landing/3_share-it.webp"
                   alt="Share it graphic"
-                  className="w-full h-full object-contain block group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+                  className="w-full h-full object-contain block scale-110 group-hover:scale-[1.18] transition-transform duration-500 ease-out"
                   referrerPolicy="no-referrer"
                 />
               </div>
@@ -1108,355 +1108,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
 
       {/* SECTION 09 — FINAL CTA */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E1E5E9]/60">
-        <div className="bg-[#EDF1F5] rounded-2xl p-8 sm:p-12 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
+        <div className="bg-[#0145F2] rounded-3xl p-8 sm:p-12 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-xl shadow-[#0145F2]/10">
+          {/* Subtle design accents from the brand palette */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-black/10 rounded-full blur-2xl -ml-20 -mb-20 pointer-events-none" />
           
           <div className="space-y-4 max-w-xl text-center md:text-left z-10">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.035em] text-[#17191C] leading-[1.1]">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-[-0.035em] text-white leading-[1.1]">
               Everything you need to share better.
             </h2>
-            <p className="text-base sm:text-lg text-[#626A73] leading-[1.6] font-normal">
+            <p className="text-base sm:text-lg text-blue-100/90 leading-[1.6] font-normal">
               Shorten links, create QR codes, preview social cards, build campaign URLs, and turn your content into something worth sharing.
             </p>
             <div className="pt-2">
               <button
                 type="button"
                 onClick={() => onOpenGenerator()}
-                className="w-full sm:w-auto h-12 px-8 rounded-xl bg-brand-primary text-white font-semibold text-[14px] leading-[20px] inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary transition-all duration-150 cursor-pointer shadow-md shadow-brand-primary/15"
+                className="w-full sm:w-auto h-12 px-8 rounded-xl bg-white text-[#0145F2] font-bold text-[14px] leading-[20px] inline-flex items-center justify-center gap-2 hover:bg-blue-50 active:bg-blue-100 transition-all duration-150 cursor-pointer shadow-lg shadow-black/10 hover:scale-[1.02]"
               >
                 <span>Create with Smyl</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-[#0145F2]" />
               </button>
             </div>
           </div>
 
-          {/* Product Preview Mockup Visual */}
-          <div className="relative z-10 w-full max-w-[320px] rounded-2xl border border-[#E1E5E9]/80 shadow-sm flex-shrink-0 bg-white p-1">
-            <img
-              src={PLACEHOLDER_IMAGES.comparison.after}
-              alt="Smyl Card Preview"
-              className="w-full h-[180px] rounded-xl object-cover"
-              referrerPolicy="no-referrer"
-            />
+          {/* Styled Paperclip Graphic similar to elements.webp */}
+          <div className="relative z-10 flex-shrink-0 flex items-center justify-center bg-white/10 rounded-2xl p-6 border border-white/10 shadow-inner backdrop-blur-xs">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-24 h-24 sm:w-28 sm:h-28 text-white transform rotate-45 select-none shrink-0"
+            >
+              <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
           </div>
         </div>
       </section>
-
-      {/* SECTION 10 — FOOTER */}
-      <footer className="bg-white border-t border-[#E1E5E9]/80 pt-16 pb-12 text-[#626A73]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Main Footer Links Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-12 pb-12 border-b border-[#ECEEF1]">
-            
-            {/* Column 1: Brand & Identity Block */}
-            <div className="col-span-2 md:col-span-4 space-y-5 text-left">
-              <div className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded-md inline-block">
-                <SmylFooterLogo className="h-6 w-auto" variant="brand" />
-              </div>
-              <p className="text-base sm:text-[18px] text-[#626A73] font-normal leading-[1.6]">
-                Share your links. Make them worth sharing.
-              </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => onOpenGenerator()}
-                  className="h-9 px-4 rounded-lg bg-brand-primary text-white font-semibold text-[13px] leading-[18px] inline-flex items-center justify-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary transition-all duration-150 cursor-pointer shadow-sm shadow-brand-primary/10"
-                >
-                  <span>Create with Smyl</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              
-              {/* Accessible Social Navigation */}
-              <nav aria-label="Social links" className="flex items-center gap-4 pt-2">
-                <a
-                  href="#"
-                  aria-label="X (formerly Twitter)"
-                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
-                >
-                  <FaXTwitter className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  aria-label="Instagram"
-                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
-                >
-                  <FaInstagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  aria-label="LinkedIn"
-                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
-                >
-                  <FaLinkedinIn className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  aria-label="YouTube"
-                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
-                >
-                  <FaYoutube className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  aria-label="Facebook"
-                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
-                >
-                  <FaFacebookF className="w-4 h-4" />
-                </a>
-                <a
-                  href="#"
-                  aria-label="Medium"
-                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
-                >
-                  <FaMedium className="w-4 h-4" />
-                </a>
-              </nav>
-            </div>
-
-            {/* Column 2: Product Navigation */}
-            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
-              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
-                Product
-              </h3>
-              <nav aria-label="Product links">
-                <ul className="space-y-2.5">
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onOpenGenerator()}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Studio Customizer
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onTabChange?.("history")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Saved Templates
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onOpenGenerator()}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Custom Themes
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onOpenGenerator()}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Export Settings
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
-            {/* Column 3: Tools Navigation */}
-            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
-              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
-                Tools
-              </h3>
-              <nav aria-label="Utility links">
-                <ul className="space-y-2.5">
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onTabChange?.("shortener")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Free Link Shortener
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onTabChange?.("qr")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      QR Code Generator
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onTabChange?.("preview")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Social Preview
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onTabChange?.("ogdebug")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Metadata Inspector
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onTabChange?.("utm")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      UTM Builder
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onTabChange?.("hubs")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Link Hub
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
-            {/* Column 4: Use Cases Navigation */}
-            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
-              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
-                Use Cases
-              </h3>
-              <nav aria-label="Use cases links">
-                <ul className="space-y-2.5">
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => scrollToSection("audiences")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Creators
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => scrollToSection("audiences")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Founders
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => scrollToSection("audiences")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Marketers
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => scrollToSection("audiences")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Teams
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
-            {/* Column 5: Resources & Company Navigation */}
-            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
-              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
-                Resources
-              </h3>
-              <nav aria-label="Resource and Company links">
-                <ul className="space-y-2.5">
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => scrollToSection("how-it-works")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      How It Works
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => scrollToSection("faq")}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      FAQ
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onOpenGenerator()}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Pricing
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => onBecomeUser()}
-                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
-                    >
-                      Support Hub
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
-          </div>
-
-          {/* Bottom Copyright & Legal Section */}
-          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-6 text-[14px] font-normal text-[#8D959F]">
-            
-            {/* Copyright Statement */}
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-left">
-              <span>© 2026 Smyl. All rights reserved.</span>
-              <span className="hidden sm:inline text-[#C2C9D1]">•</span>
-              <span className="text-[#8D959F]">Designed to help you keep what you create.</span>
-            </div>
-
-            {/* Legal Links */}
-            <nav aria-label="Legal" className="flex items-center gap-6">
-              <a
-                href="#"
-                className="hover:text-brand-primary hover:underline focus-visible:text-brand-primary focus-visible:outline-none transition-colors"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="#"
-                className="hover:text-brand-primary hover:underline focus-visible:text-brand-primary focus-visible:outline-none transition-colors"
-              >
-                Terms of Service
-              </a>
-              <a
-                href="#"
-                className="hover:text-brand-primary hover:underline focus-visible:text-brand-primary focus-visible:outline-none transition-colors"
-              >
-                Cookie Policy
-              </a>
-            </nav>
-          </div>
-
-        </div>
-      </footer>
 
     </div>
   );

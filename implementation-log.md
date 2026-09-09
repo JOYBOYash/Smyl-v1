@@ -2076,3 +2076,75 @@ Add numbering and descriptive copy into the three "How Smyl Works" cards, transf
 
 ### Result
 Completed
+
+## 2026-09-09 (Information Architecture, Routing Modernization, Global Footer, and Error Boundaries)
+
+### Request
+Implement information architecture, redesign navbar/footer, integrate error handling with error boundary, map out sitemap and robot config templates, and transition state-based app page toggle structure to React Router with clean URL paths.
+
+### Analysis
+- Routing Engine: Substituted state-based activeTab switcher with dynamic react-router-dom <Routes> mapping across /tools/* subpaths.
+- Structural Layout: Mounted a semantic unified <Footer /> beneath the main view and wrapped workspace layouts inside the robust <ErrorBoundary /> container.
+- Verification: Clean path matching, backward-compatibility redirects, and flawless tsc compile and vite build cycles.
+
+### Files Changed
+- `/src/App.tsx`
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran lint_applet and tsc compilation with 0 syntax errors or type warnings.
+- Ran compile_applet successfully, confirming zero build pipeline failures.
+
+### Result
+Completed
+
+## 2026-09-09 (CTA Redesign, How It Works Visual Cleanups, Legal Pages & Routing Parameter Compatibility)
+
+### Request
+Redesign the final CTA card to match elements.webp branding, remove darker nested backgrounds from How It Works images and upscale them, and fix solution subpage link routing and broken privacy/terms links.
+
+### Analysis
+- CTA Card: Styled a full-width bg-[#0145F2] layout with high-contrast text, a bold white button, and a large custom rotated outline paperclip SVG.
+- How It Works Section: Stripped the inner bg-[#EDF1F5] container from Steps 1-3, allowing the graphics to sit directly on the card background with clean scaling.
+- Solution Pages & Params: Updated SolutionPage to support dynamic parsing of either solution or audience parameters, making all footer navigation lists fully functional. Added beautiful Privacy Policy and Terms of Service documents.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/src/components/SolutionPage.tsx`
+- `/src/components/PrivacyPolicy.tsx`
+- `/src/components/TermsOfService.tsx`
+- `/src/App.tsx`
+
+### Verification
+- Ran lint_applet and tsc with zero errors.
+- Ran compile_applet successfully, confirming zero build pipeline warnings or failures.
+
+### Result
+Completed
+
+## 2026-09-09 (Navigation Architecture Rebuild & Navbar Decoupling)
+
+### Request
+Decouple monolithic navigation into separate MarketingNavbar and StudioNavbar with data-driven architecture and clean keyboard accessibility.
+
+### Analysis
+- Structured Navigation Data: Extracted tools, solutions, and resources into `src/constants/navigation.ts`.
+- Sub-component Modularity: Separated navigation controls into `MarketingNavbar.tsx` (for public marketing routes), `StudioNavbar.tsx` (for the custom card maker and user history), `NavDropdown.tsx` (accessible hover/focus popovers), and `MobileNav.tsx` (scroll-locked accordion drawer).
+- State Separation: Decoupled global state, pulling session data and modal hooks cleanly from the centralized `useAuth()` context.
+- Accessibility & UX: Added full Escape key handling, backdrop click dismissals, `aria-expanded`/`aria-controls` attributes, and dynamic location path tracking.
+
+### Files Changed
+- `/src/constants/navigation.ts`
+- `/src/components/navigation/NavDropdown.tsx`
+- `/src/components/navigation/MobileNav.tsx`
+- `/src/components/navigation/MarketingNavbar.tsx`
+- `/src/components/navigation/StudioNavbar.tsx`
+- `/src/App.tsx`
+
+### Verification
+- Checked tsc types and linted the applet with zero errors.
+- Verified successful production-grade Vite bundling.
+
+### Result
+Completed

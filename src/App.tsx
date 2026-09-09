@@ -32,7 +32,17 @@ import { SmylLogo, SmylIcon, SmylHeaderLogo, SmylLoader } from "./components/Smy
 import { CardDatabase, SavedCard } from "./utils/db";
 import { CardRepository } from "./services/cardService";
 import { useAuth } from "./context/AuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Routes, Route, Navigate } from "react-router-dom";
+import { MarketingNavbar } from "./components/navigation/MarketingNavbar";
+import { StudioNavbar } from "./components/navigation/StudioNavbar";
+import { Footer } from "./components/Footer";
+import { ToolsHub } from "./components/ToolsHub";
+import { SolutionPage } from "./components/SolutionPage";
+import { BlogHub } from "./components/BlogHub";
+import { BlogPost } from "./components/BlogPost";
+import { PrivacyPolicy } from "./components/PrivacyPolicy";
+import { TermsOfService } from "./components/TermsOfService";
+import { ErrorBoundary, NotFoundPage } from "./components/ErrorPages";
 import { parsePostClientFallback } from "./utils/parser";
 import { toPng } from "html-to-image";
 import { motion, AnimatePresence } from "motion/react";
@@ -263,28 +273,28 @@ const DEFAULT_CUSTOMIZATION: CardCustomization = {
 
 const PATH_TO_TAB: Record<string, "landing" | "customize" | "history" | "shortener" | "qr" | "preview" | "ogdebug" | "utm" | "hubs" | "screenshot"> = {
   "/": "landing",
-  "/customize": "customize",
+  "/tools/post-card-studio": "customize",
   "/history": "history",
-  "/link-shortener": "shortener",
-  "/qr-generator": "qr",
-  "/link-preview": "preview",
-  "/og-debugger": "ogdebug",
-  "/utm-builder": "utm",
-  "/hubs": "hubs",
-  "/screenshot-generator": "screenshot",
+  "/tools/link-shortener": "shortener",
+  "/tools/qr-generator": "qr",
+  "/tools/social-previewer": "preview",
+  "/tools/og-debugger": "ogdebug",
+  "/tools/utm-builder": "utm",
+  "/tools/link-hub": "hubs",
+  "/tools/screenshot-generator": "screenshot",
 };
 
 const TAB_TO_PATH: Record<string, string> = {
   "landing": "/",
-  "customize": "/customize",
+  "customize": "/tools/post-card-studio",
   "history": "/history",
-  "shortener": "/link-shortener",
-  "qr": "/qr-generator",
-  "preview": "/link-preview",
-  "ogdebug": "/og-debugger",
-  "utm": "/utm-builder",
-  "hubs": "/hubs",
-  "screenshot": "/screenshot-generator",
+  "shortener": "/tools/link-shortener",
+  "qr": "/tools/qr-generator",
+  "preview": "/tools/social-previewer",
+  "ogdebug": "/tools/og-debugger",
+  "utm": "/tools/utm-builder",
+  "hubs": "/tools/link-hub",
+  "screenshot": "/tools/screenshot-generator",
 };
 
 const METADATA: Record<string, { title: string; description: string }> = {
@@ -1119,490 +1129,18 @@ export const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Centered Pilled Floating Header Navbar (Scroll-responsive hide/show) */}
-      <motion.header
-        initial={{ y: 0 }}
-        animate={{ y: isNavVisible ? 0 : -85 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
-        className="fixed top-3.5 left-0 right-0 z-40 px-4 w-full flex justify-center pointer-events-none"
-      >
-        <div className="w-full max-w-5xl bg-white/95 backdrop-blur-md border border-[#E1E5E9] shadow-xs rounded-2xl pointer-events-auto transition-all flex flex-col">
-          <div className="h-13 w-full px-3.5 sm:px-5 grid grid-cols-3 items-center">
-            {/* Col 1: Logo & Brand */}
-            <div className="flex items-center justify-start">
-              <div
-                onClick={() => handleTabChange("landing")}
-                className="flex items-center gap-2.5 cursor-pointer select-none group"
-              >
-                <SmylLogo className="h-6 sm:h-6.5 w-auto transition-transform group-hover:scale-105" />
-              </div>
-            </div>
-
-            {/* Col 2: Navigation Items Centered */}
-            <div className="hidden md:flex items-center justify-center gap-6">
-              {/* How it works */}
-              <button
-                onClick={() => scrollToLandingSection("how-it-works")}
-                className="text-xs font-semibold text-[#626A73] hover:text-[#17191C] transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg"
-              >
-                <span>How it works</span>
-              </button>
-
-              {/* Tools Dropdown - Optimized, no redundant load states */}
-              <div className="relative" ref={toolsDropdownRef}>
-                <button
-                  onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
-                  className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                    ["shortener", "qr", "preview", "ogdebug", "hubs", "screenshot", "utm"].includes(activeTab) ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
-                  }`}
-                >
-                  <IoApps className="w-3.5 h-3.5 shrink-0" />
-                  <span>Tools</span>
-                  <IoChevronDown
-                    className={`w-3 h-3 text-[#626A73] transition-transform duration-200 shrink-0 ${
-                      isProductsDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                <AnimatePresence>
-                  {isProductsDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ duration: 0.15, ease: "easeOut" }}
-                      className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 md:w-[680px] bg-white border border-[#E1E5E9] rounded-2xl shadow-xl p-4 md:p-6 z-50 grid grid-cols-1 md:grid-cols-3 gap-6"
-                    >
-                        {/* Link Tools Group */}
-                        <div className="space-y-3">
-                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider border-b border-[#ECEEF1] pb-1.5">Link Tools</p>
-                          <div className="space-y-1">
-                            <button
-                              onClick={() => {
-                                setIsProductsDropdownOpen(false);
-                                handleTabChange("shortener");
-                              }}
-                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
-                                activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
-                                <IoLink className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[11px]">Link Shortener</p>
-                                <p className="text-[9px] text-[#626A73] truncate">Shorten URLs & track clean clicks</p>
-                              </div>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setIsProductsDropdownOpen(false);
-                                handleTabChange("qr");
-                              }}
-                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
-                                activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
-                                <IoQrCode className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[11px]">QR Code Generator</p>
-                                <p className="text-[9px] text-[#626A73] truncate">Download clean codes</p>
-                              </div>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setIsProductsDropdownOpen(false);
-                                handleTabChange("preview");
-                              }}
-                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
-                                activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
-                                <IoGlobe className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[11px]">Social Preview</p>
-                                <p className="text-[9px] text-[#626A73] truncate">Social media share previewer</p>
-                              </div>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Campaign Group */}
-                        <div className="space-y-3">
-                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider border-b border-[#ECEEF1] pb-1.5">Campaign</p>
-                          <div className="space-y-1">
-                            <button
-                              onClick={() => {
-                                setIsProductsDropdownOpen(false);
-                                handleTabChange("utm");
-                              }}
-                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
-                                activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
-                                <IoLink className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[11px]">UTM Link Builder</p>
-                                <p className="text-[9px] text-[#626A73] truncate">Generate trackable campaigns</p>
-                              </div>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setIsProductsDropdownOpen(false);
-                                handleTabChange("ogdebug");
-                              }}
-                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
-                                activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
-                                <IoBug className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[11px]">OG Inspector</p>
-                                <p className="text-[9px] text-[#626A73] truncate">Diagnose open graph share tags</p>
-                              </div>
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Sharing Group */}
-                        <div className="space-y-3">
-                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider border-b border-[#ECEEF1] pb-1.5">Sharing</p>
-                          <div className="space-y-1">
-                            <button
-                              onClick={() => {
-                                setIsProductsDropdownOpen(false);
-                                handleTabChange("hubs");
-                              }}
-                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
-                                activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
-                                <IoCompass className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[11px]">Link Hub</p>
-                                <p className="text-[9px] text-[#626A73] truncate">Trackable custom links micro-page</p>
-                              </div>
-                            </button>
-
-                            <button
-                              onClick={() => {
-                                setIsProductsDropdownOpen(false);
-                                handleTabChange("screenshot");
-                              }}
-                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
-                                activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                              }`}
-                            >
-                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
-                                <IoImage className="w-3.5 h-3.5" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-[11px]">Screenshot Generator</p>
-                                <p className="text-[9px] text-[#626A73] truncate">Capture webpages easily</p>
-                              </div>
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* FAQ */}
-              <button
-                onClick={() => scrollToLandingSection("faq")}
-                className="text-xs font-semibold text-[#626A73] hover:text-[#17191C] transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg"
-              >
-                <span>FAQ</span>
-              </button>
-            </div>
-
-            {/* Col 3: Right Actions: Keyboard Shortcuts, Log In (if logged out), Profile Dropdown (if logged in), Create with Smyl */}
-            <div className="flex items-center justify-end gap-2 sm:gap-3">
-              <button
-                type="button"
-                onClick={() => setIsShortcutsModalOpen(true)}
-                className="p-1.5 text-[#8D959F] hover:text-[#17191C] hover:bg-[#F5F7F9] rounded-lg transition-colors cursor-pointer relative flex items-center justify-center"
-                title="Keyboard Shortcuts (Press ?)"
-              >
-                <IoKeypad className="w-4 h-4 text-current opacity-70 hover:opacity-100" />
-                <span
-                  className={`absolute top-1 right-1 w-1.5 h-1.5 rounded-full ${
-                    shortcutsEnabled ? "bg-emerald-500 animate-pulse" : "bg-[#8D959F]"
-                  }`}
-                  title={shortcutsEnabled ? "Shortcuts Active" : "Shortcuts Inactive"}
-                />
-              </button>
-
-              {/* Log In Button (if not authenticated) */}
-              {!isAuthenticated && (
-                <button
-                  type="button"
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="text-xs font-bold text-[#626A73] hover:text-[#17191C] px-3 py-1.5 rounded-lg transition-colors cursor-pointer bg-transparent"
-                >
-                  Log In
-                </button>
-              )}
-
-              {/* User Profile Button (if authenticated) */}
-              {isAuthenticated && user && (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsProfileDropdownOpen((prev) => !prev)}
-                    className="h-8 px-2.5 rounded-lg border border-[#D0D7DE] bg-white text-xs font-semibold text-[#17191C] flex items-center gap-2 hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-xs"
-                  >
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={profile.display_name || "Profile"}
-                        className="w-5 h-5 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-5 h-5 rounded-full bg-brand-primary text-white text-[10px] font-bold flex items-center justify-center">
-                        {(profile?.display_name || user.email || "U").charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <span className="hidden md:inline max-w-[100px] truncate text-[11px]">
-                      {profile?.display_name || user.email?.split("@")[0]}
-                    </span>
-                    <IoChevronDown className="w-3 h-3 text-[#626A73]" />
-                  </button>
-
-                  {/* Profile Dropdown */}
-                  {isProfileDropdownOpen && (
-                    <div
-                      className="absolute right-0 mt-1.5 w-48 bg-white rounded-xl border border-[#E1E5E9] shadow-xl p-1.5 z-50 text-xs animate-in fade-in duration-150"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="px-3 py-2 border-b border-[#ECEEF1] mb-1">
-                        <p className="font-bold text-[#17191C] truncate">{profile?.display_name || "Account"}</p>
-                        <p className="text-[10px] text-[#626A73] truncate">{user.email}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileDropdownOpen(false);
-                          handleTabChange("history");
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-[#17191C] hover:bg-[#F5F7F9] font-medium flex items-center gap-2 cursor-pointer transition-colors"
-                      >
-                        <IoBookmark className="w-3.5 h-3.5 text-brand-primary" />
-                        <span>Saved Templates ({history.length})</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsProfileDropdownOpen(false);
-                          setIsOnboardingModalOpen(true);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-[#17191C] hover:bg-[#F5F7F9] font-medium flex items-center gap-2 cursor-pointer transition-colors"
-                      >
-                        <IoPerson className="w-3.5 h-3.5 text-[#626A73]" />
-                        <span>Edit Profile</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          setIsProfileDropdownOpen(false);
-                          if (activeTab === "history") {
-                            navigate("/");
-                          }
-                          await signOut();
-                          setSuccessMsg("Signed out successfully");
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 font-medium flex items-center gap-2 cursor-pointer transition-colors"
-                      >
-                        <IoLogOut className="w-3.5 h-3.5 text-rose-600" />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Create with Smyl CTA (Primary) */}
-              <button
-                type="button"
-                onClick={() => handleTabChange("customize")}
-                className="h-8 px-3.5 rounded-lg bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
-              >
-                <span>Create with Smyl</span>
-              </button>
-            </div>
-
-            {/* Mobile Hamburger Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-              className="md:hidden p-1.5 text-[#8D959F] hover:text-[#17191C] hover:bg-[#F5F7F9] rounded-lg transition-colors cursor-pointer flex items-center justify-center shrink-0"
-              title="Menu"
-            >
-              {isMobileMenuOpen ? (
-                <IoClose className="w-5 h-5 text-[#17191C]" />
-              ) : (
-                <IoMenu className="w-5 h-5 text-[#626A73]" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu Dropdown Panel */}
-        <AnimatePresence>
-          {isMobileMenuOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40 md:hidden bg-transparent"
-                onClick={() => setIsMobileMenuOpen(false)}
-              />
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="overflow-hidden border-t border-[#E1E5E9]/80 rounded-b-2xl md:hidden z-50 relative bg-white"
-              >
-                <div className="p-4 space-y-4">
-                  <div>
-                    <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider mb-2 px-1">Studio</p>
-                    <button
-                      onClick={() => handleTabChange("customize")}
-                      className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                        activeTab === "customize" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                      }`}
-                    >
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                        activeTab === "customize" ? "bg-brand-primary/10 text-brand-primary" : "bg-[#F5F7F9] text-[#626A73]"
-                      }`}>
-                        <IoCreate className="w-4 h-4" />
-                      </div>
-                      <span className="font-bold text-xs">Post Card Studio</span>
-                    </button>
-                  </div>
-
-                  <div>
-                    <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider mb-2 px-1">SMYL Tools</p>
-                    <div className="grid grid-cols-1 gap-2">
-                      <button
-                        onClick={() => handleTabChange("shortener")}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                          activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "shortener" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                        }`}>
-                          <IoLink className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-xs">Link Shortener</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange("qr")}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                          activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "qr" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                        }`}>
-                          <IoQrCode className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-xs">QR Code Generator</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange("preview")}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                          activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "preview" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                        }`}>
-                          <IoGlobe className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-xs">Link Previewer</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange("ogdebug")}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                          activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "ogdebug" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                        }`}>
-                          <IoBug className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-xs">OG Debugger</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange("utm")}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                          activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "utm" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                        }`}>
-                          <IoLink className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-xs">UTM Link Builder</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange("hubs")}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                          activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "hubs" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                        }`}>
-                          <IoCompass className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-xs">Link Hub</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleTabChange("screenshot")}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl flex items-center gap-3 transition-all ${
-                          activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                        }`}
-                      >
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                          activeTab === "screenshot" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                        }`}>
-                          <IoImage className="w-4 h-4" />
-                        </div>
-                        <span className="font-bold text-xs">Screenshot Generator</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </motion.header>
+      {/* Centered Pilled Floating Header Navbar */}
+      {["/tools/post-card-studio", "/history"].includes(location.pathname) ? (
+        <StudioNavbar
+          shortcutsEnabled={shortcutsEnabled}
+          historyCount={history.length}
+          onTriggerShortcuts={() => setIsShortcutsModalOpen(true)}
+          onTriggerOnboarding={() => setIsOnboardingModalOpen(true)}
+          onTriggerAuth={() => setIsAuthModalOpen(true)}
+        />
+      ) : (
+        <MarketingNavbar onTriggerAuth={() => setIsAuthModalOpen(true)} />
+      )}
 
       {/* Main Content Area */}
       <main className="flex-grow w-full pt-16 sm:pt-20">
@@ -1624,20 +1162,29 @@ export const App: React.FC = () => {
           <Breadcrumbs toolName={UTILITY_TOOL_NAMES[activeTab]} />
         )}
 
-        {activeTab === "landing" ? (
-          <LandingPage
-            onOpenGenerator={handleOpenStudioFromLanding}
-            onBecomeUser={() => {
-              if (isAuthenticated) {
-                setSuccessMsg("You are already signed in! Enjoy the Studio.");
-                handleTabChange("customize");
-              } else {
-                setIsAuthModalOpen(true);
-              }
-            }}
-            onTabChange={handleTabChange}
-          />
-        ) : activeTab === "customize" ? (
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={
+              <LandingPage
+                onOpenGenerator={handleOpenStudioFromLanding}
+                onBecomeUser={() => {
+                  if (isAuthenticated) {
+                    setSuccessMsg("You are already signed in! Enjoy the Studio.");
+                    navigate("/tools/post-card-studio");
+                  } else {
+                    setIsAuthModalOpen(true);
+                  }
+                }}
+                onTabChange={(tab) => {
+                  const path = TAB_TO_PATH[tab] || "/";
+                  navigate(path);
+                }}
+              />
+            } />
+
+            <Route path="/tools" element={<ToolsHub />} />
+
+            <Route path="/tools/post-card-studio" element={
           <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
 
             {/* TWO COLUMN WORKSPACE */}
@@ -2442,46 +1989,60 @@ export const App: React.FC = () => {
 
             </div>
           </div>
-        ) : activeTab === "shortener" ? (
-          <LinkShortener
-            initialUrl={shortenerInitialUrl}
-            onClearInitialUrl={() => setShortenerInitialUrl("")}
-            onGenerateQrCode={handleShortenerToQr}
-            onProcessingChange={setIsProcessing}
-          />
-        ) : activeTab === "qr" ? (
-          <QrGenerator
-            initialUrl={qrInitialUrl}
-            onClearInitialUrl={() => setQrInitialUrl("")}
-            onProcessingChange={setIsProcessing}
-          />
-        ) : activeTab === "preview" ? (
-          <LinkPreviewGenerator onProcessingChange={setIsProcessing} />
-        ) : activeTab === "ogdebug" ? (
-          <OgDebugger onProcessingChange={setIsProcessing} />
-        ) : activeTab === "utm" ? (
-          <UtmBuilder onShorten={handleUtmToShortener} onProcessingChange={setIsProcessing} />
-        ) : activeTab === "hubs" ? (
-          <LinkHubWorkspace
-            token={token}
-            onTriggerAuth={() => setIsAuthModalOpen(true)}
-            onProcessingChange={setIsProcessing}
-          />
-        ) : activeTab === "screenshot" ? (
-          <ScreenshotGenerator
-            onHandoffToStudio={(handedPost, customizationFields) => {
-              setPost(handedPost);
-              if (customizationFields) {
-                setCustomization((prev) => ({ ...prev, ...customizationFields }));
-              }
-              // Change tab with clean scrolling
-              navigate("/customize");
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            onProcessingChange={setIsProcessing}
-          />
-        ) : (
-          /* SAVED HISTORY TAB */
+            } />
+
+            <Route path="/tools/link-shortener" element={
+              <LinkShortener
+                initialUrl={shortenerInitialUrl}
+                onClearInitialUrl={() => setShortenerInitialUrl("")}
+                onGenerateQrCode={handleShortenerToQr}
+                onProcessingChange={setIsProcessing}
+              />
+            } />
+
+            <Route path="/tools/qr-generator" element={
+              <QrGenerator
+                initialUrl={qrInitialUrl}
+                onClearInitialUrl={() => setQrInitialUrl("")}
+                onProcessingChange={setIsProcessing}
+              />
+            } />
+
+            <Route path="/tools/social-previewer" element={
+              <LinkPreviewGenerator onProcessingChange={setIsProcessing} />
+            } />
+
+            <Route path="/tools/og-debugger" element={
+              <OgDebugger onProcessingChange={setIsProcessing} />
+            } />
+
+            <Route path="/tools/utm-builder" element={
+              <UtmBuilder onShorten={handleUtmToShortener} onProcessingChange={setIsProcessing} />
+            } />
+
+            <Route path="/tools/link-hub" element={
+              <LinkHubWorkspace
+                token={token}
+                onTriggerAuth={() => setIsAuthModalOpen(true)}
+                onProcessingChange={setIsProcessing}
+              />
+            } />
+
+            <Route path="/tools/screenshot-generator" element={
+              <ScreenshotGenerator
+                onHandoffToStudio={(handedPost, customizationFields) => {
+                  setPost(handedPost);
+                  if (customizationFields) {
+                    setCustomization((prev) => ({ ...prev, ...customizationFields }));
+                  }
+                  navigate("/tools/post-card-studio");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                onProcessingChange={setIsProcessing}
+              />
+            } />
+
+            <Route path="/history" element={
           <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
             <div className="bg-white border border-[#E1E5E9] rounded-2xl shadow-xs p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#ECEEF1]">
@@ -2569,8 +2130,30 @@ export const App: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+            } />
+
+            <Route path="/for/:audience" element={<SolutionPage />} />
+            <Route path="/blog" element={<BlogHub />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+
+            <Route path="/customize" element={<Navigate to="/tools/post-card-studio" replace />} />
+            <Route path="/link-shortener" element={<Navigate to="/tools/link-shortener" replace />} />
+            <Route path="/qr-generator" element={<Navigate to="/tools/qr-generator" replace />} />
+            <Route path="/link-preview" element={<Navigate to="/tools/social-previewer" replace />} />
+            <Route path="/og-debugger" element={<Navigate to="/tools/og-debugger" replace />} />
+            <Route path="/utm-builder" element={<Navigate to="/tools/utm-builder" replace />} />
+            <Route path="/hubs" element={<Navigate to="/tools/link-hub" replace />} />
+            <Route path="/screenshot-generator" element={<Navigate to="/tools/screenshot-generator" replace />} />
+
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
+
+      {/* Unified Semantic Footer */}
+      <Footer />
 
       {/* Export Modal Dialog */}
       <ExportModal
