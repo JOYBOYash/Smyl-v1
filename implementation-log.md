@@ -2148,3 +2148,24 @@ Decouple monolithic navigation into separate MarketingNavbar and StudioNavbar wi
 
 ### Result
 Completed
+
+## 2026-09-09 (Favicon Assets Integration & Social Share Cards Preview Setup)
+
+### Request
+Configure the uploaded favicon assets and site manifest relative to /public/assets, and map Twitter and Facebook Open Graph metadata previews to the smyl_banner.png visual.
+
+### Analysis
+- Asset Routing: Add app-specific touch icons, favicons, shortcut references, and PWA manifest linkages into index.html pointing to /assets/*.
+- Manifest Optimization: Customize brand name, short names, and icons within site.webmanifest relative to correct subfolders.
+- Meta Previews: Point og:image and twitter:image explicitly to /assets/landing/smyl_banner.png to generate dynamic share previews.
+
+### Files Changed
+- `/index.html`
+- `/public/assets/site.webmanifest`
+
+### Verification
+- Ran lint_applet and tsc with zero errors.
+- Successfully built project with compile_applet tool.
+
+### Result
+Completed
