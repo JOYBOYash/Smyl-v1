@@ -440,6 +440,20 @@ export const App: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cardCanvasRef = useRef<HTMLDivElement>(null);
+  const toolsDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close tools dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toolsDropdownRef.current && !toolsDropdownRef.current.contains(event.target as Node)) {
+        setIsProductsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Scroll listener for hiding navbar on scroll down and revealing on scroll up
   useEffect(() => {
@@ -657,6 +671,33 @@ export const App: React.FC = () => {
         setIsMobileMenuOpen(false);
       }, 160);
     }, 180);
+  };
+
+  const scrollToLandingSection = (sectionId: string) => {
+    setIsProductsDropdownOpen(false);
+    if (activeTab === "landing") {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      setIsPageTransitioning(true);
+      setTimeout(() => {
+        navigate("/");
+        window.scrollTo({ top: 0 });
+        setTimeout(() => {
+          setIsPageTransitioning(false);
+          setIsMobileMenuOpen(false);
+          // Wait for mount and scroll
+          setTimeout(() => {
+            const element = document.getElementById(sectionId);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth" });
+            }
+          }, 150);
+        }, 160);
+      }, 180);
+    }
   };
 
   const handleShortenerToQr = (url: string) => {
@@ -1099,19 +1140,16 @@ export const App: React.FC = () => {
 
             {/* Col 2: Navigation Items Centered */}
             <div className="hidden md:flex items-center justify-center gap-6">
-              {/* Studio */}
+              {/* How it works */}
               <button
-                onClick={() => handleTabChange("customize")}
-                className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                  activeTab === "customize" ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
-                }`}
+                onClick={() => scrollToLandingSection("how-it-works")}
+                className="text-xs font-semibold text-[#626A73] hover:text-[#17191C] transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg"
               >
-                <IoCreate className="w-3.5 h-3.5 shrink-0" />
-                <span>Studio</span>
+                <span>How it works</span>
               </button>
 
               {/* Tools Dropdown - Optimized, no redundant load states */}
-              <div className="relative">
+              <div className="relative" ref={toolsDropdownRef}>
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
                   className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
@@ -1129,223 +1167,171 @@ export const App: React.FC = () => {
 
                 <AnimatePresence>
                   {isProductsDropdownOpen && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setIsProductsDropdownOpen(false)}
-                      />
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.15, ease: "easeOut" }}
-                        className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 md:w-[560px] bg-white border border-[#E1E5E9] rounded-2xl shadow-xl p-2 md:p-4 z-50 grid grid-cols-2 gap-1 md:gap-3"
-                      >
-                        <div className="px-3 py-1.5 border-b border-[#ECEEF1] mb-1 col-span-2">
-                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider">SMYL Tools</p>
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute left-1/2 -translate-x-1/2 mt-2 w-72 md:w-[680px] bg-white border border-[#E1E5E9] rounded-2xl shadow-xl p-4 md:p-6 z-50 grid grid-cols-1 md:grid-cols-3 gap-6"
+                    >
+                        {/* Link Tools Group */}
+                        <div className="space-y-3">
+                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider border-b border-[#ECEEF1] pb-1.5">Link Tools</p>
+                          <div className="space-y-1">
+                            <button
+                              onClick={() => {
+                                setIsProductsDropdownOpen(false);
+                                handleTabChange("shortener");
+                              }}
+                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
+                                activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
+                                <IoLink className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[11px]">Link Shortener</p>
+                                <p className="text-[9px] text-[#626A73] truncate">Shorten URLs & track clean clicks</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setIsProductsDropdownOpen(false);
+                                handleTabChange("qr");
+                              }}
+                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
+                                activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
+                                <IoQrCode className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[11px]">QR Code Generator</p>
+                                <p className="text-[9px] text-[#626A73] truncate">Download clean codes</p>
+                              </div>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setIsProductsDropdownOpen(false);
+                                handleTabChange("preview");
+                              }}
+                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
+                                activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
+                                <IoGlobe className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[11px]">Social Preview</p>
+                                <p className="text-[9px] text-[#626A73] truncate">Social media share previewer</p>
+                              </div>
+                            </button>
+                          </div>
                         </div>
 
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("customize");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "customize" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "customize" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoCreate className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">Post Card Studio</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Transform links into image cards</p>
-                          </div>
-                        </button>
+                        {/* Campaign Group */}
+                        <div className="space-y-3">
+                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider border-b border-[#ECEEF1] pb-1.5">Campaign</p>
+                          <div className="space-y-1">
+                            <button
+                              onClick={() => {
+                                setIsProductsDropdownOpen(false);
+                                handleTabChange("utm");
+                              }}
+                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
+                                activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
+                                <IoLink className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[11px]">UTM Link Builder</p>
+                                <p className="text-[9px] text-[#626A73] truncate">Generate trackable campaigns</p>
+                              </div>
+                            </button>
 
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("shortener");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "shortener" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "shortener" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoLink className="w-4 h-4" />
+                            <button
+                              onClick={() => {
+                                setIsProductsDropdownOpen(false);
+                                handleTabChange("ogdebug");
+                              }}
+                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
+                                activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
+                                <IoBug className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[11px]">OG Inspector</p>
+                                <p className="text-[9px] text-[#626A73] truncate">Diagnose open graph share tags</p>
+                              </div>
+                            </button>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">Link Shortener</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Shorten URLs & track clean clicks</p>
-                          </div>
-                        </button>
+                        </div>
 
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("qr");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "qr" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "qr" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoQrCode className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">QR Code Generator</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Download clean SVG/PNG codes</p>
-                          </div>
-                        </button>
+                        {/* Sharing Group */}
+                        <div className="space-y-3">
+                          <p className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider border-b border-[#ECEEF1] pb-1.5">Sharing</p>
+                          <div className="space-y-1">
+                            <button
+                              onClick={() => {
+                                setIsProductsDropdownOpen(false);
+                                handleTabChange("hubs");
+                              }}
+                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
+                                activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
+                                <IoCompass className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[11px]">Link Hub</p>
+                                <p className="text-[9px] text-[#626A73] truncate">Trackable custom links micro-page</p>
+                              </div>
+                            </button>
 
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("preview");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "preview" ? "bg-brand-soft/60 text-brand-primary" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "preview" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoGlobe className="w-4 h-4" />
+                            <button
+                              onClick={() => {
+                                setIsProductsDropdownOpen(false);
+                                handleTabChange("screenshot");
+                              }}
+                              className={`w-full text-left p-1.5 rounded-lg flex items-start gap-2 transition-all cursor-pointer ${
+                                activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
+                              }`}
+                            >
+                              <div className="w-6 h-6 rounded bg-brand-soft text-brand-primary flex items-center justify-center shrink-0">
+                                <IoImage className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-[11px]">Screenshot Generator</p>
+                                <p className="text-[9px] text-[#626A73] truncate">Capture webpages easily</p>
+                              </div>
+                            </button>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">Link Previewer</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Social media share previewer</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("ogdebug");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "ogdebug" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "ogdebug" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoBug className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">OG Debugger</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Diagnose open graph share tags</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("utm");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "utm" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "utm" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoLink className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">UTM Link Builder</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Generate trackable marketing URLs</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("hubs");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "hubs" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "hubs" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoCompass className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">Link Hub</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Trackable custom links micro-page</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setIsProductsDropdownOpen(false);
-                            handleTabChange("screenshot");
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl flex items-start gap-2.5 transition-all cursor-pointer ${
-                            activeTab === "screenshot" ? "bg-brand-soft/60 text-brand-primary font-bold" : "text-[#17191C] hover:bg-[#F5F7F9]"
-                          }`}
-                        >
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                            activeTab === "screenshot" ? "bg-brand-primary/20 text-brand-primary font-bold" : "bg-brand-soft text-brand-primary"
-                          }`}>
-                            <IoImage className="w-4 h-4" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-bold text-xs">Screenshot Generator</p>
-                            <p className="text-[10px] text-[#626A73] truncate">Capture webpage to customizable card</p>
-                          </div>
-                        </button>
+                        </div>
                       </motion.div>
-                    </>
                   )}
                 </AnimatePresence>
               </div>
 
-              {/* History Link */}
+              {/* FAQ */}
               <button
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    setIsAuthModalOpen(true);
-                  } else {
-                    handleTabChange("history");
-                  }
-                }}
-                className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                  activeTab === "history" ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
-                }`}
+                onClick={() => scrollToLandingSection("faq")}
+                className="text-xs font-semibold text-[#626A73] hover:text-[#17191C] transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg"
               >
-                <IoBookmark className="w-3.5 h-3.5 shrink-0" />
-                <span>History</span>
-              </button>
-
-              {/* Account Link */}
-              <button
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    setIsAuthModalOpen(true);
-                  } else {
-                    setIsProfileDropdownOpen(!isProfileDropdownOpen);
-                  }
-                }}
-                className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                  activeTab === "history" && isProfileDropdownOpen ? "text-brand-primary font-bold bg-brand-soft/40" : "text-[#626A73] hover:text-[#17191C]"
-                }`}
-              >
-                <IoPerson className="w-3.5 h-3.5 shrink-0" />
-                <span>Account</span>
+                <span>FAQ</span>
               </button>
             </div>
 
-            {/* Col 3: Right Actions: Faded Shortcuts & Auth Account */}
+            {/* Col 3: Right Actions: Keyboard Shortcuts, Log In (if logged out), Profile Dropdown (if logged in), Create with Smyl */}
             <div className="flex items-center justify-end gap-2 sm:gap-3">
               <button
                 type="button"
@@ -1362,8 +1348,19 @@ export const App: React.FC = () => {
                 />
               </button>
 
-              {/* Auth Sign In / User Profile Button */}
-              {isAuthenticated && user ? (
+              {/* Log In Button (if not authenticated) */}
+              {!isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="text-xs font-bold text-[#626A73] hover:text-[#17191C] px-3 py-1.5 rounded-lg transition-colors cursor-pointer bg-transparent"
+                >
+                  Log In
+                </button>
+              )}
+
+              {/* User Profile Button (if authenticated) */}
+              {isAuthenticated && user && (
                 <div className="relative">
                   <button
                     type="button"
@@ -1437,15 +1434,17 @@ export const App: React.FC = () => {
                     </div>
                   )}
                 </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsAuthModalOpen(true)}
-                  className="h-8 px-3.5 rounded-lg bg-brand-primary text-white font-semibold text-xs flex items-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
-                >
-                  <span>Try Now</span>
-                </button>
               )}
+
+              {/* Create with Smyl CTA (Primary) */}
+              <button
+                type="button"
+                onClick={() => handleTabChange("customize")}
+                className="h-8 px-3.5 rounded-lg bg-brand-primary text-white font-bold text-xs flex items-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed transition-colors cursor-pointer shadow-xs"
+              >
+                <span>Create with Smyl</span>
+              </button>
+            </div>
 
             {/* Mobile Hamburger Toggle Button */}
             <button
@@ -1603,7 +1602,6 @@ export const App: React.FC = () => {
             </>
           )}
         </AnimatePresence>
-        </div>
       </motion.header>
 
       {/* Main Content Area */}

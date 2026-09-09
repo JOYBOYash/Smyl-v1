@@ -1807,3 +1807,224 @@ Simplify the header navigation in `src/App.tsx` by streamlining the layout and r
 
 ### Result
 Completed
+
+## 2026-09-08 (Landing Page Visual Assets Integration)
+
+### Request
+Integrate the prepared landing page image assets into the How it Works, Tools (6 utility sections), and Audience (Who it's for) sections of the landing page, and refine the scrollbar to be ultra-thin and blended with the #EDF1F5 background.
+
+### Analysis
+- How it Works: Replaced generic mockup preview divs with the real high-fidelity visuals (1_add-content, 2_make-yours, and 3_share-it).
+- Tools Showcase: Mapped and loaded the 6 prepared high-quality tool assets (4_link-shorten, 5_qr-gen, 6_link-preview, 7_link-inspect, 8_utm-link, and 9_link-hub), replacing all interactive inline wireframe and mock divs. Removed the redundant screenshot generator tool card from the landing page.
+- Audience Section: Integrated the 4 dedicated audience visuals (Final_1_Creators, Final_2_Founders, Final_3_Marketers, and Final_4_Teams) inside unified, card-structured layouts with soft borders and hover scales.
+- Scrollbar Styling: Fine-tuned `index.css` to make scrollbars ultra-thin (2px) with transparent thumbs and tracks perfectly matching the `#EDF1F5` canvas.
+
+### Implementation
+- Edited `/src/components/LandingPage.tsx` to integrate 13 prepared landing-page image assets across Hero, Steps, Tools, and Audience modules.
+- Edited `/src/index.css` to set global scrollbars to 2px with transparent thumbs.
+- Fixed a minor layout tag mismatch in `/src/App.tsx` header section.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/src/index.css`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran linter with zero errors.
+- Checked application building, confirming it successfully compiles with zero errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Landing Page Simplification & Smyl Banner Integration)
+
+### Request
+Simplify "How it Works" and "Audience" cards to render graphics directly (avoid duplicate text covered by the images), and replace the staggered cards gallery in the "One tool. More ways to share" section with the single high-fidelity `smyl_banner.png` asset.
+
+### Analysis
+- How it Works: Removed duplicate heading text and step numbers since the graphics already include them. Placed images directly.
+- Audience: Removed duplicate heading and subtext since the graphic assets cover everything. Placed images directly.
+- Gallery: Replaced the staggered grid of text/mock cards under "One tool. More ways to share" with the single premium `smyl_banner.png` asset inside a polished rounded container.
+
+### Implementation
+- Updated `/src/components/LandingPage.tsx` to display steps, audience graphics, and the single Smyl banner asset cleanly.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Compiled application successfully with 0 errors.
+- Ran linter with 0 errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Header Navigation & Step Card Layout Polishing)
+
+### Request
+Clean up the header navigation layout by removing the "Examples" link, and ensure all images in the "How it Works" section are uniform, scaled up, and use high-emphasis layout styling.
+
+### Analysis
+- Navigation: Removed the redundant "Examples" link on desktop to prevent text wrapping/clash and improve header fits on medium viewports.
+- How it Works: Expanded the layout container from `max-w-5xl` to `max-w-6xl` to scale up the steps images. Enforced a uniform aspect ratio of `aspect-[1.62]` and built hover-to-lift effects (`hover:scale-[1.04] transition-all duration-500 ease-out shadow-xs hover:shadow-xl`) to elevate visual prominence.
+
+### Implementation
+- Edited `/src/App.tsx` to remove the redundant link.
+- Edited `/src/components/LandingPage.tsx` to apply larger aspect ratios and scaling transitions to the three main steps.
+
+### Files Changed
+- `/src/App.tsx`
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Compiled successfully with zero errors.
+- Ran linter with zero errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Floating Social Arcs, Clean Step Graphics, & Collapse-on-Click-Outside Tools Dropdown)
+
+### Request
+Add social media icons (WhatsApp, X, Instagram, LinkedIn, Threads, Facebook + YouTube and TikTok) in curved arc formations on the left and right sides of the main hero title using actual package icons. Remove background white cards/outlines from the "How Smyl Works" steps to display them directly as full-scale images. Upgrade the Tools dropdown to collapse upon click-outside and function as an open/close toggle button natively.
+
+### Analysis
+- Hero Social Arcs: Imported real brand logos from `react-icons/fa6`. Built beautiful curved dashed tracks on the left and right of the text using subtle SVG curves. Positioned and animated 8 social nodes with infinite gentle floats.
+- How Smyl Works: Stripped the double card outlines (`bg-white border ... rounded-2xl`) to place the high-fidelity step webp graphics directly. Integrated smooth scale-on-hover cropping for a streamlined presentation.
+- Tools Dropdown: Integrated a mouse event click-outside hook using `toolsDropdownRef` to auto-collapse the dropdown. Removed the full-screen background overlay, allowing the Tools button to act as a proper toggle button.
+
+### Implementation
+- Edited `/src/App.tsx` to add `toolsDropdownRef`, click-outside handler, and remove the fixed overlay.
+- Edited `/src/components/LandingPage.tsx` to import icons, add floating social nodes with curves, and clean step image cards.
+
+### Files Changed
+- `/src/App.tsx`
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Build compiles with 0 errors.
+- Linter passes with 0 errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Hero Social Icons Range & Boundaries)
+
+### Request
+Ensure all floating social icons are bounded strictly within the hero headline text range and do not extend downward to overlap the Live Preview Workspace.
+
+### Analysis
+- Social Boundaries: Moved the absolute-positioned social media nodes from the general `<section>` container directly inside the `<div className="max-w-4xl mx-auto relative">` text wrapper.
+- Coordinate Calibration: Updated top positions to `top-[2%]`, `top-[42%]`, and `top-[82%]`, relative to the height of the text container itself. This guarantees they stay alongside the text and never bleed into the editor workspace underneath.
+
+### Implementation
+- Edited `/src/components/LandingPage.tsx` to shift the nodes into the text container and apply relative coordinate values.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Build compiles with 0 errors.
+- Linter passes with 0 errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Expanded Hero Social Grid with TikTok & Substack)
+
+### Request
+Add TikTok and Substack to the social media columns (making it 4 logos on each side) and pull them closer to the center content.
+
+### Analysis
+- Platform Additions: Added TikTok (`FaTiktok`) on the left bottom, and Substack (`SiSubstack`) on the right bottom, balancing the side columns at 4 high-fidelity squircle logos each.
+- Inward Shifting: Reduced horizontal offsets to pull nodes closer to the central text bounds. The inner column uses ~6-11% offset bounds, and the outer column uses ~9-15% offsets.
+
+### Implementation
+- Edited `/src/components/LandingPage.tsx` to add icons and adjust responsive margins.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Build compiles with 0 errors.
+- Linter passes with 0 errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Stacked How Smyl Works Column & 5x5 Hero Social Column)
+
+### Request
+Add Facebook and Medium to form 5 social icons on each side stretching to the top of the workspace text. Remove outlines and convert the How Smyl Works steps into a vertically stacked column format with larger, borderless visuals.
+
+### Analysis
+- How Smyl Works Column: Replaced the 3-column horizontal grid with a single-column layout. Centered the steps (`flex flex-col gap-12 max-w-4xl`) and scaled the images to full width with rounded 24px borders and extremely subtle shadow overlays.
+- 5x5 Social Grid: Imported `FaMedium` and configured the 10 nodes to spread vertically from `top-[-4%]` to `top-[92%]`, filling the entire headline-height range perfectly above the Preview Workspace.
+
+### Implementation
+- Edited `/src/components/LandingPage.tsx` to update both the hero social columns and the "How Smyl Works" stacked grid blocks.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Build compiles with 0 errors.
+- Linter passes with 0 errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Slight Size Reduction of "How Smyl Works" Images)
+
+### Request
+Slightly reduce the size of the "How Smyl Works" images to around 500px width and 400px height.
+
+### Analysis
+- Step Image Dimensions: Scaled all three images in the single-column steps layout to precisely `500px` width by `400px` height with responsive container adjustments. Left other features unaffected.
+
+### Implementation
+- Edited `/src/components/LandingPage.tsx` step nodes blocks.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Build compiles with 0 errors.
+- Linter passes with 0 errors.
+
+### Result
+Completed
+
+## 2026-09-08 (Side-by-side Steps & Global DM Sans Typography)
+
+### Request
+Restore horizontal side-by-side step cards with exact 500x400 dimensions but remove all card backgrounds, outlines, shadows, and overflow cropping to fix hover clipping. Apply the "DM Sans" font family globally across all headings and text elements in the app.
+
+### Analysis
+- Font Family Override: Mapped both `--font-sans`, `--font-inter`, and `--font-display` variables in CSS theme to `"DM Sans", sans-serif`, forcing paragraphs, buttons, cards, and titles to inherit DM Sans.
+- Side-by-Side Row Layout: Replaced the vertical column with a robust row container (`flex flex-col xl:flex-row gap-8 justify-center items-center`) so they line up side-by-side on wide displays and stack naturally on small ports.
+- Hover Clipping Fix: Removed card backgrounds, borders, and `overflow-hidden` so images render floating cleanly on the canvas. Utilized `object-contain` to preserve the visual aspect ratio and let the image scale smoothly outwards without edge clipping.
+
+### Implementation
+- Edited `/src/index.css` to redefine global typography.
+- Edited `/src/components/LandingPage.tsx` to arrange the step graphics side-by-side.
+
+### Files Changed
+- `/src/index.css`
+- `/src/components/LandingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Build compiles with 0 errors.
+- Linter passes with 0 errors.
+
+### Result
+Completed

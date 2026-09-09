@@ -21,10 +21,10 @@
   --color-error: #D94A4A;
   
   --font-sans: "DM Sans", sans-serif;
-  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-inter: "DM Sans", sans-serif;
   --font-serif: "Lora", Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
-  --font-display: "Plus Jakarta Sans", sans-serif;
+  --font-display: "DM Sans", sans-serif;
 }
 
 /* Lenis Smooth Scroll Styles */
@@ -108,22 +108,21 @@ body {
 
 /* Custom modern smooth scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 2px;
+  height: 2px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #EDF1F5;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(141, 149, 159, 0.35);
+  background: transparent;
   border-radius: 9999px;
-  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand-primary);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-button {
@@ -137,33 +136,14 @@ body {
   scrollbar-color: transparent #EDF1F5;
 }
 
-/* Global scrollbar track & thumb styling */
-::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
-}
-
-::-webkit-scrollbar-track {
-  background: #EDF1F5;
-}
-
-::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 9999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(23, 25, 28, 0.04);
-}
-
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: transparent #EDF1F5;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 3px;
-  height: 3px;
+  width: 2px;
+  height: 2px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -173,8 +153,4 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: transparent;
   border-radius: 9999px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(23, 25, 28, 0.04);
 }

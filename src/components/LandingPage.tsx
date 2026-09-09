@@ -25,6 +25,18 @@ import {
   Sparkles as DummySparkles
 } from "lucide-react";
 import { IoSunny, IoMoon, IoTerminal } from "react-icons/io5";
+import { 
+  FaWhatsapp, 
+  FaXTwitter, 
+  FaInstagram, 
+  FaLinkedinIn, 
+  FaThreads, 
+  FaFacebookF, 
+  FaTiktok, 
+  FaYoutube,
+  FaMedium
+} from "react-icons/fa6";
+import { SiSubstack } from "react-icons/si";
 
 interface LandingPageProps {
   onOpenGenerator: (samplePost?: ParsedPost, customization?: Partial<CardCustomization>) => void;
@@ -151,8 +163,164 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
       
       {/* SECTION 02 — HERO */}
       <section className="pt-16 pb-20 sm:pt-20 sm:pb-24 lg:pt-24 lg:pb-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
+        
+        <div className="max-w-4xl mx-auto text-center space-y-6 relative">
           
+          {/* Floating Social Media Nodes — strictly kept inside header text range */}
+          <div className="hidden lg:block">
+            {/* Left Arc Nodes */}
+            {/* Node 1: X (formerly Twitter) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -4, 0], rotate: -10 }}
+              transition={{
+                opacity: { duration: 0.5 },
+                scale: { duration: 0.5 },
+                y: { duration: 3.5, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="absolute -left-[5%] lg:-left-[8%] xl:-left-[10%] top-[-4%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#17191C] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="X / Twitter"
+            >
+              <FaXTwitter className="w-6 h-6" />
+            </motion.div>
+
+            {/* Node 2: WhatsApp */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -5, 0], rotate: 8 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.1 },
+                scale: { duration: 0.5, delay: 0.1 },
+                y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.15 }
+              }}
+              className="absolute -left-[8%] lg:-left-[11%] xl:-left-[14%] top-[20%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#25D366] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="WhatsApp"
+            >
+              <FaWhatsapp className="w-7.5 h-7.5" />
+            </motion.div>
+
+            {/* Node 3: Instagram */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -4, 0], rotate: -12 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.2 },
+                scale: { duration: 0.5, delay: 0.2 },
+                y: { duration: 3.2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }
+              }}
+              className="absolute -left-[9%] lg:-left-[12%] xl:-left-[15%] top-[44%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#E4405F] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="Instagram"
+            >
+              <FaInstagram className="w-7 h-7" />
+            </motion.div>
+
+            {/* Node 4: TikTok */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -5, 0], rotate: 8 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.3 },
+                scale: { duration: 0.5, delay: 0.3 },
+                y: { duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: 0.45 }
+              }}
+              className="absolute -left-[8%] lg:-left-[11%] xl:-left-[14%] top-[68%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-black hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="TikTok"
+            >
+              <FaTiktok className="w-6 h-6" />
+            </motion.div>
+
+            {/* Node 5: Facebook */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -4, 0], rotate: -6 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.4 },
+                scale: { duration: 0.5, delay: 0.4 },
+                y: { duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.6 }
+              }}
+              className="absolute -left-[5%] lg:-left-[8%] xl:-left-[10%] top-[92%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#1877F2] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="Facebook"
+            >
+              <FaFacebookF className="w-6 h-6" />
+            </motion.div>
+
+            {/* Right Arc Nodes */}
+            {/* Node 6: YouTube */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -4, 0], rotate: 12 }}
+              transition={{
+                opacity: { duration: 0.5 },
+                scale: { duration: 0.5 },
+                y: { duration: 3.6, repeat: Infinity, ease: "easeInOut", delay: 0.1 }
+              }}
+              className="absolute -right-[5%] lg:-right-[8%] xl:-right-[10%] top-[-4%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#FF0000] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="YouTube"
+            >
+              <FaYoutube className="w-7 h-7" />
+            </motion.div>
+
+            {/* Node 7: LinkedIn */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -5, 0], rotate: -6 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.1 },
+                scale: { duration: 0.5, delay: 0.1 },
+                y: { duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }
+              }}
+              className="absolute -right-[8%] lg:-right-[11%] xl:-right-[14%] top-[20%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#0A66C2] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="LinkedIn"
+            >
+              <FaLinkedinIn className="w-6.5 h-6.5" />
+            </motion.div>
+
+            {/* Node 8: Threads */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -4, 0], rotate: 10 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.2 },
+                scale: { duration: 0.5, delay: 0.2 },
+                y: { duration: 3.4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }
+              }}
+              className="absolute -right-[9%] lg:-right-[12%] xl:-right-[15%] top-[44%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#17191C] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="Threads"
+            >
+              <FaThreads className="w-6.5 h-6.5" />
+            </motion.div>
+
+            {/* Node 9: Substack */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -5, 0], rotate: -8 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.3 },
+                scale: { duration: 0.5, delay: 0.3 },
+                y: { duration: 3.9, repeat: Infinity, ease: "easeInOut", delay: 0.4 }
+              }}
+              className="absolute -right-[8%] lg:-right-[11%] xl:-right-[14%] top-[68%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#FF6719] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="Substack"
+            >
+              <SiSubstack className="w-6 h-6" />
+            </motion.div>
+
+            {/* Node 10: Medium */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1, y: [0, -4, 0], rotate: 11 }}
+              transition={{
+                opacity: { duration: 0.5, delay: 0.4 },
+                scale: { duration: 0.5, delay: 0.4 },
+                y: { duration: 3.7, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
+              }}
+              className="absolute -right-[5%] lg:-right-[8%] xl:-right-[10%] top-[92%] z-10 w-14 h-14 sm:w-16 sm:h-16 rounded-[20px] bg-white border border-[#E1E5E9]/30 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center justify-center text-[#17191C] hover:scale-115 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] active:scale-95 transition-all duration-300 cursor-pointer"
+              title="Medium"
+            >
+              <FaMedium className="w-6 h-6" />
+            </motion.div>
+          </div>
+
           {/* Eyebrow - Pure Text tracking-wider, no pill badge */}
           <p className="text-brand-primary font-bold tracking-[0.15em] text-xs uppercase mb-3">
             SHARE BETTER
@@ -483,82 +651,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             </p>
           </div>
 
-          {/* Three horizontal cards layout with subtle lifts and real simplified UI preview elements */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {/* Three horizontal cards layout side-by-side with exact custom sizes, no background containers, no hover clipping */}
+          <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 justify-center items-center max-w-7xl mx-auto">
             
             {/* Step 1 */}
-            <div className="bg-[#EDF1F5]/50 border border-[#E1E5E9]/60 rounded-2xl p-6 md:p-8 flex flex-col justify-between hover:shadow-md hover:border-brand-primary/20 transition-all duration-200 group">
-              <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-brand-primary text-white font-bold flex items-center justify-center text-sm">
-                  01
-                </div>
-                <h3 className="font-bold text-lg text-[#17191C] group-hover:text-brand-primary transition-colors">Add your content</h3>
-                <p className="text-sm text-[#626A73] leading-relaxed">
-                  Paste a link, post or piece of content into Smyl.
-                </p>
-              </div>
-              <div className="mt-8 pt-4 border-t border-[#E1E5E9]/40">
-                {/* Real UI Mockup Preview */}
-                <div className="w-full bg-white rounded-xl p-3 border border-[#E1E5E9] text-left pointer-events-none shadow-xs">
-                  <div className="h-2 w-1/3 bg-[#B0B6BD] rounded mb-2.5" />
-                  <div className="bg-[#EDF1F5] rounded-lg p-2.5 border border-[#ECEEF1] text-[10px] text-[#626A73] flex items-center gap-1.5 font-mono truncate">
-                    <LinkIcon className="w-3 h-3 text-brand-primary shrink-0" />
-                    <span>https://x.com/design/status/184...</span>
-                  </div>
-                </div>
-              </div>
+            <div className="w-[500px] h-[400px] max-w-full group transition-all duration-500 ease-out flex items-center justify-center">
+              <img
+                src="/assets/landing/1_add-content.webp"
+                alt="Add your content"
+                className="w-full h-full object-contain block group-hover:scale-[1.04] transition-transform duration-500 ease-out"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
             {/* Step 2 */}
-            <div className="bg-[#EDF1F5]/50 border border-[#E1E5E9]/60 rounded-2xl p-6 md:p-8 flex flex-col justify-between hover:shadow-md hover:border-brand-primary/20 transition-all duration-200 group">
-              <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-brand-primary text-white font-bold flex items-center justify-center text-sm">
-                  02
-                </div>
-                <h3 className="font-bold text-lg text-[#17191C] group-hover:text-brand-primary transition-colors">Make it yours</h3>
-                <p className="text-sm text-[#626A73] leading-relaxed">
-                  Choose the format and customize how it looks.
-                </p>
-              </div>
-              <div className="mt-8 pt-4 border-t border-[#E1E5E9]/40">
-                {/* Real UI Mockup Preview */}
-                <div className="w-full bg-white rounded-xl p-3 border border-[#E1E5E9] pointer-events-none flex flex-col gap-2.5 shadow-xs">
-                  <div className="flex gap-1 justify-center">
-                    <span className="px-2 py-0.5 text-[9px] bg-brand-soft border border-brand-primary/20 font-bold rounded text-brand-primary">Light</span>
-                    <span className="px-2 py-0.5 text-[9px] bg-[#111418] text-white font-semibold rounded">Dark</span>
-                    <span className="px-2 py-0.5 text-[9px] bg-[#0B0F19] border border-cyan-400/20 text-cyan-400 font-semibold rounded">Retro</span>
-                  </div>
-                  <div className="flex gap-1.5 justify-center">
-                    <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-[#ff7e5f] to-[#ec4899]" />
-                    <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-[#00c6ff] to-[#3b82f6]" />
-                    <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-tr from-[#0f172a] to-[#581c87]" />
-                  </div>
-                </div>
-              </div>
+            <div className="w-[500px] h-[400px] max-w-full group transition-all duration-500 ease-out flex items-center justify-center">
+              <img
+                src="/assets/landing/2_make-yours.webp"
+                alt="Make it yours"
+                className="w-full h-full object-contain block group-hover:scale-[1.04] transition-transform duration-500 ease-out"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
             {/* Step 3 */}
-            <div className="bg-[#EDF1F5]/50 border border-[#E1E5E9]/60 rounded-2xl p-6 md:p-8 flex flex-col justify-between hover:shadow-md hover:border-brand-primary/20 transition-all duration-200 group">
-              <div className="space-y-4">
-                <div className="w-10 h-10 rounded-xl bg-brand-primary text-white font-bold flex items-center justify-center text-sm">
-                  03
-                </div>
-                <h3 className="font-bold text-lg text-[#17191C] group-hover:text-brand-primary transition-colors">Share it</h3>
-                <p className="text-sm text-[#626A73] leading-relaxed">
-                  Export, copy or share your finished result.
-                </p>
-              </div>
-              <div className="mt-8 pt-4 border-t border-[#E1E5E9]/40">
-                {/* Real UI Mockup Preview */}
-                <div className="w-full bg-white rounded-xl p-3 border border-[#E1E5E9] pointer-events-none flex flex-col gap-2 shadow-xs">
-                  <div className="bg-[#EDF1F5] rounded-lg p-2 border border-[#ECEEF1] flex items-center justify-between text-[10px] font-bold text-[#17191C]">
-                    <span className="flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3 text-brand-primary" /> PNG Complete
-                    </span>
-                    <span className="text-[9px] text-[#626A73] bg-white border border-[#E1E5E9] px-1.5 py-0.5 rounded">Saved</span>
-                  </div>
-                </div>
-              </div>
+            <div className="w-[500px] h-[400px] max-w-full group transition-all duration-500 ease-out flex items-center justify-center">
+              <img
+                src="/assets/landing/3_share-it.webp"
+                alt="Share it"
+                className="w-full h-full object-contain block group-hover:scale-[1.04] transition-transform duration-500 ease-out"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
           </div>
@@ -587,19 +710,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           {/* UTILITY 01 — Link Shortener */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Visual on Left */}
-            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-6 sm:p-10 border border-[#E1E5E9]/70 flex items-center justify-center min-h-[300px]">
-              <div className="w-full max-w-md bg-white border border-[#E1E5E9] rounded-2xl p-5 shadow-sm space-y-4 pointer-events-none">
-                <div className="flex gap-2">
-                  <div className="bg-[#EDF1F5] text-[10px] font-mono px-3 py-2 rounded-lg border border-[#ECEEF1] truncate flex-grow">
-                    https://mywebsite.com/products/summer-sale?utm_source=newsletter
-                  </div>
-                  <span className="px-3.5 py-2 bg-brand-primary text-white text-[10px] font-bold rounded-lg flex items-center shrink-0">Shorten</span>
-                </div>
-                <div className="pt-3 border-t border-[#ECEEF1] flex items-center justify-between">
-                  <span className="font-bold text-xs text-brand-primary font-mono">smyl.co/summer-sale</span>
-                  <span className="text-[9px] bg-brand-soft text-brand-primary font-bold px-2 py-1 rounded-lg border border-brand-primary/10">Copy Link</span>
-                </div>
-              </div>
+            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+              <img
+                src="/assets/landing/4_link-shorten.webp"
+                alt="Link Shortener"
+                className="w-full h-auto rounded-xl object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             {/* Text on Right */}
             <div className="lg:col-span-6 space-y-4 lg:pl-6 text-left">
@@ -642,38 +759,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
               </div>
             </div>
             {/* Visual on Right */}
-            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-6 sm:p-10 border border-[#E1E5E9]/70 flex items-center justify-center min-h-[300px]">
-              <div className="w-36 h-36 bg-white border border-[#E1E5E9] rounded-2xl p-4 shadow-sm flex items-center justify-center relative pointer-events-none">
-                {/* Simplified Crisp QR representation with clean dots */}
-                <div className="w-full h-full border border-[#E1E5E9] rounded-lg p-2 bg-[#EDF1F5]/30 flex flex-col justify-between">
-                  <div className="flex justify-between">
-                    <span className="w-5 h-5 border-2 border-brand-primary rounded" />
-                    <span className="w-5 h-5 border-2 border-brand-primary rounded" />
-                  </div>
-                  <div className="flex justify-between items-end">
-                    <span className="w-5 h-5 border-2 border-brand-primary rounded" />
-                    <span className="w-4 h-4 bg-brand-primary rounded-xs" />
-                  </div>
-                </div>
-                <span className="absolute bottom-[-10px] right-3 bg-[#E8EEFF] border border-brand-primary/20 text-brand-primary text-[8px] font-bold px-2 py-0.5 rounded-full">HQ Vector SVG</span>
-              </div>
+            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+              <img
+                src="/assets/landing/5_qr-gen.webp"
+                alt="QR Code Generator"
+                className="w-full h-auto rounded-xl object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
           </div>
 
           {/* UTILITY 03 — Link Preview */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Visual on Left */}
-            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-6 sm:p-10 border border-[#E1E5E9]/70 flex items-center justify-center min-h-[300px]">
-              <div className="w-full max-w-md bg-white border border-[#E1E5E9] rounded-xl overflow-hidden shadow-sm pointer-events-none">
-                <div className="h-28 w-full bg-[#17191C]/5 flex items-center justify-center text-[#B0B6BD] border-b border-[#E1E5E9]">
-                  <ImageIcon className="w-8 h-8 opacity-40" />
-                </div>
-                <div className="p-4 space-y-1.5 text-left">
-                  <span className="text-[10px] font-bold text-brand-primary tracking-wide">SMYL.CO</span>
-                  <h4 className="font-bold text-xs text-[#17191C] truncate">Announcing Smyl v1.2 — High performance sharing tools</h4>
-                  <p className="text-[10px] text-[#626A73] line-clamp-2 leading-relaxed">Customize presentation metadata in real time without making updates inside the database.</p>
-                </div>
-              </div>
+            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+              <img
+                src="/assets/landing/6_link-preview.webp"
+                alt="Link Preview"
+                className="w-full h-auto rounded-xl object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             {/* Text on Right */}
             <div className="lg:col-span-6 space-y-4 lg:pl-6 text-left">
@@ -716,48 +821,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
               </div>
             </div>
             {/* Visual on Right */}
-            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-6 sm:p-10 border border-[#E1E5E9]/70 flex items-center justify-center min-h-[300px]">
-              <div className="w-full max-w-sm bg-white border border-[#E1E5E9] rounded-xl p-4 shadow-sm space-y-3 pointer-events-none text-left">
-                <span className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider">OG Tags Inspection</span>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[11px] p-2 bg-[#EDF1F5]/40 rounded-lg border border-[#ECEEF1]">
-                    <span className="font-mono text-[#626A73]">og:title</span>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Prisinte</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] p-2 bg-[#EDF1F5]/40 rounded-lg border border-[#ECEEF1]">
-                    <span className="font-mono text-[#626A73]">og:image</span>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Available</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] p-2 bg-[#EDF1F5]/40 rounded-lg border border-[#ECEEF1]">
-                    <span className="font-mono text-[#626A73]">og:description</span>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Verified</span>
-                  </div>
-                </div>
-              </div>
+            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+              <img
+                src="/assets/landing/7_link-inspect.webp"
+                alt="Open Graph Debugger"
+                className="w-full h-auto rounded-xl object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
           </div>
 
           {/* UTILITY 05 — UTM Builder */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Visual on Left */}
-            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-6 sm:p-10 border border-[#E1E5E9]/70 flex items-center justify-center min-h-[300px]">
-              <div className="w-full max-w-sm bg-white border border-[#E1E5E9] rounded-xl p-4 shadow-sm space-y-3 pointer-events-none text-left">
-                <span className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider">Parameter Builder</span>
-                <div className="grid grid-cols-2 gap-2 text-[10px]">
-                  <div className="border border-[#ECEEF1] rounded-lg p-2">
-                    <span className="block text-[#8D959F] mb-1">Source</span>
-                    <span className="font-bold text-[#17191C]">newsletter</span>
-                  </div>
-                  <div className="border border-[#ECEEF1] rounded-lg p-2">
-                    <span className="block text-[#8D959F] mb-1">Medium</span>
-                    <span className="font-bold text-[#17191C]">email</span>
-                  </div>
-                  <div className="border border-[#ECEEF1] rounded-lg p-2 col-span-2">
-                    <span className="block text-[#8D959F] mb-1">Campaign</span>
-                    <span className="font-bold text-[#17191C]">sept_promo_launch</span>
-                  </div>
-                </div>
-              </div>
+            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+              <img
+                src="/assets/landing/8_utm-link.webp"
+                alt="UTM Link Builder"
+                className="w-full h-auto rounded-xl object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             {/* Text on Right */}
             <div className="lg:col-span-6 space-y-4 lg:pl-6 text-left">
@@ -800,58 +883,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
               </div>
             </div>
             {/* Visual on Right */}
-            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-6 sm:p-10 border border-[#E1E5E9]/70 flex items-center justify-center min-h-[300px]">
-              <div className="w-48 bg-white border border-[#E1E5E9] rounded-2xl p-4 shadow-sm space-y-3 pointer-events-none text-center">
-                <div className="w-10 h-10 bg-brand-primary rounded-full mx-auto flex items-center justify-center text-white text-[10px] font-bold">AR</div>
-                <div>
-                  <h5 className="font-bold text-[11px] text-[#17191C]">Alex Rivera</h5>
-                  <p className="text-[8px] text-[#8D959F]">smyl.co/alexrivera</p>
-                </div>
-                <div className="space-y-1.5 pt-2">
-                  <div className="w-full py-1.5 border border-[#E1E5E9] rounded-lg text-[9px] font-bold text-[#17191C] bg-[#EDF1F5]/20">Latest Portfolio</div>
-                  <div className="w-full py-1.5 border border-[#E1E5E9] rounded-lg text-[9px] font-bold text-[#17191C] bg-[#EDF1F5]/20">Read the Blog</div>
-                  <div className="w-full py-1.5 border border-[#E1E5E9] rounded-lg text-[9px] font-bold text-[#17191C] bg-[#EDF1F5]/20">My Course</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* UTILITY 07 — Screenshot Generator */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Visual on Left */}
-            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-6 sm:p-10 border border-[#E1E5E9]/70 flex items-center justify-center min-h-[300px]">
-              <div className="w-full max-w-xs bg-white border border-[#E1E5E9] rounded-lg overflow-hidden shadow-sm pointer-events-none text-left">
-                <div className="h-4 bg-[#EDF1F5] border-b border-[#E1E5E9] px-2 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                </div>
-                <div className="p-3 bg-[#EDF1F5]/20 space-y-2">
-                  <div className="h-10 bg-[#EDF1F5] rounded" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="h-16 bg-[#EDF1F5] rounded" />
-                    <div className="h-16 bg-[#EDF1F5] rounded" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Text on Right */}
-            <div className="lg:col-span-6 space-y-4 lg:pl-6 text-left">
-              <p className="text-xs font-bold text-brand-primary tracking-widest uppercase">Utility 07</p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] leading-tight">Turn a webpage into something you can share.</h3>
-              <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
-                Capture a clean screenshot of a public webpage for posts, presentations and campaigns.
-              </p>
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => onTabChange?.("screenshot")}
-                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-bold text-xs hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
-                >
-                  <span>Capture a webpage</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+              <img
+                src="/assets/landing/9_link-hub.webp"
+                alt="Link Hub"
+                className="w-full h-auto rounded-xl object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
           </div>
 
@@ -875,105 +913,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             </p>
           </div>
 
-          {/* Staggered Grid Compositions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto items-start">
-            
-            {/* Artifact 1: X Post card */}
-            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-brand-primary text-white text-xs font-bold flex items-center justify-center">AR</div>
-                  <div>
-                    <h5 className="font-bold text-xs text-[#17191C]">Alex Rivera</h5>
-                    <p className="text-[10px] text-[#626A73]">@alexrivera</p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold bg-[#EDF1F5] text-[#17191C] px-2 py-0.5 rounded">X Post</span>
-              </div>
-              <p className="text-xs text-[#17191C] leading-relaxed">
-                Simple, focused, and incredibly responsive. This is how link sharing was always meant to be.
-              </p>
-              <div className="pt-3 border-t border-[#ECEEF1] flex items-center justify-between text-[10px] text-[#8D959F]">
-                <span>9:41 AM</span>
-                <span className="font-semibold text-brand-primary">Styled Card</span>
-              </div>
-            </div>
-
-            {/* Artifact 2: LinkedIn Post card */}
-            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-5 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">ER</div>
-                  <div>
-                    <h5 className="font-bold text-xs text-[#17191C]">Elena Rostova</h5>
-                    <p className="text-[10px] text-[#626A73]">VP of Strategy</p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded">LinkedIn</span>
-              </div>
-              <p className="text-xs text-[#17191C] leading-relaxed font-serif">
-                Visual proof matters more than text posts. High-resolution social cards are driving 34% more responses for tech brands.
-              </p>
-              <div className="pt-3 border-t border-[#ECEEF1] flex items-center justify-between text-[10px] text-[#8D959F]">
-                <span>3h ago</span>
-                <span className="font-semibold text-indigo-600">Premium Style</span>
-              </div>
-            </div>
-
-            {/* Artifact 3: Short URL card */}
-            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-brand-primary">Short Link</span>
-                <span className="text-[9px] bg-emerald-50 text-emerald-600 font-bold px-1.5 py-0.5 rounded">Active</span>
-              </div>
-              <div className="bg-[#EDF1F5] rounded-xl p-3 border border-[#E1E5E9]/50 text-left">
-                <p className="text-[10px] text-[#8D959F]">Original: mylongbrandlink.com/campaign...</p>
-                <p className="text-sm font-bold text-brand-primary font-mono mt-1">smyl.co/campaign-hq</p>
-              </div>
-              <div className="flex items-center justify-between pt-1 text-[10px] text-[#626A73]">
-                <span>Clicks tracked</span>
-                <span className="font-bold text-[#17191C]">4,821 clicks</span>
-              </div>
-            </div>
-
-            {/* Artifact 4: QR Code card */}
-            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-5 shadow-xs flex flex-col items-center space-y-4">
-              <span className="text-[10px] font-bold text-[#8D959F] uppercase tracking-wider self-start">Interactive QR</span>
-              <div className="w-28 h-28 bg-[#EDF1F5]/40 border border-[#E1E5E9] rounded-xl p-3 flex items-center justify-center">
-                <div className="w-full h-full border border-brand-primary/20 rounded bg-white p-1.5 flex flex-col justify-between">
-                  <div className="flex justify-between">
-                    <span className="w-3 h-3 border border-brand-primary rounded-xs" />
-                    <span className="w-3 h-3 border border-brand-primary rounded-xs" />
-                  </div>
-                  <div className="flex justify-between items-end">
-                    <span className="w-3 h-3 border border-brand-primary rounded-xs" />
-                    <span className="w-2.5 h-2.5 bg-brand-primary rounded-3xs" />
-                  </div>
-                </div>
-              </div>
-              <p className="text-[11px] font-mono text-[#626A73]">smyl.co/download-app</p>
-            </div>
-
-            {/* Artifact 5: Rich Link Preview Card */}
-            <div className="bg-white border border-[#E1E5E9] rounded-2xl overflow-hidden shadow-xs space-y-0">
-              <div className="h-24 bg-[#17191C]/5 flex items-center justify-center text-[#B0B6BD]">
-                <Layers className="w-6 h-6 opacity-40" />
-              </div>
-              <div className="p-4 space-y-1 text-left">
-                <span className="text-[9px] font-bold text-[#8D959F] uppercase tracking-wider">Link Preview</span>
-                <h5 className="font-bold text-xs text-[#17191C] truncate">Design system constraints & rules</h5>
-                <p className="text-[10px] text-[#626A73] line-clamp-1">A detailed guide to building scalable React platforms.</p>
-              </div>
-            </div>
-
-            {/* Artifact 6: UTM Builder Output */}
-            <div className="bg-white border border-[#E1E5E9] rounded-2xl p-5 shadow-xs space-y-3">
-              <span className="text-[10px] font-bold text-brand-primary uppercase tracking-wider">Campaign Built</span>
-              <div className="bg-[#EDF1F5] rounded-xl p-3 text-[10px] font-mono text-[#626A73] leading-relaxed break-all border border-[#E1E5E9]/50">
-                https://brand.co?utm_source=<span className="text-[#0145F2] font-bold">newsletter</span>&utm_medium=<span className="text-[#0145F2] font-bold">email</span>&utm_campaign=<span className="text-[#0145F2] font-bold">weekly</span>
-              </div>
-            </div>
-
+          {/* Banner Image */}
+          <div className="max-w-6xl mx-auto rounded-2xl overflow-hidden border border-[#E1E5E9]/50 shadow-xs bg-white p-1 hover:shadow-md hover:border-brand-primary/20 transition-all duration-300">
+            <img
+              src="/assets/landing/smyl_banner.png"
+              alt="Smyl Sharing Formats and Platforms"
+              className="w-full h-auto rounded-xl object-cover block"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
       </section>
@@ -992,35 +939,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             </h2>
           </div>
 
-          {/* 4 Compact Audiences */}
+          {/* 4 Compact Audiences with Premium High-Quality Visuals */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             
-            <div className="bg-[#EDF1F5]/40 border border-[#E1E5E9]/50 rounded-xl p-6 text-left hover:border-brand-primary/20 hover:shadow-xs transition-all">
-              <h4 className="font-bold text-base text-[#17191C] mb-2">Creators</h4>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                Turn posts and ideas into polished visuals.
-              </p>
+            {/* Creators */}
+            <div className="bg-white border border-[#E1E5E9] rounded-2xl overflow-hidden hover:shadow-md hover:border-brand-primary/20 transition-all duration-300 group">
+              <img
+                src="/assets/landing/Final_1_Creators.webp"
+                alt="Creators"
+                className="w-full h-auto object-cover block"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
-            <div className="bg-[#EDF1F5]/40 border border-[#E1E5E9]/50 rounded-xl p-6 text-left hover:border-brand-primary/20 hover:shadow-xs transition-all">
-              <h4 className="font-bold text-base text-[#17191C] mb-2">Founders</h4>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                Share launches, updates and important links clearly.
-              </p>
+            {/* Founders */}
+            <div className="bg-white border border-[#E1E5E9] rounded-2xl overflow-hidden hover:shadow-md hover:border-brand-primary/20 transition-all duration-300 group">
+              <img
+                src="/assets/landing/Final_2_Founders.webp"
+                alt="Founders"
+                className="w-full h-auto object-cover block"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
-            <div className="bg-[#EDF1F5]/40 border border-[#E1E5E9]/50 rounded-xl p-6 text-left hover:border-brand-primary/20 hover:shadow-xs transition-all">
-              <h4 className="font-bold text-base text-[#17191C] mb-2">Marketers</h4>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                Create campaign-ready links and content faster.
-              </p>
+            {/* Marketers */}
+            <div className="bg-white border border-[#E1E5E9] rounded-2xl overflow-hidden hover:shadow-md hover:border-brand-primary/20 transition-all duration-300 group">
+              <img
+                src="/assets/landing/Final_3_Marketers.webp"
+                alt="Marketers"
+                className="w-full h-auto object-cover block"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
-            <div className="bg-[#EDF1F5]/40 border border-[#E1E5E9]/50 rounded-xl p-6 text-left hover:border-brand-primary/20 hover:shadow-xs transition-all">
-              <h4 className="font-bold text-base text-[#17191C] mb-2">Teams</h4>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                Keep everyday sharing tools in one place.
-              </p>
+            {/* Teams */}
+            <div className="bg-white border border-[#E1E5E9] rounded-2xl overflow-hidden hover:shadow-md hover:border-brand-primary/20 transition-all duration-300 group">
+              <img
+                src="/assets/landing/Final_4_Teams.webp"
+                alt="Teams"
+                className="w-full h-auto object-cover block"
+                referrerPolicy="no-referrer"
+              />
             </div>
 
           </div>
