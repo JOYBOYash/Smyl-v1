@@ -552,7 +552,7 @@ async function startServer() {
   });
 
   // Link Preview Generator endpoint
-  app.post("/api/utilities/link-preview", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
+  app.post("/api/utilities/link-preview", utilitiesRateLimiter, async (req, res) => {
     try {
       const { url } = req.body;
       if (!url || typeof url !== "string" || url.trim().length === 0) {
@@ -585,7 +585,7 @@ async function startServer() {
   });
 
   // Open Graph Debugger API endpoint
-  app.post("/api/utilities/og-debug", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
+  app.post("/api/utilities/og-debug", utilitiesRateLimiter, async (req, res) => {
     try {
       const { url } = req.body;
       if (!url || typeof url !== "string" || url.trim().length === 0) {
@@ -620,7 +620,7 @@ async function startServer() {
   const MAX_CONCURRENT_CAPTURES = 3;
 
   // Webpage Screenshot Generator endpoint with strict SSRF protection and bounding
-  app.post("/api/utilities/screenshot", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
+  app.post("/api/utilities/screenshot", utilitiesRateLimiter, async (req, res) => {
     if (activeCapturesCount >= MAX_CONCURRENT_CAPTURES) {
       return res.status(503).json({
         error: "The server is currently busy processing other screenshot requests. Please try again shortly."
@@ -846,7 +846,7 @@ async function startServer() {
   });
 
   // Parse post API using Gemini
-  app.post("/api/parse-post", dbAvailabilityGuard, utilitiesRateLimiter, async (req, res) => {
+  app.post("/api/parse-post", utilitiesRateLimiter, async (req, res) => {
     try {
       const { content } = req.body;
       if (!content || typeof content !== "string" || content.trim().length === 0) {

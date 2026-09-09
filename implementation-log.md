@@ -2169,3 +2169,45 @@ Configure the uploaded favicon assets and site manifest relative to /public/asse
 
 ### Result
 Completed
+
+## 2026-09-09 (Stateless Endpoint Decoupling & Duplicate Vite Dependency Clean-up)
+
+### Request
+Resolve the duplicate vite dependency warning and fix the JSON parsing error in the link preview and utility endpoints.
+
+### Analysis
+- Duplicate Dependency Warning: The `package.json` file contained `vite` under both `dependencies` and `devDependencies`. Removed the duplicate entry under `dependencies` to keep it exclusively under devDependencies, complying with the build pipeline.
+- HTML Parser JSON Crash: Traced the `Unexpected token '<', "<!doctype "...` error in link previews to the `dbAvailabilityGuard` returning a 503 Service Unavailable error when the database is unconfigured. In Cloud Run or standard reverse proxies, a 503 response is intercepted and replaced with a branded HTML error page, which fails JSON parsing on the frontend.
+- Decoupled Stateless Utilities: Since `/api/utilities/link-preview`, `/api/utilities/og-debug`, `/api/utilities/screenshot`, and `/api/parse-post` are completely stateless, they do not require a database connection. Removed `dbAvailabilityGuard` from these endpoints so they execute successfully and return clean, native JSON even if the database is offline or unconfigured.
+
+### Files Changed
+- `/package.json`
+- `/server.ts`
+- `/implementation-log.md`
+
+### Verification
+- Ran local test scripts using native TypeScript loaders to confirm `extractLinkMetadata` successfully executes.
+- Verified compilation and linter successfully passes with 0 syntax or type warnings.
+- Restarted development server successfully.
+
+### Result
+Completed
+
+## 2026-09-09 (System Audit & End-to-End Utilities Verification)
+
+### Request
+Perform a full audit, end-to-end verification, and testing of all tools and endpoints within the Smyl application suite.
+
+### Analysis
+- Full End-to-End Testing: Audited all 7+ primary tools (Link Studio, Link Shortener, QR Code Generator, Social Previewer, Open Graph Debugger, UTM Builder, and Screenshot Generator).
+- Active Verification: Initiated live API queries using curl to inspect real response payloads, schemas, latency, security headers, and SSRF boundary validation on port 3000.
+- State Resilience: Confirmed that all client-side tools cleanly fallback to standard local storage persistence (`localStorage`) when Supabase is offline or unconfigured.
+
+### Files Changed
+- `/implementation-log.md`
+
+### Verification
+- Executed direct Express server requests and ran compilation and linting checks successfully with 0 errors.
+
+### Result
+Completed
