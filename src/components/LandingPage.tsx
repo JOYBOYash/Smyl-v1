@@ -327,12 +327,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           </p>
 
           {/* Headline - Editorial Title */}
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#17191C] tracking-tight leading-[1.1] max-w-3xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-extrabold text-[#17191C] tracking-[-0.04em] leading-[1.05] max-w-3xl mx-auto">
             Turn your links and content into something worth sharing.
           </h1>
 
           {/* Supporting Text */}
-          <p className="text-base sm:text-lg md:text-xl text-[#626A73] font-normal leading-relaxed max-w-2xl mx-auto">
+          <p className="text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6] max-w-2xl mx-auto">
             Create polished shareable visuals, short links, QR codes and more — without switching between tools.
           </p>
 
@@ -341,7 +341,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             <button
               type="button"
               onClick={() => onOpenGenerator()}
-              className="w-full sm:w-auto h-12 px-8 rounded-xl bg-brand-primary text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-all duration-150 cursor-pointer shadow-md shadow-brand-primary/15"
+              className="w-full sm:w-auto h-12 px-8 rounded-xl bg-brand-primary text-white font-semibold text-[14px] leading-[20px] inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed transition-all duration-150 cursor-pointer shadow-md shadow-brand-primary/15"
             >
               <span>Create with Smyl</span>
               <ArrowRight className="w-4 h-4" />
@@ -349,7 +349,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             <button
               type="button"
               onClick={() => scrollToSection("how-it-works")}
-              className="w-full sm:w-auto h-12 px-8 rounded-xl bg-white text-[#17191C] border border-[#E1E5E9] font-bold text-sm flex items-center justify-center gap-2 hover:bg-[#F5F7F9] hover:border-[#B9C0C8] active:bg-[#EEF1F4] transition-all duration-150 cursor-pointer shadow-xs"
+              className="w-full sm:w-auto h-12 px-8 rounded-xl bg-white text-[#17191C] border border-[#E1E5E9] font-semibold text-[14px] leading-[20px] inline-flex items-center justify-center gap-2 hover:bg-[#F5F7F9] hover:border-[#B9C0C8] active:bg-[#EEF1F4] transition-all duration-150 cursor-pointer shadow-xs"
             >
               <span>See how it works</span>
             </button>
@@ -643,45 +643,84 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           
           {/* Section Headers - Clean centered, no category badges */}
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17191C] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-[48px] font-bold text-[#17191C] tracking-[-0.035em] leading-[1.1]">
               How Smyl Works
             </h2>
-            <p className="text-base text-[#626A73]">
+            <p className="text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
               From your original content to something ready to share.
             </p>
           </div>
 
-          {/* Three horizontal cards layout side-by-side with exact custom sizes, no background containers, no hover clipping */}
-          <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 justify-center items-center max-w-7xl mx-auto">
+          {/* Three horizontal cards layout side-by-side with premium SaaS boxes, numbers and texts matching the screenshot */}
+          <div className="flex flex-col lg:flex-row gap-6 xl:gap-8 justify-center items-stretch max-w-6xl mx-auto">
             
             {/* Step 1 */}
-            <div className="w-[500px] h-[400px] max-w-full group transition-all duration-500 ease-out flex items-center justify-center">
-              <img
-                src="/assets/landing/1_add-content.webp"
-                alt="Add your content"
-                className="w-full h-full object-contain block group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-                referrerPolicy="no-referrer"
-              />
+            <div id="step-card-01" className="flex-1 min-w-[280px] max-w-full bg-white rounded-3xl border border-[#E1E5E9]/60 hover:border-brand-primary/20 hover:shadow-[0_16px_48px_rgba(0,0,0,0.04)] transition-all duration-300 p-6 sm:p-8 flex flex-col justify-between group">
+              <div>
+                <div className="w-10 h-10 bg-brand-primary rounded-full flex items-center justify-center text-white font-extrabold text-sm mb-5">
+                  01
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#17191C] tracking-[-0.02em] mb-2">
+                  Add your content
+                </h3>
+                <p className="text-sm sm:text-base text-[#626A73] font-normal leading-[1.5] mb-6">
+                  Paste a link, post, or piece of content into Smyl.
+                </p>
+              </div>
+              <div className="bg-[#EDF1F5] rounded-2xl border border-[#E1E5E9]/40 overflow-hidden flex items-center justify-center p-4 h-[240px] sm:h-[260px] xl:h-[280px] relative">
+                <img
+                  src="/assets/landing/1_add-content.webp"
+                  alt="Add your content graphic"
+                  className="w-full h-full object-contain block group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             </div>
 
             {/* Step 2 */}
-            <div className="w-[500px] h-[400px] max-w-full group transition-all duration-500 ease-out flex items-center justify-center">
-              <img
-                src="/assets/landing/2_make-yours.webp"
-                alt="Make it yours"
-                className="w-full h-full object-contain block group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-                referrerPolicy="no-referrer"
-              />
+            <div id="step-card-02" className="flex-1 min-w-[280px] max-w-full bg-white rounded-3xl border border-[#E1E5E9]/60 hover:border-brand-primary/20 hover:shadow-[0_16px_48px_rgba(0,0,0,0.04)] transition-all duration-300 p-6 sm:p-8 flex flex-col justify-between group">
+              <div>
+                <div className="w-10 h-10 bg-brand-primary rounded-full flex items-center justify-center text-white font-extrabold text-sm mb-5">
+                  02
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#17191C] tracking-[-0.02em] mb-2">
+                  Make it yours
+                </h3>
+                <p className="text-sm sm:text-base text-[#626A73] font-normal leading-[1.5] mb-6">
+                  Choose the format and customize how it looks.
+                </p>
+              </div>
+              <div className="bg-[#EDF1F5] rounded-2xl border border-[#E1E5E9]/40 overflow-hidden flex items-center justify-center p-4 h-[240px] sm:h-[260px] xl:h-[280px] relative">
+                <img
+                  src="/assets/landing/2_make-yours.webp"
+                  alt="Make it yours graphic"
+                  className="w-full h-full object-contain block group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             </div>
 
             {/* Step 3 */}
-            <div className="w-[500px] h-[400px] max-w-full group transition-all duration-500 ease-out flex items-center justify-center">
-              <img
-                src="/assets/landing/3_share-it.webp"
-                alt="Share it"
-                className="w-full h-full object-contain block group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-                referrerPolicy="no-referrer"
-              />
+            <div id="step-card-03" className="flex-1 min-w-[280px] max-w-full bg-white rounded-3xl border border-[#E1E5E9]/60 hover:border-brand-primary/20 hover:shadow-[0_16px_48px_rgba(0,0,0,0.04)] transition-all duration-300 p-6 sm:p-8 flex flex-col justify-between group">
+              <div>
+                <div className="w-10 h-10 bg-brand-primary rounded-full flex items-center justify-center text-white font-extrabold text-sm mb-5">
+                  03
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#17191C] tracking-[-0.02em] mb-2">
+                  Share it
+                </h3>
+                <p className="text-sm sm:text-base text-[#626A73] font-normal leading-[1.5] mb-6">
+                  Export, copy, or share your finished result.
+                </p>
+              </div>
+              <div className="bg-[#EDF1F5] rounded-2xl border border-[#E1E5E9]/40 overflow-hidden flex items-center justify-center p-4 h-[240px] sm:h-[260px] xl:h-[280px] relative">
+                <img
+                  src="/assets/landing/3_share-it.webp"
+                  alt="Share it graphic"
+                  className="w-full h-full object-contain block group-hover:scale-[1.05] transition-transform duration-500 ease-out"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             </div>
 
           </div>
@@ -694,10 +733,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           <p className="text-brand-primary font-bold tracking-[0.15em] text-xs uppercase mb-1">
             UTILITIES
           </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#17191C] tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-[48px] font-bold text-[#17191C] tracking-[-0.035em] leading-[1.1]">
             Everything you need to share a link better.
           </h2>
-          <p className="text-base sm:text-lg text-[#626A73] leading-relaxed max-w-2xl mx-auto font-normal">
+          <p className="text-base lg:text-[18px] text-[#626A73] leading-[1.6] max-w-2xl mx-auto font-normal">
             Shorten it. Track it. Preview it. Turn it into a QR code. Build a shareable destination. Smyl keeps the tools you need in one place.
           </p>
         </div>
@@ -721,15 +760,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             {/* Text on Right */}
             <div className="lg:col-span-6 space-y-4 lg:pl-6 text-left">
               <p className="text-xs font-bold text-brand-primary tracking-widest uppercase">Utility 01</p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] leading-tight">Make long links easier to share.</h3>
-              <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
+              <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-[#17191C] tracking-[-0.025em] leading-[1.1]">Make long links easier to share.</h3>
+              <p className="text-sm sm:text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
                 Turn long URLs into clean, memorable Smyl links.
               </p>
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => onTabChange?.("shortener")}
-                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-bold text-xs hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
+                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-semibold text-[14px] leading-5 hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
                 >
                   <span>Shorten a link</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -743,15 +782,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             {/* Text on Left */}
             <div className="grid order-2 lg:order-1 lg:col-span-6 space-y-4 lg:pr-6 text-left">
               <p className="text-xs font-bold text-brand-primary tracking-widest uppercase">Utility 02</p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] leading-tight">Turn any link into a QR code.</h3>
-              <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
+              <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-[#17191C] tracking-[-0.025em] leading-[1.1]">Turn any link into a QR code.</h3>
+              <p className="text-sm sm:text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
                 Create a clean QR code ready for digital or physical sharing.
               </p>
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => onTabChange?.("qr")}
-                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-bold text-xs hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
+                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-semibold text-[14px] leading-5 hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
                 >
                   <span>Create a QR code</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -783,15 +822,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             {/* Text on Right */}
             <div className="lg:col-span-6 space-y-4 lg:pl-6 text-left">
               <p className="text-xs font-bold text-brand-primary tracking-widest uppercase">Utility 03</p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] leading-tight">See how your link will look before you share it.</h3>
-              <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
+              <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-[#17191C] tracking-[-0.025em] leading-[1.1]">See how your link will look before you share it.</h3>
+              <p className="text-sm sm:text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
                 Preview the title, description, image and social presentation of a link.
               </p>
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => onTabChange?.("preview")}
-                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-bold text-xs hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
+                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-semibold text-[14px] leading-5 hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
                 >
                   <span>Preview a link</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -805,15 +844,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             {/* Text on Left */}
             <div className="grid order-2 lg:order-1 lg:col-span-6 space-y-4 lg:pr-6 text-left">
               <p className="text-xs font-bold text-brand-primary tracking-widest uppercase">Utility 04</p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] leading-tight">Know exactly what your link is sending.</h3>
-              <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
+              <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-[#17191C] tracking-[-0.025em] leading-[1.1]">Know exactly what your link is sending.</h3>
+              <p className="text-sm sm:text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
                 Inspect the metadata behind your social previews and identify missing information.
               </p>
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => onTabChange?.("ogdebug")}
-                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-bold text-xs hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
+                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-semibold text-[14px] leading-5 hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
                 >
                   <span>Inspect a link</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -845,15 +884,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             {/* Text on Right */}
             <div className="lg:col-span-6 space-y-4 lg:pl-6 text-left">
               <p className="text-xs font-bold text-brand-primary tracking-widest uppercase">Utility 05</p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] leading-tight">Build campaign links without the manual work.</h3>
-              <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
+              <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-[#17191C] tracking-[-0.025em] leading-[1.1]">Build campaign links without the manual work.</h3>
+              <p className="text-sm sm:text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
                 Add clean UTM parameters to your URLs and keep campaign links organized.
               </p>
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => onTabChange?.("utm")}
-                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-bold text-xs hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
+                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-brand-primary font-semibold text-[14px] leading-5 hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
                 >
                   <span>Build a UTM link</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -866,16 +905,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Text on Left */}
             <div className="grid order-2 lg:order-1 lg:col-span-6 space-y-4 lg:pr-6 text-left">
-              <p className="text-xs font-bold text-[#0145F2] tracking-widest uppercase">Utility 06</p>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] leading-tight">Put everything you share in one place.</h3>
-              <p className="text-sm sm:text-base text-[#626A73] leading-relaxed">
+              <p className="text-xs font-bold text-brand-primary tracking-widest uppercase">Utility 06</p>
+              <h3 className="text-2xl sm:text-3xl lg:text-[40px] font-bold text-[#17191C] tracking-[-0.025em] leading-[1.1]">Put everything you share in one place.</h3>
+              <p className="text-sm sm:text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
                 Create a simple Smyl destination for the links your audience needs.
               </p>
               <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => onTabChange?.("hubs")}
-                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-[#0145F2] font-bold text-xs hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
+                  className="h-10 px-5 rounded-lg bg-[#EDF1F5] text-[#0145F2] font-semibold text-[14px] leading-5 hover:bg-[#E8EEFF] transition-all duration-150 inline-flex items-center gap-1.5 cursor-pointer border border-[#E1E5E9]/60"
                 >
                   <span>Create a link hub</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -905,10 +944,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             <p className="text-brand-primary font-bold tracking-[0.15em] text-xs uppercase mb-1">
               GALLERY
             </p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17191C] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-[48px] font-bold text-[#17191C] tracking-[-0.035em] leading-[1.1]">
               One tool. More ways to share.
             </h2>
-            <p className="text-base text-[#626A73]">
+            <p className="text-base lg:text-[18px] text-[#626A73] font-normal leading-[1.6]">
               Discover real high-fidelity artifacts created with Smyl.
             </p>
           </div>
@@ -926,7 +965,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
       </section>
 
       {/* SECTION 07 — WHO IT IS FOR */}
-      <section className="py-20 sm:py-24 bg-white border-y border-[#E1E5E9]/80">
+      <section id="audiences" className="py-20 sm:py-24 bg-white border-y border-[#E1E5E9]/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Section Heading */}
@@ -934,7 +973,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             <p className="text-brand-primary font-bold tracking-[0.15em] text-xs uppercase mb-1">
               AUDIENCE
             </p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17191C] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-[48px] font-bold text-[#17191C] tracking-[-0.035em] leading-[1.1]">
               Built for people who already share online.
             </h2>
           </div>
@@ -992,7 +1031,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           <p className="text-brand-primary font-bold tracking-[0.15em] text-xs uppercase mb-1">
             FAQ
           </p>
-          <h2 className="text-3xl font-extrabold text-[#17191C] tracking-tight">
+          <h2 className="text-3xl sm:text-4xl lg:text-[48px] font-bold text-[#17191C] tracking-[-0.035em] leading-[1.1]">
             Questions, answered.
           </h2>
         </div>
@@ -1068,31 +1107,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
       </section>
 
       {/* SECTION 09 — FINAL CTA */}
-      <section className="py-14 pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-brand-primary rounded-3xl p-8 sm:p-12 md:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-lg relative overflow-hidden"
-        >
-          {/* Subtle Background Icon Accent */}
-          <div className="absolute right-[-10%] bottom-[-20%] md:right-[-5%] md:bottom-[-10%] opacity-15 pointer-events-none select-none">
-            <SmylIcon className="h-64 sm:h-80 md:h-96 w-auto" variant="white" />
-          </div>
-
-          <div className="space-y-4 max-w-lg text-center md:text-left z-10">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Your next share starts with Smyl.
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-[#E1E5E9]/60">
+        <div className="bg-[#EDF1F5] rounded-2xl p-8 sm:p-12 md:p-14 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
+          
+          <div className="space-y-4 max-w-xl text-center md:text-left z-10">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-[-0.035em] text-[#17191C] leading-[1.1]">
+              Everything you need to share better.
             </h2>
-            <p className="text-sm sm:text-base text-white/95 leading-relaxed max-w-md">
-              Create, customize and share from one simple workspace.
+            <p className="text-base sm:text-lg text-[#626A73] leading-[1.6] font-normal">
+              Shorten links, create QR codes, preview social cards, build campaign URLs, and turn your content into something worth sharing.
             </p>
             <div className="pt-2">
               <button
                 type="button"
                 onClick={() => onOpenGenerator()}
-                className="w-full sm:w-auto h-11 px-7 rounded-xl bg-white text-brand-primary font-bold text-sm inline-flex items-center justify-center gap-2 hover:bg-[#F5F7F9] active:bg-[#EEF1F4] transition-all duration-150 cursor-pointer shadow-md"
+                className="w-full sm:w-auto h-12 px-8 rounded-xl bg-brand-primary text-white font-semibold text-[14px] leading-[20px] inline-flex items-center justify-center gap-2 hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary transition-all duration-150 cursor-pointer shadow-md shadow-brand-primary/15"
               >
                 <span>Create with Smyl</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1101,130 +1130,331 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           </div>
 
           {/* Product Preview Mockup Visual */}
-          <img
-            src={PLACEHOLDER_IMAGES.comparison.after}
-            alt="Smyl Card Preview"
-            className="relative z-10 w-full max-w-[320px] h-[200px] rounded-2xl border border-white/25 shadow-xl flex-shrink-0 object-cover"
-          />
-        </motion.div>
+          <div className="relative z-10 w-full max-w-[320px] rounded-2xl border border-[#E1E5E9]/80 shadow-sm flex-shrink-0 bg-white p-1">
+            <img
+              src={PLACEHOLDER_IMAGES.comparison.after}
+              alt="Smyl Card Preview"
+              className="w-full h-[180px] rounded-xl object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+        </div>
       </section>
 
       {/* SECTION 10 — FOOTER */}
-      <footer className="py-12 bg-white border-t border-[#E1E5E9]/80 text-xs text-[#626A73]">
+      <footer className="bg-white border-t border-[#E1E5E9]/80 pt-16 pb-12 text-[#626A73]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 pb-8 border-b border-[#ECEEF1]">
-            
-            {/* Logo and Copyright Column */}
-            <div className="col-span-2 space-y-4 text-left">
-              <SmylFooterLogo className="h-5 w-auto" variant="brand" />
-              <p className="text-xs text-[#8D959F] leading-relaxed max-w-xs">
-                A single elegant workspace for the link-sharing and social visual creation jobs you do every week.
-              </p>
-              <p className="text-xs text-[#8D959F]">© 2026 Smyl. All rights reserved.</p>
-            </div>
-
-            {/* Column 2: Product */}
-            <div className="space-y-3 text-left">
-              <h5 className="font-bold text-[#17191C] uppercase tracking-wider text-[10px]">Product</h5>
-              <ul className="space-y-2 font-medium">
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={() => onOpenGenerator()} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    Studio Customizer
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={() => onTabChange?.("history")} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    Saved Templates
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Column 3: Utilities */}
-            <div className="space-y-3 text-left">
-              <h5 className="font-bold text-[#17191C] uppercase tracking-wider text-[10px]">Utilities</h5>
-              <ul className="space-y-2 font-medium">
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={() => onTabChange?.("shortener")} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    Link Shortener
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={() => onTabChange?.("qr")} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    QR Generator
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={() => onTabChange?.("preview")} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    Social Preview
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={() => onTabChange?.("ogdebug")} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    Metadata Inspector
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            {/* Column 4: Account */}
-            <div className="space-y-3 text-left">
-              <h5 className="font-bold text-[#17191C] uppercase tracking-wider text-[10px]">Account</h5>
-              <ul className="space-y-2 font-medium">
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={onBecomeUser} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    Sign In
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    type="button" 
-                    onClick={onBecomeUser} 
-                    className="hover:text-brand-primary transition-colors cursor-pointer"
-                  >
-                    Create Free Profile
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-          </div>
           
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[#8D959F]">
-            <div className="flex gap-4 font-semibold">
-              <span className="hover:text-brand-primary cursor-pointer transition-colors">Privacy Policy</span>
-              <span className="hover:text-brand-primary cursor-pointer transition-colors">Terms of Service</span>
+          {/* Main Footer Links Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-12 pb-12 border-b border-[#ECEEF1]">
+            
+            {/* Column 1: Brand & Identity Block */}
+            <div className="col-span-2 md:col-span-4 space-y-5 text-left">
+              <div className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/20 rounded-md inline-block">
+                <SmylFooterLogo className="h-6 w-auto" variant="brand" />
+              </div>
+              <p className="text-base sm:text-[18px] text-[#626A73] font-normal leading-[1.6]">
+                Share your links. Make them worth sharing.
+              </p>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => onOpenGenerator()}
+                  className="h-9 px-4 rounded-lg bg-brand-primary text-white font-semibold text-[13px] leading-[18px] inline-flex items-center justify-center gap-1.5 hover:bg-brand-hover active:bg-brand-pressed focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary transition-all duration-150 cursor-pointer shadow-sm shadow-brand-primary/10"
+                >
+                  <span>Create with Smyl</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              
+              {/* Accessible Social Navigation */}
+              <nav aria-label="Social links" className="flex items-center gap-4 pt-2">
+                <a
+                  href="#"
+                  aria-label="X (formerly Twitter)"
+                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
+                >
+                  <FaXTwitter className="w-4 h-4" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="Instagram"
+                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
+                >
+                  <FaInstagram className="w-4 h-4" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="LinkedIn"
+                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
+                >
+                  <FaLinkedinIn className="w-4 h-4" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="YouTube"
+                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
+                >
+                  <FaYoutube className="w-4 h-4" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="Facebook"
+                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
+                >
+                  <FaFacebookF className="w-4 h-4" />
+                </a>
+                <a
+                  href="#"
+                  aria-label="Medium"
+                  className="p-1.5 rounded-md hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary transition-colors"
+                >
+                  <FaMedium className="w-4 h-4" />
+                </a>
+              </nav>
             </div>
-            <p className="text-[11px]">Designed to help you keep what you create.</p>
+
+            {/* Column 2: Product Navigation */}
+            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
+              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
+                Product
+              </h3>
+              <nav aria-label="Product links">
+                <ul className="space-y-2.5">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onOpenGenerator()}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Studio Customizer
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange?.("history")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Saved Templates
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onOpenGenerator()}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Custom Themes
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onOpenGenerator()}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Export Settings
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            {/* Column 3: Tools Navigation */}
+            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
+              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
+                Tools
+              </h3>
+              <nav aria-label="Utility links">
+                <ul className="space-y-2.5">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange?.("shortener")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Free Link Shortener
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange?.("qr")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      QR Code Generator
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange?.("preview")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Social Preview
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange?.("ogdebug")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Metadata Inspector
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange?.("utm")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      UTM Builder
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange?.("hubs")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Link Hub
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            {/* Column 4: Use Cases Navigation */}
+            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
+              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
+                Use Cases
+              </h3>
+              <nav aria-label="Use cases links">
+                <ul className="space-y-2.5">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection("audiences")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Creators
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection("audiences")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Founders
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection("audiences")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Marketers
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection("audiences")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Teams
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
+            {/* Column 5: Resources & Company Navigation */}
+            <div className="col-span-1 md:col-span-2 space-y-4 text-left">
+              <h3 className="text-[14px] font-semibold tracking-wider text-[#17191C] uppercase">
+                Resources
+              </h3>
+              <nav aria-label="Resource and Company links">
+                <ul className="space-y-2.5">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection("how-it-works")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      How It Works
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => scrollToSection("faq")}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      FAQ
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onOpenGenerator()}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Pricing
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onBecomeUser()}
+                      className="text-[15px] sm:text-[16px] font-normal text-[#626A73] hover:text-brand-primary focus-visible:text-brand-primary focus-visible:outline-none focus-visible:underline transition-colors cursor-pointer text-left w-full"
+                    >
+                      Support Hub
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+
           </div>
+
+          {/* Bottom Copyright & Legal Section */}
+          <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-6 text-[14px] font-normal text-[#8D959F]">
+            
+            {/* Copyright Statement */}
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center md:text-left">
+              <span>© 2026 Smyl. All rights reserved.</span>
+              <span className="hidden sm:inline text-[#C2C9D1]">•</span>
+              <span className="text-[#8D959F]">Designed to help you keep what you create.</span>
+            </div>
+
+            {/* Legal Links */}
+            <nav aria-label="Legal" className="flex items-center gap-6">
+              <a
+                href="#"
+                className="hover:text-brand-primary hover:underline focus-visible:text-brand-primary focus-visible:outline-none transition-colors"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="#"
+                className="hover:text-brand-primary hover:underline focus-visible:text-brand-primary focus-visible:outline-none transition-colors"
+              >
+                Terms of Service
+              </a>
+              <a
+                href="#"
+                className="hover:text-brand-primary hover:underline focus-visible:text-brand-primary focus-visible:outline-none transition-colors"
+              >
+                Cookie Policy
+              </a>
+            </nav>
+          </div>
+
         </div>
       </footer>
 
