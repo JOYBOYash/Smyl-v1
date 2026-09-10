@@ -1132,20 +1132,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             </div>
           </div>
 
-          {/* Styled Paperclip Graphic similar to elements.webp */}
-          <div className="relative z-10 flex-shrink-0 flex items-center justify-center bg-white/10 rounded-2xl p-6 border border-white/10 shadow-inner backdrop-blur-xs">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-24 h-24 sm:w-28 sm:h-28 text-white transform rotate-45 select-none shrink-0"
-            >
-              <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-            </svg>
-          </div>
+          {/* Graphic CTA.webp */}
+          <img
+            src="/assets/landing/CTA.webp"
+            alt="Smyl Features Graphic"
+            className="relative z-10 w-full max-w-[280px] sm:max-w-[340px] md:max-w-[400px] lg:max-w-[440px] h-auto object-contain select-none shrink-0 rounded-2xl"
+            referrerPolicy="no-referrer"
+          />
         </div>
       </section>
 
