@@ -176,7 +176,7 @@ export const ScreenshotGenerator: React.FC<{
     };
 
     onHandoffToStudio(samplePost, {
-      canvasBackground: "gradient-sunset",
+      canvasBackground: "gradient-ocean",
       theme: "light",
       borderRadius: "lg",
       shadowSize: "md",

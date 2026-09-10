@@ -2231,3 +2231,27 @@ Replace the landing page footer's paperclip SVG container with the custom graphi
 
 ### Result
 Completed
+
+## 2026-09-10 (Watermark Removal, Default Backdrop and Short Hero Copy Update)
+
+### Request
+Remove watermarks on generated cards, set default backdrop to the blueish gradient (gradient-ocean), and shorten the hero H1 copy to a short two-sentence phrase.
+
+### Analysis
+- Watermark Removal: Inspected and completely removed the watermark element ('generated using Smyl') from `/src/components/CanvasWrapper.tsx` to align with the watermark-free marketing copy.
+- Default Backdrop: Changed default backdrop state initializations from Sunset (`gradient-sunset`) to Ocean (`gradient-ocean`) on the landing page and screenshot generators, as well as the default studio customization presets.
+- Hero H1 Copy: Shortened the landing page hero title to exactly 6 words in two sentences: "Turn links into cards. Share beautifully."
+
+### Files Changed
+- `/src/components/CanvasWrapper.tsx`
+- `/src/components/LandingPage.tsx`
+- `/src/components/ScreenshotGenerator.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Executed linting check (`lint_applet`) successfully with 0 errors.
+- Verified successful production builds (`compile_applet`).
+
+### Result
+Completed

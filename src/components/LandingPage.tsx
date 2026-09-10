@@ -96,7 +96,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
   const [selectedPlatform, setSelectedPlatform] = useState<"x" | "linkedin">("x");
   const [selectedTheme, setSelectedTheme] = useState<CardTheme>("light");
   const [selectedFont, setSelectedFont] = useState<FontFamily>("sans");
-  const [selectedBg, setSelectedBg] = useState<CanvasBackground>("gradient-sunset");
+  const [selectedBg, setSelectedBg] = useState<CanvasBackground>("gradient-ocean");
   const [isDirectEdit, setIsDirectEdit] = useState(false);
   const [isHeroBgDropdownOpen, setIsHeroBgDropdownOpen] = useState(false);
 
@@ -328,7 +328,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
 
           {/* Headline - Editorial Title */}
           <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-extrabold text-[#17191C] tracking-[-0.04em] leading-[1.05] max-w-3xl mx-auto">
-            Turn your links and content into something worth sharing.
+            Turn links into cards. <br/> Share beautifully.
           </h1>
 
           {/* Supporting Text */}
@@ -358,9 +358,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           {/* Security & Promise Indicators */}
           <div className="pt-2 text-[11px] font-semibold text-[#8D959F] flex flex-wrap items-center justify-center gap-2.5">
             <span>Free forever</span>
-            <span className="text-[#C2C9D1]">•</span>
-            <span>No watermark</span>
-            <span className="text-[#C2C9D1]">•</span>
+            <span className="text-[#C2C9D1]">|</span>
             <span>No credit card required</span>
           </div>
         </div>

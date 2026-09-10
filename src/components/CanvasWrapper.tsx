@@ -111,34 +111,7 @@ export const CanvasWrapper: React.FC<CanvasWrapperProps> = ({
           }}
         />
       )}
-
       <div className="w-full flex items-center justify-center relative z-10">{children}</div>
-
-      {/* Persistent gradient corner watermark: 'generated using Smyl' with icon */}
-      <div className="absolute bottom-3 right-4 z-20 flex items-center gap-1.5 pointer-events-none select-none">
-        <span
-          className={`text-[11px] font-medium tracking-tight ${
-            background === "solid-white"
-              ? "text-[#17191C]/45"
-              : "text-white/60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
-          }`}
-        >
-          generated using Smyl
-        </span>
-        <img
-          src="/smyl-icon.svg"
-          alt="Smyl"
-          className={`h-3.5 w-auto object-contain ${
-            background === "solid-white"
-              ? "opacity-45"
-              : "opacity-60 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]"
-          }`}
-          style={{
-            filter: background === "solid-white" ? "brightness(0)" : "brightness(0) invert(1)",
-          }}
-          draggable={false}
-        />
-      </div>
     </div>
   );
 };
