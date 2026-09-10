@@ -121,9 +121,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
   const [sliderPosition, setSliderPosition] = useState(50);
   const isDraggingRef = useRef(false);
 
-  // Accordion FAQ states
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
-
   const currentPost = selectedPlatform === "x" ? xPostData : linkedInPostData;
 
   const handleUpdateCurrentPost = (updated: Partial<ParsedPost>) => {
@@ -1022,87 +1019,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             </div>
 
           </div>
-        </div>
-      </section>
-
-      {/* SECTION 08 — FAQ */}
-      <section id="faq" className="py-20 sm:py-24 max-w-3xl mx-auto px-4 sm:px-6 space-y-10">
-        <div className="text-center space-y-2">
-          <p className="text-brand-primary font-bold tracking-[0.15em] text-xs uppercase mb-1">
-            FAQ
-          </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-[48px] font-bold text-[#17191C] tracking-[-0.035em] leading-[1.1]">
-            Questions, answered.
-          </h2>
-        </div>
-
-        {/* Accordion List with clean Dividers */}
-        <div className="divide-y divide-[#ECEEF1] border-y border-[#ECEEF1]">
-          {[
-            {
-              q: "What is Smyl?",
-              a: "Smyl is a single workspace built for the link-sharing and social-sharing tasks you do every week. Create visual cards, shorten URLs, generate QR codes, preview links, debug metadata, build UTMs, and capture webpages from one place."
-            },
-            {
-              q: "Do I need design skills to use Smyl?",
-              a: "None at all. Smyl handles layout, contrast, font pairings, and safe-padding automatically so everything you output looks like it was created by a designer."
-            },
-            {
-              q: "Can I customize my visual cards?",
-              a: "Yes. You can change themes (light, dark, retro), pick background gradients, customize font styles, toggle engagement stats, and edit the text directly on the card."
-            },
-            {
-              q: "How do the link tools work?",
-              a: "Every link you shorten or turn into a QR code is tracked securely. You can see real-time clicks, preview how links will render on social networks, and generate clean UTM campaigns."
-            },
-            {
-              q: "Are there watermark or credit card requirements?",
-              a: "None. All tools are completely free to use, and all exported cards and files are 100% watermark-free. You do not need a credit card to create an account."
-            },
-            {
-              q: "What are the benefits of creating a free account?",
-              a: "A free account lets you \"keep what you create.\" All your cards, custom links, QR codes, and Link Hubs are saved securely so you can access, edit, or re-download them anytime from any device."
-            }
-          ].map((faq, idx) => {
-            const isOpen = openFaq === idx;
-            return (
-              <div key={idx} className="py-5 transition-colors">
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(isOpen ? null : idx)}
-                  className="w-full text-left flex items-center justify-between gap-4 transition-colors cursor-pointer group"
-                >
-                  <span className="font-bold text-base sm:text-lg text-[#17191C] group-hover:text-brand-primary transition-colors">
-                    {faq.q}
-                  </span>
-                  <motion.div
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-[#626A73] hover:bg-[#F5F7F9] transition-colors flex-shrink-0"
-                  >
-                    <ChevronDown className={`w-4 h-4 ${isOpen ? "text-brand-primary" : ""}`} />
-                  </motion.div>
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      key="faq-content"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pt-3 pr-10 text-xs sm:text-sm text-[#626A73] leading-relaxed">
-                        {faq.a}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
         </div>
       </section>
 

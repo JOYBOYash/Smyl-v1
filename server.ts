@@ -44,7 +44,7 @@ const adminClient = isSupabaseConfigured && supabaseServiceKey
     })
   : supabase;
 
-// Database Availability Guard Middleware (Returns 503 instead of silent fallbacks in production)
+// Database Availability Guard Middleware (Blocks requests with 503 if database is unconfigured)
 function dbAvailabilityGuard(
   req: express.Request,
   res: express.Response,
@@ -52,7 +52,7 @@ function dbAvailabilityGuard(
 ) {
   if (!isSupabaseConfigured) {
     return res.status(503).json({
-      error: "Database Service Unavailable. The persistent backend store is currently offline or unconfigured."
+      error: "Database Service Unavailable. The required Supabase backend environment variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY) are missing or misconfigured."
     });
   }
   next();
@@ -61,7 +61,7 @@ function dbAvailabilityGuard(
 // Helper to authenticate user and create a request-scoped Supabase client
 async function getAuthenticatedUserContext(req: any): Promise<{ userId: string | null; client: SupabaseClient }> {
   if (!isSupabaseConfigured) {
-    return { userId: "anonymous-local-user", client: supabase };
+    throw new Error("Supabase is not configured. Unable to resolve user authentication context.");
   }
   
   const authHeader = req.headers.authorization;
@@ -876,19 +876,21 @@ async function startServer() {
         }
       }
 
-      const prompt = `You are an expert social media post parser. Analyze the following pasted content, draft, or URL and extract all details to render an authentic social media card for X (formerly Twitter) or LinkedIn.
+      const prompt = `You are an expert social media post parser. Analyze the following pasted content, draft, or URL and extract all details to render an authentic social media card.
+
+SUPPORTED PLATFORMS:
+'x', 'linkedin', 'substack', 'threads', 'medium', 'facebook', 'instagram', 'tiktok', 'youtube'
 
 CRITICAL INSTRUCTIONS:
 1. PRESERVE USER TEXT VERBATIM: If the user provides actual post text, paragraphs, announcements, thoughts, or draft messages (even if it contains links, URLs, hashtags, or emojis), YOU MUST PUT THE USER'S EXACT PROVIDED TEXT into 'content.text'. DO NOT REPLACE OR PARAPHRASE IT. DO NOT GENERATE RANDOM FICTIONAL TEXT.
 2. If the user provided ONLY a single URL (and no other text):
-   - Use the scraped metadata provided below if available to extract the true title and description.
-   - Extract the platform from the URL (x.com or twitter.com -> 'x'; linkedin.com or lnkd.in -> 'linkedin').
+   - Use your search tool to find the actual public post, tweet, article, newsletter, or video content of this URL.
+   - Do NOT use generic fallback placeholders like 'LinkedIn User' or login page titles if you can retrieve or construct the true contents. Reconstruct the actual author's name, username/headline, actual body text, correct platform, and correct image URL.
+   - Extract the platform from the URL (e.g. substack.com -> 'substack'; threads.net -> 'threads'; medium.com -> 'medium'; facebook.com -> 'facebook'; instagram.com -> 'instagram'; tiktok.com -> 'tiktok'; youtube.com -> 'youtube'; x.com/twitter.com -> 'x'; linkedin.com -> 'linkedin').
 3. Platform Determination:
-   - If the input contains x.com/twitter.com or short punchy tweets, set platform to 'x'.
-   - If the input contains linkedin.com/lnkd.in, or mentions career, milestones, teams, gratitude, launches, leadership, or professional announcements, set platform to 'linkedin'.
+   - Carefully set the platform field to the correct one of the supported platform values based on the URL domain or text content format.
 4. Author & Engagement Calculation:
-   - If author details (name, handle/title) are found or inferable from the text, use them.
-   - METRICS CALCULATION: If explicit engagement metrics (likes, reactions, reposts, comments, views) or timestamps are present in the text, extract their exact values (e.g., convert "3.8k" to 3800). If no engagement counts are explicitly provided, set likes, comments, reposts, and views to exactly 0. DO NOT hallucinate, fabricate, or guess fake engagement metrics.
+   - Retrieve or estimate realistic author details (name, handle/title) and engagement metrics (likes, reactions, reposts, comments, views) or timestamps. If no engagement counts are explicitly known, provide realistic popular values for that public post or default them.
 
 User Input:
 """
@@ -897,24 +899,25 @@ ${trimmedContent}
 ${scrapedMetadata}`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.7-flash",
+        model: "gemini-3.8-flash",
         contents: prompt,
         config: {
+          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
             properties: {
               platform: {
                 type: Type.STRING,
-                description: "The platform of the post, either 'x' or 'linkedin'.",
+                description: "The platform of the post: 'x', 'linkedin', 'substack', 'threads', 'medium', 'facebook', 'instagram', 'tiktok', or 'youtube'.",
               },
               author: {
                 type: Type.OBJECT,
                 description: "The author information.",
                 properties: {
-                  name: { type: Type.STRING, description: "Full name of the author. Default to a realistic name if not found." },
-                  username: { type: Type.STRING, description: "For X: handle starting with @ (e.g., @jack). For LinkedIn: job title or professional headline (e.g., 'Senior Software Engineer at Google')." },
-                  isVerified: { type: Type.BOOLEAN, description: "Whether the author is verified (blue badge)." },
+                  name: { type: Type.STRING, description: "Full name of the author." },
+                  username: { type: Type.STRING, description: "Handle/headline/username representing the author on that platform." },
+                  isVerified: { type: Type.BOOLEAN, description: "Whether the author is verified." },
                   avatarColor: { type: Type.STRING, description: "A beautiful Hex color code (e.g. #0145F2) that represents the avatar background if we generate an initial." },
                   avatarText: { type: Type.STRING, description: "1-2 uppercase characters representing the author's initials." }
                 },
@@ -933,7 +936,7 @@ ${scrapedMetadata}`;
                   mentions: {
                     type: Type.ARRAY,
                     items: { type: Type.STRING },
-                    description: "Any handles or profiles mentioned (e.g. ['@google', '@ElonMusk'])."
+                    description: "Any handles or profiles mentioned."
                   },
                   links: {
                     type: Type.ARRAY,
@@ -946,14 +949,18 @@ ${scrapedMetadata}`;
               timestamp: { type: Type.STRING, description: "The post timestamp or relative time. e.g., '10:30 AM · Aug 24, 2026' or '2h ago'." },
               engagement: {
                 type: Type.OBJECT,
-                description: "Engagement metrics which default to exactly 0 if not explicitly defined.",
+                description: "Engagement metrics.",
                 properties: {
-                  likes: { type: Type.INTEGER, description: "Number of likes/reactions. Defaults to 0." },
-                  comments: { type: Type.INTEGER, description: "Number of comments. Defaults to 0." },
-                  reposts: { type: Type.INTEGER, description: "Number of reposts/shares. Defaults to 0." },
-                  views: { type: Type.INTEGER, description: "Number of views (default to 0)." }
+                  likes: { type: Type.INTEGER, description: "Number of likes/reactions." },
+                  comments: { type: Type.INTEGER, description: "Number of comments." },
+                  reposts: { type: Type.INTEGER, description: "Number of reposts/shares." },
+                  views: { type: Type.INTEGER, description: "Number of views (optional/default to 0)." }
                 },
                 required: ["likes", "comments", "reposts"]
+              },
+              imageUrl: {
+                type: Type.STRING,
+                description: "A relevant OpenGraph image URL or article image URL if available, or empty if none."
               }
             },
             required: ["platform", "author", "content", "timestamp", "engagement"]
@@ -1156,6 +1163,7 @@ ${scrapedMetadata}`;
 
       let savedHub: any = null;
       let writeError: any = null;
+      const savedItems: any[] = [];
 
       try {
         // Check ownership if update
@@ -1197,7 +1205,6 @@ ${scrapedMetadata}`;
       }
 
       // Upsert Items
-      const savedItems: any[] = [];
       const itemIdsToKeep = new Set<string>();
 
       // Find existing IDs to delete from db if not in payload

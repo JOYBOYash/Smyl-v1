@@ -1,4 +1,4 @@
-export type PlatformType = 'x' | 'linkedin';
+export type PlatformType = 'x' | 'linkedin' | 'substack' | 'threads' | 'medium' | 'facebook' | 'instagram' | 'tiktok' | 'youtube';
 
 export interface PostAuthor {
   name: string;

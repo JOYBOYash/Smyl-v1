@@ -42,6 +42,9 @@ import { BlogHub } from "./components/BlogHub";
 import { BlogPost } from "./components/BlogPost";
 import { PrivacyPolicy } from "./components/PrivacyPolicy";
 import { TermsOfService } from "./components/TermsOfService";
+import { HowItWorksPage } from "./components/HowItWorksPage";
+import { ExamplesPage } from "./components/ExamplesPage";
+import { HelpPage } from "./components/HelpPage";
 import { ErrorBoundary, NotFoundPage } from "./components/ErrorPages";
 import { parsePostClientFallback } from "./utils/parser";
 import { toPng } from "html-to-image";
@@ -541,6 +544,45 @@ export const App: React.FC = () => {
       setCustomization(draft.customization);
     }
   }, [user?.id]);
+
+  // Handle presets loaded from the Examples page
+  useEffect(() => {
+    if (location.state && (location.state as any).presetAuthor) {
+      const state = location.state as any;
+      setPost({
+        platform: state.presetBg.includes("codes") ? "x" : "linkedin",
+        author: {
+          name: state.presetAuthor,
+          username: state.presetHandle.startsWith("@") ? state.presetHandle : `@${state.presetHandle}`,
+          isVerified: true,
+          avatarColor: "#0145F2",
+          avatarText: state.presetAuthor.slice(0, 2).toUpperCase(),
+          avatarUrl: state.presetAvatar,
+        },
+        content: {
+          text: state.presetContent,
+          hashtags: [],
+          mentions: [],
+          links: [],
+        },
+        timestamp: "Just now",
+        engagement: {
+          likes: 1242,
+          comments: 56,
+          reposts: 148,
+        },
+      });
+      setCustomization((prev) => ({
+        ...prev,
+        canvasBackground: state.presetBg,
+        theme: state.presetTheme,
+        fontFamily: state.presetFont,
+        isEditable: false,
+      }));
+      // Clear location state so it doesn't trigger again on subsequent navigation/tab changes
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
 
   // Auto-save post content and customization state to local storage on every change
   useEffect(() => {
@@ -1629,7 +1671,14 @@ export const App: React.FC = () => {
                       {/* 4th Item: Open Avatar Library & Upload Modal */}
                       <button
                         type="button"
-                        onClick={() => setIsAvatarModalOpen(true)}
+                        onClick={() => {
+                          if (!isAuthenticated) {
+                            setErrorMsg("Please sign in to upload custom avatar photos.");
+                            setIsAuthModalOpen(true);
+                          } else {
+                            setIsAvatarModalOpen(true);
+                          }
+                        }}
                         className="aspect-square rounded-full border-2 border-dashed border-brand-primary/60 bg-brand-soft/50 hover:bg-brand-soft text-brand-primary flex flex-col items-center justify-center transition-all cursor-pointer shadow-2xs hover:scale-105"
                         title="Open Avatar Library & Upload Modal"
                       >
@@ -2137,6 +2186,10 @@ export const App: React.FC = () => {
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/examples" element={<ExamplesPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/faq" element={<Navigate to="/help" replace />} />
 
             <Route path="/customize" element={<Navigate to="/tools/post-card-studio" replace />} />
             <Route path="/link-shortener" element={<Navigate to="/tools/link-shortener" replace />} />

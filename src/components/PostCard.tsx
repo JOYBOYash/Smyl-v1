@@ -17,6 +17,15 @@ import {
   IoBulb,
 } from "react-icons/io5";
 import { FiHash } from "react-icons/fi";
+import {
+  FaThreads,
+  FaFacebookF,
+  FaTiktok,
+  FaYoutube,
+  FaMedium,
+  FaInstagram
+} from "react-icons/fa6";
+import { SiSubstack } from "react-icons/si";
 
 interface PostCardProps {
   post: ParsedPost;
@@ -748,31 +757,297 @@ export const PostCard: React.FC<PostCardProps> = ({ post, customization, onUpdat
                 )}
               </div>
             </div>
-
-            {/* Action Icons Bar with authentic Io/react-icons */}
-            <div className={`pt-2 border-t ${sc.borderDivider} grid grid-cols-4 gap-1 text-[11px] font-semibold ${sc.textSecondary}`}>
-              <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <IoThumbsUpOutline className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Like</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <IoChatbubbleOutline className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Comment</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <IoRepeat className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Repost</span>
-              </div>
-              <div className="flex items-center justify-center gap-1 py-1 rounded">
-                <IoPaperPlaneOutline className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Send</span>
-              </div>
-            </div>
           </div>
         )}
       </div>
     );
   };
 
-  return platform === "linkedin" ? renderLinkedInLayout() : renderXLayout();
+  const renderBrandLayout = () => {
+    const sc = themeStyles[theme] || themeStyles.light;
+    const isEditMode = isEditable;
+
+    const brandConfigs: Record<string, {
+      color: string;
+      icon: React.ComponentType<{ className?: string }>;
+      name: string;
+      badgeBg: string;
+      badgeBgDark: string;
+      badgeText: string;
+    }> = {
+      substack: {
+        color: "#FF6719",
+        icon: SiSubstack,
+        name: "Substack",
+        badgeBg: "bg-[#FFF0E6]",
+        badgeBgDark: "bg-[#4D1F07]",
+        badgeText: "text-[#FF6719]"
+      },
+      threads: {
+        color: "#000000",
+        icon: FaThreads,
+        name: "Threads",
+        badgeBg: "bg-[#F1F3F5]",
+        badgeBgDark: "bg-[#2A2B2D]",
+        badgeText: "text-[#1C1E21] dark:text-[#E4E6EB]"
+      },
+      medium: {
+        color: "#00AB6C",
+        icon: FaMedium,
+        name: "Medium",
+        badgeBg: "bg-[#E6F7F0]",
+        badgeBgDark: "bg-[#033E26]",
+        badgeText: "text-[#00AB6C]"
+      },
+      facebook: {
+        color: "#1877F2",
+        icon: FaFacebookF,
+        name: "Facebook",
+        badgeBg: "bg-[#E7F3FF]",
+        badgeBgDark: "bg-[#093566]",
+        badgeText: "text-[#1877F2]"
+      },
+      instagram: {
+        color: "#E1306C",
+        icon: FaInstagram,
+        name: "Instagram",
+        badgeBg: "bg-[#FFF0F5]",
+        badgeBgDark: "bg-[#4D0A23]",
+        badgeText: "text-[#E1306C]"
+      },
+      tiktok: {
+        color: "#00F2FE",
+        icon: FaTiktok,
+        name: "TikTok",
+        badgeBg: "bg-black",
+        badgeBgDark: "bg-black",
+        badgeText: "text-white"
+      },
+      youtube: {
+        color: "#FF0000",
+        icon: FaYoutube,
+        name: "YouTube",
+        badgeBg: "bg-[#FFEBEB]",
+        badgeBgDark: "bg-[#5C0000]",
+        badgeText: "text-[#FF0000]"
+      }
+    };
+
+    const config = brandConfigs[platform] || brandConfigs.substack;
+    const BrandIcon = config.icon;
+
+    return (
+      <div className="flex flex-col gap-3 h-full justify-between">
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            {/* Avatar */}
+            <div className="relative">
+              {/* Instagram Special Gradient Ring */}
+              {platform === "instagram" && (
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#FFB800] via-[#FF007A] to-[#7600E5] opacity-80 blur-[1px] animate-pulse" />
+              )}
+              {post.author.avatarUrl ? (
+                <img
+                  src={post.author.avatarUrl}
+                  alt={post.author.name}
+                  referrerPolicy="no-referrer"
+                  className="w-11 h-11 rounded-full object-cover relative z-10 border-2"
+                />
+              ) : (
+                <div
+                  style={{ backgroundColor: post.author.avatarColor }}
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm relative z-10 border-2"
+                >
+                  {isEditMode ? (
+                    <input
+                      type="text"
+                      value={post.author.avatarText}
+                      onChange={(e) => updateAuthor({ avatarText: e.target.value.substring(0, 2).toUpperCase() })}
+                      className="w-full bg-transparent text-center font-bold text-white focus:outline-none"
+                    />
+                  ) : (
+                    post.author.avatarText
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Author details */}
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                {isEditMode ? (
+                  <input
+                    type="text"
+                    value={post.author.name}
+                    onChange={(e) => updateAuthor({ name: e.target.value })}
+                    className={`font-semibold text-sm bg-transparent border-b border-dashed ${sc.borderDivider} focus:outline-none focus:border-solid w-32`}
+                  />
+                ) : (
+                  <span className={`font-semibold text-sm ${sc.textPrimary}`}>{post.author.name}</span>
+                )}
+                {post.author.isVerified && (
+                  <IoCheckmarkCircle className="w-4 h-4" style={{ color: config.color }} />
+                )}
+              </div>
+
+              {isEditMode ? (
+                <input
+                  type="text"
+                  value={post.author.username}
+                  onChange={(e) => updateAuthor({ username: e.target.value })}
+                  className={`text-xs bg-transparent border-b border-dashed ${sc.borderDivider} focus:outline-none focus:border-solid w-44 ${sc.textSecondary}`}
+                />
+              ) : (
+                <span className={`text-xs ${sc.textSecondary} line-clamp-1`}>{post.author.username}</span>
+              )}
+
+              {/* Timestamp */}
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {isEditMode ? (
+                  <input
+                    type="text"
+                    value={post.timestamp}
+                    onChange={(e) => onUpdatePost?.({ timestamp: e.target.value })}
+                    className={`text-[10px] bg-transparent border-b border-dashed ${sc.borderDivider} focus:outline-none focus:border-solid w-24 ${sc.textMuted}`}
+                  />
+                ) : (
+                  <span className={`text-[10px] ${sc.textMuted}`}>{post.timestamp}</span>
+                )}
+                <span className={`text-[10px] ${sc.textMuted}`}>•</span>
+                <span className={`px-1.5 py-0.25 text-[9px] font-bold rounded-full flex items-center gap-0.5 ${theme === 'dark' ? config.badgeBgDark : config.badgeBg} ${config.badgeText}`}>
+                  <BrandIcon className="w-2.5 h-2.5" />
+                  {config.name}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Top-Right Platform Icon */}
+          {customization.showPlatformIcon && (
+            <div className="p-1.5 rounded-full" style={{ color: config.color }}>
+              <BrandIcon className="w-5 h-5" />
+            </div>
+          )}
+        </div>
+
+        {/* Content Body */}
+        <div className="flex-grow flex flex-col justify-center">
+          {isEditMode ? (
+            <textarea
+              value={post.content.text}
+              onChange={(e) => updateContent(e.target.value)}
+              className={`w-full p-2 text-sm bg-transparent rounded border ${sc.borderDivider} focus:outline-none resize-none h-24 ${sc.textPrimary}`}
+              style={{
+                fontFamily: customization.fontFamily,
+                fontSize: `${customization.fontSize}px`,
+                textAlign: customization.textAlign as any,
+              }}
+            />
+          ) : (
+            <p
+              className={`whitespace-pre-wrap leading-relaxed text-sm ${sc.textPrimary}`}
+              style={{
+                fontFamily: customization.fontFamily,
+                fontSize: `${customization.fontSize}px`,
+                textAlign: customization.textAlign as any,
+              }}
+            >
+              {post.content.text}
+            </p>
+          )}
+
+          {/* Hashtags & Mentions */}
+          {(post.content.hashtags.length > 0 || post.content.mentions.length > 0) && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {post.content.mentions.map((mention, idx) => (
+                <span key={`mention-${idx}`} className="text-xs font-medium cursor-pointer" style={{ color: config.color }}>
+                  {mention}
+                </span>
+              ))}
+              {post.content.hashtags.map((tag, idx) => (
+                <span key={`tag-${idx}`} className="text-xs font-medium cursor-pointer" style={{ color: config.color }}>
+                  #{tag.replace(/^#/, "")}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Post Image Attachment */}
+          {post.imageUrl && (
+            <div className="mt-3 overflow-hidden rounded-xl border border-black/10 dark:border-white/10 max-h-48 flex items-center justify-center bg-black/5">
+              <img src={post.imageUrl} alt="Card preview" className="w-full h-full object-cover" />
+            </div>
+          )}
+        </div>
+
+        {/* Footer Metrics */}
+        {customization.showEngagement && (
+          <div className={`pt-2.5 mt-auto border-t ${sc.borderDivider} flex items-center justify-between text-xs`}>
+            <div className={`flex items-center gap-4 ${sc.textSecondary}`}>
+              {/* Likes */}
+              <div className="flex items-center gap-1">
+                <IoHeart className="w-4 h-4 text-red-500" />
+                {isEditMode ? (
+                  <input
+                    type="number"
+                    value={post.engagement.likes || 0}
+                    onChange={(e) => updateEngagement({ likes: parseInt(e.target.value) || 0 })}
+                    className={`w-10 px-1 py-0.5 text-xs rounded border ${sc.metricInputBg} focus:outline-none font-medium`}
+                  />
+                ) : (
+                  <span className="font-semibold">{formatCount(post.engagement.likes)}</span>
+                )}
+              </div>
+
+              {/* Comments */}
+              <div className="flex items-center gap-1">
+                <IoChatbubbleOutline className="w-4 h-4" />
+                {isEditMode ? (
+                  <input
+                    type="number"
+                    value={post.engagement.comments || 0}
+                    onChange={(e) => updateEngagement({ comments: parseInt(e.target.value) || 0 })}
+                    className={`w-10 px-1 py-0.5 text-xs rounded border ${sc.metricInputBg} focus:outline-none font-medium`}
+                  />
+                ) : (
+                  <span className="font-semibold">{formatCount(post.engagement.comments)}</span>
+                )}
+              </div>
+
+              {/* Reposts */}
+              <div className="flex items-center gap-1">
+                <IoRepeat className="w-4 h-4" />
+                {isEditMode ? (
+                  <input
+                    type="number"
+                    value={post.engagement.reposts || 0}
+                    onChange={(e) => updateEngagement({ reposts: parseInt(e.target.value) || 0 })}
+                    className={`w-10 px-1 py-0.5 text-xs rounded border ${sc.metricInputBg} focus:outline-none font-medium`}
+                  />
+                ) : (
+                  <span className="font-semibold">{formatCount(post.engagement.reposts)}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Views / Reads */}
+            {post.engagement.views !== undefined && post.engagement.views > 0 && (
+              <div className={`text-[11px] ${sc.textMuted}`}>
+                <span className="font-semibold">{formatCount(post.engagement.views)}</span> views
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  if (platform === "linkedin") {
+    return renderLinkedInLayout();
+  }
+  if (platform === "x") {
+    return renderXLayout();
+  }
+  return renderBrandLayout();
 };

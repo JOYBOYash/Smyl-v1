@@ -91,21 +91,15 @@ export const RESOURCES_ITEMS: NavItem[] = [
     iconName: "BookOpen"
   },
   {
-    label: "FAQ",
+    label: "Help",
     description: "Answers to common questions",
-    href: "/faq",
-    iconName: "MessageCircle"
+    href: "/help",
+    iconName: "HelpCircle"
   },
   {
     label: "Blog",
     description: "Guides, tutorials & updates",
     href: "/blog",
     iconName: "Rss"
-  },
-  {
-    label: "Guides",
-    description: "Mastering social share visual design",
-    href: "/guides",
-    iconName: "Award"
   }
 ];

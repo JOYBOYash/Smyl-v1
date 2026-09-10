@@ -22,7 +22,7 @@ export const MarketingNavbar: React.FC<MarketingNavbarProps> = ({ onTriggerAuth 
   const isToolsActive = location.pathname.startsWith("/tools");
   const isSolutionsActive = location.pathname.startsWith("/for");
   const isResourcesActive = location.pathname.startsWith("/blog") || 
-                           ["/how-it-works", "/pricing", "/faq"].includes(location.pathname);
+                           ["/how-it-works", "/pricing", "/help", "/examples"].includes(location.pathname);
 
   // Close dropdowns and mobile menu on location changes
   useEffect(() => {
