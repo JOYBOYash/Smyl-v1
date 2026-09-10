@@ -357,9 +357,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
 
           {/* Security & Promise Indicators */}
           <div className="pt-2 text-[11px] font-semibold text-[#8D959F] flex flex-wrap items-center justify-center gap-2.5">
-            <span>Free forever</span>
+            <span>Free to use</span>
             <span className="text-[#C2C9D1]">|</span>
             <span>No credit card required</span>
+            <span className="text-[#C2C9D1]">|</span>
+            <span>Share with Style</span>
           </div>
         </div>
 
