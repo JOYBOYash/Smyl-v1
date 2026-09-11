@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { IoSettingsOutline } from "react-icons/io5";
-import { ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight, Check, X, ChevronDown } from "lucide-react";
 
 interface PricingPlan {
   id: "free" | "creator" | "pro" | "lifetime";
@@ -24,6 +24,7 @@ export const PricingPage: React.FC = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState<boolean>(false);
+  const [openPricingFaqIndex, setOpenPricingFaqIndex] = useState<number | null>(0);
 
   const plans: PricingPlan[] = [
     {
@@ -420,33 +421,67 @@ export const PricingPage: React.FC = () => {
         </div>
 
         {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto border-t border-[#E1E5E9] pt-16">
-          <h2 className="text-2xl font-bold text-[#17191C] text-center mb-8">Frequently Asked Questions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <div>
-              <h3 className="font-bold text-sm text-[#17191C] mb-2">Can I cancel my subscription?</h3>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                Yes, absolutely. You can cancel your subscription at any time instantly through your self-service customer billing portal. You will retain access until the end of your billing cycle.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-sm text-[#17191C] mb-2">Is there a refund policy?</h3>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                We offer a 14-day money-back guarantee for all subscription plans if you are unsatisfied with the features. Just drop us an email via support.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-sm text-[#17191C] mb-2">What happens to my assets if I downgrade?</h3>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                Your existing saved cards, shortened links, and link hubs will remain completely active and operational. However, you will only be able to create new assets once your totals fall below your downgraded plan limits.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-sm text-[#17191C] mb-2">Is payment processing secure?</h3>
-              <p className="text-xs text-[#626A73] leading-relaxed">
-                Extremely secure. All payments are processed through Dodo Payments, a premier global Merchant of Record. We never store or handle your credit card credentials directly.
-              </p>
-            </div>
+        <div className="max-w-3xl mx-auto border-t border-[#E1E5E9] pt-16 text-left">
+          <div className="text-center mb-10">
+            <span className="text-[11px] font-extrabold tracking-widest text-[#0145F2] uppercase bg-[#E8EEFF] px-3.5 py-1.5 rounded-full inline-block mb-3">
+              BILLING FAQ
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] tracking-tight mb-3">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-[#626A73] text-sm leading-relaxed">
+              Find instant answers to common questions about billing, subscriptions, downgrades, and payment safety.
+            </p>
+          </div>
+
+          <div className="bg-white border border-[#E1E5E9] rounded-2xl overflow-hidden shadow-xs divide-y divide-[#ECEEF1]">
+            {[
+              {
+                q: "Can I cancel my subscription?",
+                a: "Yes, absolutely. You can cancel your subscription at any time instantly through your self-service customer billing portal. You will retain access until the end of your billing cycle."
+              },
+              {
+                q: "Is there a refund policy?",
+                a: "We offer a 14-day money-back guarantee for all subscription plans if you are unsatisfied with the features. Just drop us an email via support."
+              },
+              {
+                q: "What happens to my assets if I downgrade?",
+                a: "Your existing saved cards, shortened links, and link hubs will remain completely active and operational. However, you will only be able to create new assets once your totals fall below your downgraded plan limits."
+              },
+              {
+                q: "Is payment processing secure?",
+                a: "Extremely secure. All payments are processed through Dodo Payments, a premier global Merchant of Record. We never store or handle your credit card credentials directly."
+              }
+            ].map((faq, index) => {
+              const isOpen = openPricingFaqIndex === index;
+              return (
+                <div key={index} className="group">
+                  <button
+                    type="button"
+                    onClick={() => setOpenPricingFaqIndex(isOpen ? null : index)}
+                    className="w-full py-4.5 px-6 sm:px-8 flex items-center justify-between text-[#17191C] hover:text-[#0145F2] font-bold text-sm sm:text-base transition-colors cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown className={`w-4 h-4 shrink-0 text-[#8D959F] transition-transform duration-200 ${isOpen ? "rotate-180 text-[#0145F2]" : ""}`} />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-5 px-6 sm:px-8 text-xs sm:text-sm text-[#626A73] leading-relaxed font-normal whitespace-pre-line">
+                          {faq.a}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

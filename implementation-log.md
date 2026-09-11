@@ -1,6 +1,39 @@
 ## 2026-09-11
 
 ### Request
+Synchronize plan feature sets and descriptions between the Landing Page and the actual Pricing page, and implement per-page FAQ sections tailored specifically to each page/section's context.
+
+### Analysis
+- Synchronized Feature Lists: Normalised plan feature sets and tier descriptions in `LandingPage.tsx` to match `PricingPage.tsx` exactly, avoiding customer confusion.
+- Per-Page FAQ sections:
+  1. Built a collapsible, interactive FAQ section in `LandingPage.tsx` focused on general social sharing, post cards, short URLs, and watermark-free exports.
+  2. Built a collapsible, interactive FAQ section in `ExamplesPage.tsx` focusing on using, customizing, and saving templates.
+  3. Upgraded the static FAQ grid in `PricingPage.tsx` to the same silky-smooth interactive collapsible accordion focused on billing, refunds, and payment safety.
+- Transition and Chevron Animations: Standardized collapsible chevron rotation and framer-motion height collapses across all FAQ accordions.
+
+### Implementation
+- Updated `/src/components/LandingPage.tsx` with synced plans copy and the new Landing FAQ block.
+- Updated `/src/components/ExamplesPage.tsx` with imported motion/lucide icons and template-specific FAQ block.
+- Updated `/src/components/PricingPage.tsx` with imported motion/lucide icons and upgraded Billing FAQ accordions.
+
+### Security
+- Verified safe client-side layout transitions and state isolation.
+
+### Files Changed
+- `/src/components/LandingPage.tsx`
+- `/src/components/ExamplesPage.tsx`
+- `/src/components/PricingPage.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Ran linter checking types (`lint_applet`) and production compilation (`compile_applet`) successfully with zero errors.
+
+### Result
+Completed
+
+## 2026-09-11
+
+### Request
 Refactor the Pricing Page and Landing Page to adhere strictly to the Design System. Remove non-compliant colors (e.g. indigo, slate-900 backgrounds, purple, emerald) and elevate elements appropriately using only the theme's core primary brand color (#0145F2) and elegant neutrals.
 
 ### Analysis

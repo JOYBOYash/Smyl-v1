@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Eye, Copy, Award, ShieldAlert } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Eye, Copy, Award, ShieldAlert, ChevronDown } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface PresetExample {
   id: string;
@@ -24,6 +25,7 @@ interface PresetExample {
 export const ExamplesPage: React.FC = () => {
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [openExamplesFaqIndex, setOpenExamplesFaqIndex] = useState<number | null>(0);
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -233,6 +235,71 @@ export const ExamplesPage: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* EXAMPLES / TEMPLATE FAQ SECTION */}
+        <div className="mt-20 max-w-3xl mx-auto text-left">
+          <div className="text-center mb-10">
+            <span className="text-[11px] font-extrabold tracking-widest text-[#0145F2] uppercase bg-[#E8EEFF] px-3.5 py-1.5 rounded-full inline-block mb-3">
+              TEMPLATE GUIDES
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#17191C] tracking-tight mb-3">
+              Design & Preset Templates FAQ
+            </h2>
+            <p className="text-[#626A73] text-sm leading-relaxed">
+              Have questions about using, customizing, or saving these social sharing layout templates? We have answers.
+            </p>
+          </div>
+
+          <div className="bg-white border border-[#E1E5E9] rounded-2xl overflow-hidden shadow-xs divide-y divide-[#ECEEF1]">
+            {[
+              {
+                q: "How do I load one of these templates into the workspace?",
+                a: "Simply click the 'Use Template' button on any card. This will instantly import the exact layout configuration, font families, custom colors, backgrounds, and sample structure into the primary generator, ready for your custom text."
+              },
+              {
+                q: "Can I customize a template after importing it?",
+                a: "Yes, absolutely! Templates act as creative launching pads. Once imported, you can modify the text content, switch themes, choose different fonts, adjust canvas backdrops, edit engagement metrics, or toggle verification status at any time."
+              },
+              {
+                q: "Are the avatars and handles in the templates real profiles?",
+                a: "No. The handles, names, and images displayed in the templates are premium placeholders designed to showcase how different aesthetic layouts accommodate various types of text length, line breaks, and formatting options."
+              },
+              {
+                q: "Is it possible to save my own customized templates?",
+                a: "Yes. If you are signed in, any card design you customize and export is automatically stored in your personal design library, allowing you to quickly reuse and iterate on your templates in future sessions."
+              }
+            ].map((faq, index) => {
+              const isOpen = openExamplesFaqIndex === index;
+              return (
+                <div key={index} className="group">
+                  <button
+                    type="button"
+                    onClick={() => setOpenExamplesFaqIndex(isOpen ? null : index)}
+                    className="w-full py-4.5 px-6 sm:px-8 flex items-center justify-between text-left text-[#17191C] hover:text-[#0145F2] font-bold text-sm sm:text-base transition-colors cursor-pointer"
+                  >
+                    <span>{faq.q}</span>
+                    <ChevronDown className={`w-4 h-4 shrink-0 text-[#8D959F] transition-transform duration-200 ${isOpen ? "rotate-180 text-[#0145F2]" : ""}`} />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-5 px-6 sm:px-8 text-xs sm:text-sm text-[#626A73] leading-relaxed font-normal whitespace-pre-line">
+                          {faq.a}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
       </div>

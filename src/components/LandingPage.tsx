@@ -100,6 +100,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
   const [selectedBg, setSelectedBg] = useState<CanvasBackground>("gradient-ocean");
   const [isDirectEdit, setIsDirectEdit] = useState(false);
   const [isHeroBgDropdownOpen, setIsHeroBgDropdownOpen] = useState(false);
+  const [openLandingFaqIndex, setOpenLandingFaqIndex] = useState<number | null>(0);
 
   // Mouse tracking state for sleek responsive background blur
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -1068,7 +1069,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   </li>
                   <li className="flex items-start gap-1">
                     <span className="mr-1 font-bold text-[#0145F2]">—</span>
-                    <span>1 customized Link Hub</span>
+                    <span>10 Open Graph inspections / mo</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>3 high-speed screenshots / mo</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>1 customized Link Hub profile</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Standard community support</span>
                   </li>
                 </ul>
               </div>
@@ -1090,7 +1103,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                 <div className="mb-4">
                   <h3 className="text-base font-extrabold tracking-tight text-[#17191C]">Creator Tier</h3>
                   <p className="text-xs text-[#626A73] mt-2 leading-relaxed min-h-[34px]">
-                    Perfect for active content creators seeking beautiful design options.
+                    Perfect for active creators seeking extended limits.
                   </p>
                 </div>
                 <div className="flex items-baseline mb-5 border-b border-gray-100 pb-5">
@@ -1112,7 +1125,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   </li>
                   <li className="flex items-start gap-1">
                     <span className="mr-1 font-bold text-[#0145F2]">—</span>
-                    <span>5 customized Link Hubs</span>
+                    <span>100 Open Graph inspections / mo</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>25 high-speed screenshots / mo</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>5 customized Link Hub profiles</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Watermark-free exports</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Direct email priority support</span>
                   </li>
                 </ul>
               </div>
@@ -1131,7 +1160,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                 <div className="mb-4">
                   <h3 className="text-base font-extrabold tracking-tight text-[#17191C]">Pro Professional</h3>
                   <p className="text-xs text-[#626A73] mt-2 leading-relaxed min-h-[34px]">
-                    For agencies and power builders requiring absolute utility depth.
+                    For marketers and agencies requiring absolute utility depth.
                   </p>
                 </div>
                 <div className="flex items-baseline mb-5 border-b border-gray-100 pb-5">
@@ -1153,7 +1182,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   </li>
                   <li className="flex items-start gap-1">
                     <span className="mr-1 font-bold text-[#0145F2]">—</span>
-                    <span>20 customized Link Hubs</span>
+                    <span>500 Open Graph inspections / mo</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>100 high-speed screenshots / mo</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>20 customized Link Hub profiles</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Watermark-free + Custom branding</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Priority 24/7 client support</span>
                   </li>
                 </ul>
               </div>
@@ -1172,7 +1217,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                 <div className="mb-4">
                   <h3 className="text-base font-extrabold tracking-tight text-[#17191C]">Lifetime License</h3>
                   <p className="text-xs text-[#626A73] mt-2 leading-relaxed min-h-[34px]">
-                    Pay once. Access everything forever. No recurring subscription fees.
+                    Access everything forever. No recurring subscription fees.
                   </p>
                 </div>
                 <div className="flex items-baseline mb-5 border-b border-gray-100 pb-5">
@@ -1182,7 +1227,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                 <ul className="space-y-3 mb-6 text-[11px] text-gray-700">
                   <li className="flex items-start gap-1">
                     <span className="mr-1 font-bold text-[#0145F2]">—</span>
-                    <span>Unlimited card designs</span>
+                    <span>Unlimited saved card designs</span>
                   </li>
                   <li className="flex items-start gap-1">
                     <span className="mr-1 font-bold text-[#0145F2]">—</span>
@@ -1194,7 +1239,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
                   </li>
                   <li className="flex items-start gap-1">
                     <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Unlimited Open Graph inspections</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Unlimited high-speed screenshots</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
                     <span>Unlimited Link Hub profiles</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Custom branding & domains</span>
+                  </li>
+                  <li className="flex items-start gap-1">
+                    <span className="mr-1 font-bold text-[#0145F2]">—</span>
+                    <span>Dedicated elite support channels</span>
                   </li>
                 </ul>
               </div>
@@ -1218,6 +1279,75 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             </Link>
           </div>
 
+        </div>
+      </section>
+
+      {/* SECTION 08.7 — LANDING PAGE FAQ */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto border-t border-[#E1E5E9]/60 text-left">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <span className="text-[11px] font-extrabold tracking-widest text-[#0145F2] uppercase bg-[#E8EEFF] px-3.5 py-1.5 rounded-full inline-block mb-4">
+            COMMON QUESTIONS
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17191C] tracking-tight mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-[#626A73] text-sm sm:text-base leading-relaxed">
+            Everything you need to know about Smyl's visual-sharing platform and features.
+          </p>
+        </div>
+
+        <div className="bg-white border border-[#E1E5E9] rounded-3xl overflow-hidden shadow-xs divide-y divide-[#ECEEF1]">
+          {[
+            {
+              q: "What makes Smyl different from other link-sharing tools?",
+              a: "Smyl is an editorial-first workspace that integrates post card design, URL shortening, QR code generation, metadata inspection, and analytics in a single, watermark-free experience. Instead of basic text links, Smyl transforms your content into professional visual assets optimized for social platforms."
+            },
+            {
+              q: "How do the post card design templates boost my feed engagement?",
+              a: "By auto-formatting spacing, typography, borders, and margins mathematically, Smyl ensures your cards stand out instantly on busy feeds like LinkedIn and X. Visual-first content averages up to 3x higher click-through rates compared to plain text shares."
+            },
+            {
+              q: "Can I use shortened links on any social media network?",
+              a: "Absolutely. Our link shortener generates clean, ultra-fast redirects perfect for X (Twitter), LinkedIn, Instagram bios, YouTube descriptions, or email campaigns. Every link captures real-time geographic and platform click analytics without privacy-invasive tracking cookies."
+            },
+            {
+              q: "How do custom QR codes help with physical or offline marketing?",
+              a: "You can generate customizable, high-resolution vector QR codes linked to your social profiles or landing pages. Perfect for business cards, banners, product packaging, and offline events."
+            },
+            {
+              q: "Is there really no watermark on free exports?",
+              a: "Yes. Smyl provides completely white-label exports on our Free Baseline plan. There are no forced branding elements or logos superimposed onto your cards, allowing you to maintain absolute brand identity."
+            }
+          ].map((faq, index) => {
+            const isOpen = openLandingFaqIndex === index;
+            return (
+              <div key={index} className="group">
+                <button
+                  type="button"
+                  onClick={() => setOpenLandingFaqIndex(isOpen ? null : index)}
+                  className="w-full py-5 px-6 sm:px-8 flex items-center justify-between text-left text-[#17191C] hover:text-[#0145F2] font-bold text-sm sm:text-base transition-colors cursor-pointer"
+                >
+                  <span>{faq.q}</span>
+                  <ChevronDown className={`w-4 h-4 shrink-0 text-[#8D959F] transition-transform duration-200 ${isOpen ? "rotate-180 text-[#0145F2]" : ""}`} />
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pb-6 px-6 sm:px-8 text-xs sm:text-sm text-[#626A73] leading-relaxed font-normal whitespace-pre-line">
+                        {faq.a}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
       </section>
 
