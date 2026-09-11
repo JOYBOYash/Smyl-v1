@@ -746,11 +746,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           {/* UTILITY 01 — Link Shortener */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Visual on Left */}
-            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+            <div className="lg:col-span-6 w-full flex items-center justify-center overflow-hidden">
               <img
                 src="/assets/landing/4_link-shorten.webp"
                 alt="Link Shortener"
-                className="w-full h-auto rounded-xl object-cover"
+                className="w-full h-auto object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -795,11 +795,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
               </div>
             </div>
             {/* Visual on Right */}
-            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+            <div className="order-1 lg:order-2 lg:col-span-6 w-full flex items-center justify-center overflow-hidden">
               <img
                 src="/assets/landing/5_qr-gen.webp"
                 alt="QR Code Generator"
-                className="w-full h-auto rounded-xl object-cover"
+                className="w-full h-auto object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -808,11 +808,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           {/* UTILITY 03 — Link Preview */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Visual on Left */}
-            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+            <div className="lg:col-span-6 w-full flex items-center justify-center overflow-hidden">
               <img
                 src="/assets/landing/6_link-preview.webp"
                 alt="Link Preview"
-                className="w-full h-auto rounded-xl object-cover"
+                className="w-full h-auto object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -857,11 +857,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
               </div>
             </div>
             {/* Visual on Right */}
-            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+            <div className="order-1 lg:order-2 lg:col-span-6 w-full flex items-center justify-center overflow-hidden">
               <img
                 src="/assets/landing/7_link-inspect.webp"
                 alt="Open Graph Debugger"
-                className="w-full h-auto rounded-xl object-cover"
+                className="w-full h-auto object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -870,11 +870,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
           {/* UTILITY 05 — UTM Builder */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Visual on Left */}
-            <div className="lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+            <div className="lg:col-span-6 w-full flex items-center justify-center overflow-hidden">
               <img
                 src="/assets/landing/8_utm-link.webp"
                 alt="UTM Link Builder"
-                className="w-full h-auto rounded-xl object-cover"
+                className="w-full h-auto object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -919,11 +919,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
               </div>
             </div>
             {/* Visual on Right */}
-            <div className="order-1 lg:order-2 lg:col-span-6 w-full bg-[#EDF1F5] rounded-2xl p-2 border border-[#E1E5E9]/70 overflow-hidden shadow-xs">
+            <div className="order-1 lg:order-2 lg:col-span-6 w-full flex items-center justify-center overflow-hidden">
               <img
                 src="/assets/landing/9_link-hub.webp"
                 alt="Link Hub"
-                className="w-full h-auto rounded-xl object-cover"
+                className="w-full h-auto object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
