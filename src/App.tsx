@@ -46,8 +46,10 @@ import { TermsOfService } from "./components/TermsOfService";
 import { HowItWorksPage } from "./components/HowItWorksPage";
 import { ExamplesPage } from "./components/ExamplesPage";
 import { HelpPage } from "./components/HelpPage";
+import { PricingPage } from "./components/PricingPage";
+import { BillingCallbackPage } from "./components/BillingCallbackPage";
 import { ErrorBoundary, NotFoundPage } from "./components/ErrorPages";
-import { parsePostClientFallback } from "./utils/parser";
+import { parsePostClientFallback, isLoginWalledSocialUrl, parseRawTextDeterministic, parseMetadataToPost } from "./utils/parser";
 import { toPng } from "html-to-image";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -802,50 +804,67 @@ export const App: React.FC = () => {
     }
   };
 
-  // Parse post via Server-Side Gemini endpoint with seamless client fallback & progress modal
+  // Parse post via deterministic parsing with fallback & progress modal
   const handleParsePost = async () => {
     if (!pastedContent.trim()) {
       setErrorMsg("Please paste a post link or content first.");
       return;
     }
 
-    const lower = pastedContent.toLowerCase();
-    if (lower.includes("linkedin.com") || lower.includes("lnkd.in")) {
-      setCustomization((prev) => ({ ...prev, platform: "linkedin" }));
-      setPost((prev) => ({ ...prev, platform: "linkedin" }));
-    } else if (lower.includes("twitter.com") || lower.includes("x.com")) {
-      setCustomization((prev) => ({ ...prev, platform: "x" }));
-      setPost((prev) => ({ ...prev, platform: "x" }));
-    }
-
+    const trimmedInput = pastedContent.trim();
     setIsParsing(true);
     setErrorMsg(null);
 
     try {
-      const parsed: ParsedPost = await apiClient.post("/api/parse-post", { content: pastedContent });
-      setPost(parsed);
-      setCustomization((prev) => ({
-        ...prev,
-        platform: parsed.platform,
-      }));
-      setSuccessMsg("Parsed and loaded post layout!");
-      setPastedContent("");
-    } catch (err: any) {
-      // Fallback to client parser on network or parsing error
-      try {
-        const fallbackResult = parsePostClientFallback(pastedContent);
-        setPost(fallbackResult.post);
-        if (fallbackResult.customizationPartial) {
+      // 1. Check if the input is a standalone URL
+      const isUrl = /^https?:\/\/[^\s]+$/i.test(trimmedInput);
+
+      if (isUrl) {
+        // 2. Check if the URL is a login-walled social platform
+        if (isLoginWalledSocialUrl(trimmedInput)) {
+          throw new Error(
+            "Social media posts from LinkedIn, X/Twitter, Threads, Facebook, Instagram, or TikTok cannot be scraped directly due to login walls. Please copy and paste the post's text content directly instead!"
+          );
+        }
+
+        // 3. For non-walled URLs (e.g. Substack, Medium, YouTube, or blogs), use metadata extractor
+        try {
+          const meta = await apiClient.post("/api/utilities/link-preview", { url: trimmedInput });
+          if (!meta || (!meta.title && !meta.description)) {
+            throw new Error("We couldn't retrieve the content text from this URL. Please copy and paste the post's text content directly instead!");
+          }
+          const parsed = parseMetadataToPost(trimmedInput, meta);
+          setPost(parsed);
           setCustomization((prev) => ({
             ...prev,
-            ...fallbackResult.customizationPartial,
+            platform: parsed.platform,
           }));
+          setSuccessMsg("Scraped and loaded article metadata verbatim!");
+          setPastedContent("");
+        } catch (fetchErr: any) {
+          throw new Error(
+            fetchErr.message ||
+              "Failed to retrieve metadata from URL. Please copy and paste the post's text content directly instead!"
+          );
         }
-        setSuccessMsg("Parsed and loaded post layout!");
+      } else {
+        // 4. For raw text inputs, parse deterministically and preserve everything verbatim
+        const parsed = parseRawTextDeterministic(
+          trimmedInput,
+          customization.platform,
+          profile?.display_name || undefined,
+          profile?.username ? `@${profile.username}` : undefined
+        );
+        setPost(parsed);
+        setCustomization((prev) => ({
+          ...prev,
+          platform: parsed.platform,
+        }));
+        setSuccessMsg("Loaded pasted content verbatim into card layout!");
         setPastedContent("");
-      } catch (fallbackErr) {
-        setErrorMsg("Failed to parse post. Please check the link or content.");
       }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to parse post. Please check the link or content.");
     } finally {
       // Minimum duration for the progress animation to feel smooth
       setTimeout(() => {
@@ -900,6 +919,17 @@ export const App: React.FC = () => {
     if (!user) {
       setErrorMsg("You must sign in to save templates.");
       setIsAuthModalOpen(true);
+      return;
+    }
+
+    const userPlan = profile?.plan || "free";
+    const currentCardCount = history.length;
+
+    if (userPlan === "free" && currentCardCount >= 3) {
+      setErrorMsg("Free plan limit reached: you can only save up to 3 cards. Upgrade to Creator or Pro to save more templates!");
+      return;
+    } else if (userPlan === "creator" && currentCardCount >= 20) {
+      setErrorMsg("Creator plan limit reached: you can only save up to 20 cards. Upgrade to Pro to save unlimited templates!");
       return;
     }
 
@@ -2170,6 +2200,8 @@ export const App: React.FC = () => {
             <Route path="/examples" element={<ExamplesPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/faq" element={<Navigate to="/help" replace />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/billing/callback" element={<BillingCallbackPage />} />
 
             <Route path="/customize" element={<Navigate to="/tools/post-card-studio" replace />} />
             <Route path="/link-shortener" element={<Navigate to="/tools/link-shortener" replace />} />

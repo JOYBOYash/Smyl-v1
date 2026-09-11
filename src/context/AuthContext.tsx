@@ -12,6 +12,11 @@ export interface UserProfile {
   onboarding_completed: boolean;
   created_at?: string;
   updated_at?: string;
+  plan?: string;
+  customer_id?: string | null;
+  subscription_id?: string | null;
+  subscription_status?: string | null;
+  plan_expires_at?: string | null;
 }
 
 interface AuthContextType {
@@ -59,6 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       bio: "",
       avatar_path: rawMeta.avatar_url || rawMeta.picture || null,
       onboarding_completed: false,
+      plan: "free",
+      customer_id: null,
+      subscription_id: null,
+      subscription_status: "inactive",
+      plan_expires_at: null,
     };
 
     if (!isSupabaseConfigured) {

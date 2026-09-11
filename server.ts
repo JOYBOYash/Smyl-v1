@@ -1,7 +1,7 @@
 import express from "express";
+import crypto from "crypto";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import dns from "dns";
 import { promisify } from "util";
@@ -325,22 +325,11 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT);
 
-  app.use(express.json());
-
-  // Initialize Gemini
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.warn("WARNING: GEMINI_API_KEY environment variable is not set. API calls will fail.");
-  }
-
-  const ai = new GoogleGenAI({
-    apiKey: apiKey || "",
-    httpOptions: {
-      headers: {
-        "User-Agent": "aistudio-build",
-      },
-    },
-  });
+  app.use(express.json({
+    verify: (req: any, res, buf) => {
+      req.rawBody = buf.toString();
+    }
+  }));
 
   // Apply Concurrency Limiter globally to all API routes
   app.use("/api", concurrencyLimiter);
@@ -478,6 +467,35 @@ async function startServer() {
 
       // Authenticate user via request-scoped helper
       const { userId, client: requestClient } = await getAuthenticatedUserContext(req);
+
+      // Server-Enforced Pricing Entitlement: Enforce 5-link limit for free plan
+      if (userId) {
+        try {
+          const { data: profileData } = await adminClient
+            .from("profiles")
+            .select("plan")
+            .eq("id", userId)
+            .maybeSingle();
+
+          const userPlan = profileData?.plan || "free";
+
+          if (userPlan === "free") {
+            const { count, error: countErr } = await adminClient
+              .from("short_links")
+              .select("id", { count: "exact", head: true })
+              .eq("user_id", userId);
+
+            if (!countErr && count !== null && count >= 5) {
+              return res.status(403).json({
+                error: "Free plan limit reached: you can only shorten up to 5 links. Upgrade to Creator or Pro to create unlimited shortened links!",
+                limitHit: true
+              });
+            }
+          }
+        } catch (planErr) {
+          console.error("Failed to check pricing plan entitlements:", planErr);
+        }
+      }
 
       // Perform a lookup to guarantee uniqueness of the custom slug
       let existing: any = null;
@@ -858,139 +876,296 @@ async function startServer() {
     }
   });
 
-  // Parse post API using Gemini
-  app.post("/api/parse-post", utilitiesRateLimiter, async (req, res) => {
+  // ==========================================
+  // DODO PAYMENTS & BILLING SYSTEM ENDPOINTS
+  // ==========================================
+
+  function verifyDodoWebhook(req: any, rawBody: string, webhookSecret: string): boolean {
+    const webhookId = req.headers["webhook-id"] as string;
+    const webhookTimestamp = req.headers["webhook-timestamp"] as string;
+    const webhookSignature = req.headers["webhook-signature"] as string;
+
+    if (!webhookId || !webhookTimestamp || !webhookSignature) {
+      return false;
+    }
+
+    // Construct message: id.timestamp.body
+    const message = `${webhookId}.${webhookTimestamp}.${rawBody}`;
+
+    // Compute HMAC SHA256 signature
+    const hmac = crypto.createHmac("sha256", webhookSecret);
+    hmac.update(message);
+    const computedSignature = hmac.digest("hex");
+
     try {
-      const { content } = req.body;
-      if (!content || typeof content !== "string" || content.trim().length === 0) {
-        return res.status(400).json({ error: "Post content or URL is required." });
+      return crypto.timingSafeEqual(
+        Buffer.from(computedSignature, "hex"),
+        Buffer.from(webhookSignature, "hex")
+      );
+    } catch (err) {
+      return false;
+    }
+  }
+
+  // Create Dodo Payments checkout session
+  app.post("/api/billing/checkout", apiRateLimiter, async (req: any, res) => {
+    try {
+      const { plan } = req.body;
+      if (!plan || !["creator", "pro", "lifetime"].includes(plan)) {
+        return res.status(400).json({ error: "Invalid plan selected. Choose 'creator', 'pro', or 'lifetime'." });
       }
 
-      const trimmedContent = content.trim();
-      if (trimmedContent.length > 5000) {
-        return res.status(400).json({ error: "Post content exceeds maximum length of 5000 characters." });
+      // 1. Get authenticated user
+      const { userId } = await getAuthenticatedUserContext(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required to initiate billing checkout." });
       }
 
-      let scrapedMetadata = "";
+      // Fetch user profile info
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("display_name, username")
+        .eq("id", userId)
+        .maybeSingle();
 
-      // If it's a standalone URL, attempt to scrape OpenGraph title and description via hardened service
-      const isSingleUrl = /^https?:\/\/[^\s]+$/i.test(trimmedContent);
-      if (isSingleUrl) {
-        try {
-          const meta = await extractLinkMetadata(trimmedContent);
-          if (meta && (meta.title || meta.description)) {
-            const site = meta.siteName || "";
-            const title = meta.title || "";
-            const desc = meta.description || "";
-            scrapedMetadata = `\nScraped Webpage Metadata:\nSite: ${site}\nTitle: ${title}\nDescription: ${desc}\n`;
-          }
-        } catch (scrapeErr) {
-          // Graceful fallback if scraping fails
-        }
+      // Retrieve user auth email
+      const { data: { user } } = await adminClient.auth.admin.getUserById(userId);
+      const email = user?.email || "";
+      const name = profile?.display_name || profile?.username || "Smyl User";
+
+      // 2. Select product ID
+      let productId = "";
+      if (plan === "creator") {
+        productId = process.env.DODO_CREATOR_PRODUCT_ID || "pdp_creator_placeholder";
+      } else if (plan === "pro") {
+        productId = process.env.DODO_PRO_PRODUCT_ID || "pdp_pro_placeholder";
+      } else if (plan === "lifetime") {
+        productId = process.env.DODO_LIFETIME_PRODUCT_ID || "pdp_lifetime_placeholder";
       }
 
-      const prompt = `You are an expert social media post parser. Analyze the following pasted content, draft, or URL and extract all details to render an authentic social media card.
+      // 3. Make request to Dodo Payments API
+      const apiKey = process.env.DODO_API_KEY || "test_dodo_api_key_placeholder";
+      const isLive = process.env.NODE_ENV === "production" && !apiKey.startsWith("test_");
+      const dodoBaseUrl = isLive ? "https://live.dodopayments.com" : "https://test.dodopayments.com";
 
-SUPPORTED PLATFORMS:
-'x', 'linkedin', 'substack', 'threads', 'medium', 'facebook', 'instagram', 'tiktok', 'youtube'
+      const origin = req.headers.origin || `http://localhost:3000`;
+      const returnUrl = `${origin}/billing/callback?session_id={checkout_id}`;
 
-CRITICAL INSTRUCTIONS:
-1. PRESERVE USER TEXT VERBATIM: If the user provides actual post text, paragraphs, announcements, thoughts, or draft messages (even if it contains links, URLs, hashtags, or emojis), YOU MUST PUT THE USER'S EXACT PROVIDED TEXT into 'content.text'. DO NOT REPLACE OR PARAPHRASE IT. DO NOT GENERATE RANDOM FICTIONAL TEXT.
-2. If the user provided ONLY a single URL (and no other text):
-   - Use your search tool to find the actual public post, tweet, article, newsletter, or video content of this URL.
-   - Do NOT use generic fallback placeholders like 'LinkedIn User' or login page titles if you can retrieve or construct the true contents. Reconstruct the actual author's name, username/headline, actual body text, correct platform, and correct image URL.
-   - Extract the platform from the URL (e.g. substack.com -> 'substack'; threads.net -> 'threads'; medium.com -> 'medium'; facebook.com -> 'facebook'; instagram.com -> 'instagram'; tiktok.com -> 'tiktok'; youtube.com -> 'youtube'; x.com/twitter.com -> 'x'; linkedin.com -> 'linkedin').
-3. Platform Determination:
-   - Carefully set the platform field to the correct one of the supported platform values based on the URL domain or text content format.
-4. Author & Engagement Calculation:
-   - Retrieve or estimate realistic author details (name, handle/title) and engagement metrics (likes, reactions, reposts, comments, views) or timestamps. If no engagement counts are explicitly known, provide realistic popular values for that public post or default them.
+      const response = await fetch(`${dodoBaseUrl}/v1/checkouts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          product_cart: [
+            {
+              product_id: productId,
+              quantity: 1
+            }
+          ],
+          customer: {
+            email: email,
+            name: name
+          },
+          metadata: {
+            userId: userId,
+            plan: plan
+          },
+          return_url: returnUrl
+        })
+      });
 
-User Input:
-"""
-${trimmedContent}
-"""
-${scrapedMetadata}`;
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Dodo Payments checkout creation API failed:", errorText);
+        return res.status(response.status).json({ error: `Dodo Payments error: ${errorText}` });
+      }
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3.8-flash",
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              platform: {
-                type: Type.STRING,
-                description: "The platform of the post: 'x', 'linkedin', 'substack', 'threads', 'medium', 'facebook', 'instagram', 'tiktok', or 'youtube'.",
-              },
-              author: {
-                type: Type.OBJECT,
-                description: "The author information.",
-                properties: {
-                  name: { type: Type.STRING, description: "Full name of the author." },
-                  username: { type: Type.STRING, description: "Handle/headline/username representing the author on that platform." },
-                  isVerified: { type: Type.BOOLEAN, description: "Whether the author is verified." },
-                  avatarColor: { type: Type.STRING, description: "A beautiful Hex color code (e.g. #0145F2) that represents the avatar background if we generate an initial." },
-                  avatarText: { type: Type.STRING, description: "1-2 uppercase characters representing the author's initials." }
-                },
-                required: ["name", "username", "isVerified", "avatarColor", "avatarText"]
-              },
-              content: {
-                type: Type.OBJECT,
-                description: "The post contents.",
-                properties: {
-                  text: { type: Type.STRING, description: "The core text of the post. Preserve newlines, spacing, emojis, and formatting. Strip out raw platform metadata like '1d ago' or 'Likes: 100'." },
-                  hashtags: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: "Any hashtags extracted from the post (e.g. ['TypeScript', 'AI'])."
-                  },
-                  mentions: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: "Any handles or profiles mentioned."
-                  },
-                  links: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: "Any URLs/links present inside the post text."
-                  }
-                },
-                required: ["text", "hashtags", "mentions", "links"]
-              },
-              timestamp: { type: Type.STRING, description: "The post timestamp or relative time. e.g., '10:30 AM · Aug 24, 2026' or '2h ago'." },
-              engagement: {
-                type: Type.OBJECT,
-                description: "Engagement metrics.",
-                properties: {
-                  likes: { type: Type.INTEGER, description: "Number of likes/reactions." },
-                  comments: { type: Type.INTEGER, description: "Number of comments." },
-                  reposts: { type: Type.INTEGER, description: "Number of reposts/shares." },
-                  views: { type: Type.INTEGER, description: "Number of views (optional/default to 0)." }
-                },
-                required: ["likes", "comments", "reposts"]
-              },
-              imageUrl: {
-                type: Type.STRING,
-                description: "A relevant OpenGraph image URL or article image URL if available, or empty if none."
-              }
-            },
-            required: ["platform", "author", "content", "timestamp", "engagement"]
-          }
+      const checkoutSession = await response.json();
+      return res.json({
+        checkout_url: checkoutSession.checkout_url,
+        checkout_id: checkoutSession.checkout_id
+      });
+    } catch (err: any) {
+      console.error("Checkout creation endpoint crashed:", err);
+      return res.status(500).json({ error: err.message || "Failed to create checkout session." });
+    }
+  });
+
+  // Create secure Dodo Payments customer portal session
+  app.post("/api/billing/portal", apiRateLimiter, async (req: any, res) => {
+    try {
+      const { userId } = await getAuthenticatedUserContext(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required to open billing portal." });
+      }
+
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("customer_id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      const customerId = profile?.customer_id;
+      if (!customerId) {
+        return res.status(400).json({ error: "No active billing customer found. Upgrade to a paid plan first." });
+      }
+
+      const apiKey = process.env.DODO_API_KEY || "test_dodo_api_key_placeholder";
+      const isLive = process.env.NODE_ENV === "production" && !apiKey.startsWith("test_");
+      const dodoBaseUrl = isLive ? "https://live.dodopayments.com" : "https://test.dodopayments.com";
+
+      const response = await fetch(`${dodoBaseUrl}/v1/customers/${customerId}/customer-portal-sessions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
         }
       });
 
-      const responseText = response.text;
-      if (!responseText) {
-        throw new Error("Empty response from Gemini.");
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Dodo Payments customer portal creation failed:", errorText);
+        return res.status(response.status).json({ error: `Dodo Payments portal session error: ${errorText}` });
       }
 
-      const parsedData = JSON.parse(responseText.trim());
-      res.json(parsedData);
-    } catch (error: any) {
-      console.error("Gemini Parsing Error:", error);
-      res.status(500).json({ error: error.message || "Failed to parse post content." });
+      const portalSession = await response.json();
+      return res.json({ portal_url: portalSession.portal_url });
+    } catch (err: any) {
+      console.error("Portal creation endpoint crashed:", err);
+      return res.status(500).json({ error: err.message || "Failed to create billing portal session." });
+    }
+  });
+
+  // Fetch session details to instantly activate user plan (prevent delay in webhook delivery)
+  app.get("/api/billing/session-info/:sessionId", apiRateLimiter, async (req: any, res) => {
+    try {
+      const { sessionId } = req.params;
+      const apiKey = process.env.DODO_API_KEY || "test_dodo_api_key_placeholder";
+      const isLive = process.env.NODE_ENV === "production" && !apiKey.startsWith("test_");
+      const dodoBaseUrl = isLive ? "https://live.dodopayments.com" : "https://test.dodopayments.com";
+
+      const response = await fetch(`${dodoBaseUrl}/v1/checkouts/${sessionId}`, {
+        headers: {
+          "Authorization": `Bearer ${apiKey}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to retrieve checkout session details from Dodo Payments.`);
+      }
+
+      const checkout = await response.json();
+      
+      const status = checkout.status || "pending";
+      const userId = checkout.metadata?.userId || checkout.customer?.metadata?.userId;
+      const plan = checkout.metadata?.plan || "free";
+      const customerId = checkout.customer?.customer_id || checkout.customer_id;
+      const subscriptionId = checkout.subscription_id;
+
+      if (userId && (status === "succeeded" || status === "completed" || checkout.payment_status === "paid")) {
+        await adminClient
+          .from("profiles")
+          .update({
+            plan: plan,
+            customer_id: customerId || null,
+            subscription_id: subscriptionId || null,
+            subscription_status: "active"
+          })
+          .eq("id", userId);
+        
+        console.log(`Instant success UX activation: initialized ${plan} for user ${userId} via checkouts verification`);
+      }
+
+      return res.json(checkout);
+    } catch (err: any) {
+      console.error("Callback session details lookup error:", err);
+      return res.status(500).json({ error: err.message || "Failed to retrieve session information." });
+    }
+  });
+
+  // Webhook webhook handler
+  app.post("/api/billing/webhooks", async (req: any, res) => {
+    try {
+      const webhookSecret = process.env.DODO_WEBHOOK_SECRET;
+      const rawBody = req.rawBody || "";
+
+      if (webhookSecret) {
+        const isValid = verifyDodoWebhook(req, rawBody, webhookSecret);
+        if (!isValid) {
+          console.error("Dodo Payments webhook signature validation failed.");
+          return res.status(401).json({ error: "Invalid webhook signature." });
+        }
+      } else {
+        console.warn("Dodo Payments webhook secret not set. Verification skipped.");
+      }
+
+      const event = req.body;
+      const eventType = event.type;
+      const data = event.data;
+
+      console.log(`Webhook processing: Received event ${eventType}`, JSON.stringify(event));
+
+      if (eventType && eventType.startsWith("subscription.")) {
+        const subscriptionId = data.id || data.subscription_id;
+        const customerId = data.customer_id || data.customer?.id;
+        const status = data.status || "inactive";
+        
+        let userId = data.metadata?.userId || data.customer?.metadata?.userId;
+
+        if (!userId && customerId) {
+          const { data: profile } = await adminClient
+            .from("profiles")
+            .select("id")
+            .eq("customer_id", customerId)
+            .maybeSingle();
+          userId = profile?.id;
+        }
+
+        if (userId) {
+          let plan = data.metadata?.plan || "free";
+          
+          if (!data.metadata?.plan && data.product_cart?.[0]?.product_id) {
+            const prodId = data.product_cart[0].product_id;
+            if (prodId === process.env.DODO_CREATOR_PRODUCT_ID) {
+              plan = "creator";
+            } else if (prodId === process.env.DODO_PRO_PRODUCT_ID) {
+              plan = "pro";
+            } else if (prodId === process.env.DODO_LIFETIME_PRODUCT_ID) {
+              plan = "lifetime";
+            }
+          }
+
+          const isSubscriptionActive = ["active", "renewed", "completed"].includes(status);
+          const finalPlan = isSubscriptionActive ? plan : "free";
+
+          const { error: updateErr } = await adminClient
+            .from("profiles")
+            .update({
+              plan: finalPlan,
+              customer_id: customerId || null,
+              subscription_id: subscriptionId || null,
+              subscription_status: status,
+              plan_expires_at: data.expires_at || null
+            })
+            .eq("id", userId);
+
+          if (updateErr) {
+            console.error(`Failed to update subscription details for user ${userId}:`, updateErr);
+            return res.status(500).json({ error: "Profile subscription sync failed." });
+          }
+
+          console.log(`Successfully synced subscription status for user ${userId}: plan is ${finalPlan}`);
+        } else {
+          console.warn("No linked user context found for subscription webhook event.");
+        }
+      }
+
+      return res.json({ received: true });
+    } catch (err: any) {
+      console.error("Dodo webhook handler error:", err);
+      return res.status(500).json({ error: err.message || "Failed to handle webhook." });
     }
   });
 

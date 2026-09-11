@@ -15,14 +15,14 @@ export const MarketingNavbar: React.FC<MarketingNavbarProps> = ({ onTriggerAuth 
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   
-  const [openMenu, setOpenMenu] = useState<null | "tools" | "solutions" | "resources">(null);
+  const [openMenu, setOpenMenu] = useState<null | "tools" | "resources">(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Active state calculations derived dynamically from current route path
   const isToolsActive = location.pathname.startsWith("/tools");
-  const isSolutionsActive = location.pathname.startsWith("/for");
+  const isPricingActive = location.pathname === "/pricing";
   const isResourcesActive = location.pathname.startsWith("/blog") || 
-                           ["/how-it-works", "/pricing", "/help", "/examples"].includes(location.pathname);
+                           ["/how-it-works", "/help", "/examples"].includes(location.pathname);
 
   // Close dropdowns and mobile menu on location changes
   useEffect(() => {
@@ -30,13 +30,12 @@ export const MarketingNavbar: React.FC<MarketingNavbarProps> = ({ onTriggerAuth 
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const toggleDropdown = (menu: "tools" | "solutions" | "resources") => {
+  const toggleDropdown = (menu: "tools" | "resources") => {
     setOpenMenu(openMenu === menu ? null : menu);
   };
 
   const getDropdownItems = () => {
     if (openMenu === "tools") return TOOLS_ITEMS;
-    if (openMenu === "solutions") return SOLUTIONS_ITEMS;
     if (openMenu === "resources") return RESOURCES_ITEMS;
     return [];
   };
@@ -83,33 +82,17 @@ export const MarketingNavbar: React.FC<MarketingNavbarProps> = ({ onTriggerAuth 
             />
           </div>
 
-          {/* Solutions Dropdown Trigger */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown("solutions")}
-              aria-expanded={openMenu === "solutions"}
-              aria-controls="solutions-nav-dropdown"
-              className={`text-[13px] font-bold flex items-center gap-1.5 py-2 px-3.5 rounded-xl cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-brand-primary ${
-                openMenu === "solutions" || isSolutionsActive
-                  ? "text-[#0145F2] bg-[#E8EEFF]/50"
-                  : "text-[#626A73] hover:text-[#17191C] hover:bg-[#F5F7F9]"
-              }`}
-            >
-              <span>Solutions</span>
-              <ChevronDown
-                className={`w-4 h-4 text-[#626A73] transition-transform duration-200 ${
-                  openMenu === "solutions" ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-            <NavDropdown
-              isOpen={openMenu === "solutions"}
-              onClose={() => setOpenMenu(null)}
-              items={SOLUTIONS_ITEMS}
-              type="solutions"
-            />
-          </div>
+          {/* Pricing Standalone Link */}
+          <Link
+            to="/pricing"
+            className={`text-[13px] font-bold py-2 px-3.5 rounded-xl cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-brand-primary ${
+              isPricingActive
+                ? "text-[#0145F2] bg-[#E8EEFF]/50"
+                : "text-[#626A73] hover:text-[#17191C] hover:bg-[#F5F7F9]"
+            }`}
+          >
+            Pricing
+          </Link>
 
           {/* Resources Dropdown Trigger */}
           <div className="relative">

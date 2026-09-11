@@ -17,7 +17,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   onTriggerAuth,
   isAuthenticated,
 }) => {
-  const [activeGroup, setActiveGroup] = useState<null | "tools" | "solutions" | "resources">(null);
+  const [activeGroup, setActiveGroup] = useState<null | "tools" | "resources">(null);
 
   // Esc key closes menu
   useEffect(() => {
@@ -41,11 +41,11 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
   if (!isOpen) return null;
 
-  const toggleGroup = (group: "tools" | "solutions" | "resources") => {
+  const toggleGroup = (group: "tools" | "resources") => {
     setActiveGroup(activeGroup === group ? null : group);
   };
 
-  const renderInlineGroup = (items: NavItem[], groupKey: "tools" | "solutions" | "resources") => {
+  const renderInlineGroup = (items: NavItem[], groupKey: "tools" | "resources") => {
     const isExpanded = activeGroup === groupKey;
     return (
       <div className="border-b border-[#E1E5E9]/60 py-2">
@@ -116,7 +116,18 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         <div className="p-4 overflow-y-auto space-y-4">
           <div className="space-y-1">
             {renderInlineGroup(TOOLS_ITEMS, "tools")}
-            {renderInlineGroup(SOLUTIONS_ITEMS, "solutions")}
+            
+            {/* Direct Mobile Pricing Link */}
+            <div className="border-b border-[#E1E5E9]/60 py-2">
+              <Link
+                to="/pricing"
+                onClick={onClose}
+                className="w-full block py-2 text-sm font-bold text-[#17191C] text-left hover:text-[#0145F2]"
+              >
+                Pricing
+              </Link>
+            </div>
+
             {renderInlineGroup(RESOURCES_ITEMS, "resources")}
           </div>
 

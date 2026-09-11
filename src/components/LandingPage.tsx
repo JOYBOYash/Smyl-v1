@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { ParsedPost, CardCustomization, FontFamily, CardTheme, CanvasBackground } from "../types";
 import { PLACEHOLDER_IMAGES } from "../constants/images";
 import { PostCard } from "./PostCard";
@@ -1019,6 +1020,175 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenGenerator, onBec
             </div>
 
           </div>
+        </div>
+      </section>
+
+      {/* SECTION 08.5 — PLANS SHOWCASE */}
+      <section id="pricing" className="py-20 sm:py-24 bg-[#F5F7F9] border-t border-[#E1E5E9]/80">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-[11px] font-extrabold tracking-widest text-[#0145F2] uppercase bg-[#E8EEFF] px-3.5 py-1.5 rounded-full inline-block mb-4">
+              PRICING PLANS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17191C] tracking-tight mb-4">
+              Unlock the full power of Smyl
+            </h2>
+            <p className="text-[#626A73] text-sm sm:text-base leading-relaxed">
+              Transparent, fair plans to elevate your sharing. Upgrade anytime to access premium backgrounds, unlimited layouts, custom QR branding, and advanced analytics workspaces.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch mb-12">
+            {/* Creator Plan */}
+            <div className="bg-white rounded-3xl border border-[#E1E5E9] p-8 flex flex-col justify-between shadow-xs hover:shadow-md hover:y-[-4px] transition-all">
+              <div>
+                <div className="mb-5">
+                  <h3 className="text-lg font-extrabold tracking-tight text-[#17191C]">Creator Tier</h3>
+                  <p className="text-xs text-[#626A73] mt-2 leading-relaxed min-h-[40px]">
+                    Perfect for active content creators seeking beautiful design options.
+                  </p>
+                </div>
+                <div className="flex items-baseline mb-6 border-b border-gray-100 pb-6">
+                  <span className="text-4xl font-extrabold tracking-tight text-[#17191C]">$9</span>
+                  <span className="text-xs font-semibold ml-1 text-[#626A73] uppercase">/ month</span>
+                </div>
+                <ul className="space-y-3.5 mb-8 text-xs text-gray-700">
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Up to 20 saved cards</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Unlimited shortened links</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>10+ Premium backgrounds</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Watermark removal</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>High-res PNG & SVG export</span>
+                  </li>
+                </ul>
+              </div>
+              <Link
+                to="/pricing"
+                className="w-full py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Pro Plan (Obsidian Highlighted) */}
+            <div className="bg-[#0F172A] text-white rounded-3xl border border-[#1E293B] p-8 flex flex-col justify-between relative shadow-lg shadow-blue-900/10 hover:y-[-4px] transition-all">
+              <span className="absolute -top-3 left-1/2 transform -translate-x-1/2 px-3.5 py-1 rounded-full text-[10px] font-extrabold bg-[#0145F2] text-white uppercase tracking-wider shadow-xs">
+                Most Popular
+              </span>
+              <div>
+                <div className="mb-5">
+                  <h3 className="text-lg font-extrabold tracking-tight text-white">Pro Professional</h3>
+                  <p className="text-xs text-slate-400 mt-2 leading-relaxed min-h-[40px]">
+                    For agencies and power builders requiring absolute, limit-free creation.
+                  </p>
+                </div>
+                <div className="flex items-baseline mb-6 border-b border-slate-800 pb-6">
+                  <span className="text-4xl font-extrabold tracking-tight text-white">$19</span>
+                  <span className="text-xs font-semibold ml-1 text-slate-400 uppercase">/ month</span>
+                </div>
+                <ul className="space-y-3.5 mb-8 text-xs text-slate-300">
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Unlimited saved cards</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Unlimited shortened links</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Advanced custom backgrounds</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Branded QR codes</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>2 Link Hub profiles</span>
+                  </li>
+                </ul>
+              </div>
+              <Link
+                to="/pricing"
+                className="w-full py-3.5 px-4 rounded-xl bg-[#0145F2] hover:bg-[#0039D4] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-[#0145F2]/10"
+              >
+                <span>Upgrade to Pro</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {/* Lifetime Plan */}
+            <div className="bg-white rounded-3xl border border-[#E1E5E9] p-8 flex flex-col justify-between shadow-xs hover:shadow-md hover:y-[-4px] transition-all">
+              <div>
+                <div className="mb-5">
+                  <h3 className="text-lg font-extrabold tracking-tight text-[#17191C]">Lifetime License</h3>
+                  <p className="text-xs text-[#626A73] mt-2 leading-relaxed min-h-[40px]">
+                    Pay once. Access everything forever. No recurring subscription fees.
+                  </p>
+                </div>
+                <div className="flex items-baseline mb-6 border-b border-gray-100 pb-6">
+                  <span className="text-4xl font-extrabold tracking-tight text-[#17191C]">$99</span>
+                  <span className="text-xs font-semibold ml-1 text-[#626A73] uppercase">one-time</span>
+                </div>
+                <ul className="space-y-3.5 mb-8 text-xs text-gray-700">
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Lifetime Pro updates guaranteed</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Unlimited cards & short links</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Unlimited Link Hub profiles</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Custom domain branding</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <Check className="w-4 h-4 text-[#0145F2] shrink-0" />
+                    <span>Dedicated elite support</span>
+                  </li>
+                </ul>
+              </div>
+              <Link
+                to="/pricing"
+                className="w-full py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
+              >
+                <span>Purchase Lifetime</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Link
+              to="/pricing"
+              className="text-xs font-bold text-[#0145F2] hover:text-[#0039D4] inline-flex items-center gap-1 hover:underline"
+            >
+              <span>View full feature comparison matrix</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+
         </div>
       </section>
 
