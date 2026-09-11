@@ -243,62 +243,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               </AnimatePresence>
             </div>
 
-            {/* Solutions Dropdown */}
-            <div className="relative" ref={solutionsDropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsSolutionsDropdownOpen(!isSolutionsDropdownOpen)}
-                className={`text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer bg-transparent py-1 px-2.5 rounded-lg ${
-                  isSolutionsDropdownOpen || location.pathname.startsWith("/for")
-                    ? "text-[#0145F2] font-bold bg-[#E8EEFF]/40"
-                    : "text-[#626A73] hover:text-[#17191C]"
-                }`}
-              >
-                <span>Solutions</span>
-                <IoChevronDown
-                  className={`w-3 h-3 text-[#626A73] transition-transform duration-200 shrink-0 ${
-                    isSolutionsDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-
-              <AnimatePresence>
-                {isSolutionsDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute left-1/2 -translate-x-1/2 mt-2 w-48 bg-white border border-[#E1E5E9] rounded-2xl shadow-xl p-2 z-50 space-y-1"
-                  >
-                    <Link
-                      to="/for/creators"
-                      className="block text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#17191C] hover:bg-[#F5F7F9]"
-                    >
-                      For Creators
-                    </Link>
-                    <Link
-                      to="/for/marketers"
-                      className="block text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#17191C] hover:bg-[#F5F7F9]"
-                    >
-                      For Marketers
-                    </Link>
-                    <Link
-                      to="/for/founders"
-                      className="block text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#17191C] hover:bg-[#F5F7F9]"
-                    >
-                      For Founders
-                    </Link>
-                    <Link
-                      to="/for/agencies"
-                      className="block text-left px-3 py-2 rounded-lg text-xs font-semibold text-[#17191C] hover:bg-[#F5F7F9]"
-                    >
-                      For Agencies
-                    </Link>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Pricing Link */}
+            <Link
+              to="/pricing"
+              className={`text-xs font-semibold py-1 px-2.5 rounded-lg transition-colors ${
+                location.pathname === "/pricing"
+                  ? "text-[#0145F2] font-bold bg-[#E8EEFF]/40"
+                  : "text-[#626A73] hover:text-[#17191C]"
+              }`}
+            >
+              Pricing
+            </Link>
 
             {/* Resources Dropdown */}
             <div className="relative" ref={resourcesDropdownRef}>

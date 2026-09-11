@@ -12,9 +12,6 @@ Configure the following variables in your hosting environment (e.g. `.env` or de
 # Supabase Configuration
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
-
-# Gemini API Key (Server-side only)
-GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 > **Security Note**: Never expose `SUPABASE_SERVICE_ROLE_KEY` in frontend bundles. All client interactions utilize `VITE_SUPABASE_ANON_KEY` combined with PostgreSQL Row Level Security (RLS).

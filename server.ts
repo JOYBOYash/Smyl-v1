@@ -99,6 +99,208 @@ async function getAuthenticatedUser(req: any): Promise<string | null> {
   return userId;
 }
 
+// Canonical Quotas mapping
+interface Quotas {
+  qr_codes: number;
+  short_links: number;
+  og_inspections: number;
+  screenshots: number;
+  link_hubs: number;
+  saved_cards: number;
+}
+
+const PLAN_QUOTAS: Record<string, Quotas> = {
+  free: {
+    qr_codes: 25,
+    short_links: 5,
+    og_inspections: 10,
+    screenshots: 3,
+    link_hubs: 1,
+    saved_cards: 10,
+  },
+  creator: {
+    qr_codes: 250,
+    short_links: 50,
+    og_inspections: 100,
+    screenshots: 25,
+    link_hubs: 5,
+    saved_cards: 100,
+  },
+  pro: {
+    qr_codes: 1000,
+    short_links: 500,
+    og_inspections: 500,
+    screenshots: 100,
+    link_hubs: 20,
+    saved_cards: 500,
+  },
+  lifetime: {
+    qr_codes: Infinity,
+    short_links: Infinity,
+    og_inspections: Infinity,
+    screenshots: Infinity,
+    link_hubs: Infinity,
+    saved_cards: Infinity,
+  },
+};
+
+// Deterministic usage period based on current UTC year-month
+function getCurrentUsagePeriod(): string {
+  const d = new Date();
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
+
+// Check and conditionally increment monthly utility usage or active database counts
+async function checkAndIncrementQuota(
+  userId: string,
+  resource: keyof Quotas,
+  increment: boolean = false
+): Promise<{ allowed: boolean; current: number; limit: number; error?: string }> {
+  // 1. Fetch user plan
+  let plan = "free";
+  try {
+    const { data: profile, error } = await adminClient
+      .from("profiles")
+      .select("plan")
+      .eq("id", userId)
+      .maybeSingle();
+    if (!error && profile?.plan) {
+      plan = profile.plan.toLowerCase();
+    }
+  } catch (err) {
+    console.error("Error reading user plan for quota check:", err);
+  }
+
+  if (!PLAN_QUOTAS[plan]) {
+    plan = "free";
+  }
+
+  const limit = PLAN_QUOTAS[plan][resource];
+
+  // If the resource limit is Infinity, we are unlimited!
+  if (limit === Infinity) {
+    // We still count current usage if increment is requested
+    let current = 0;
+    if (resource === "link_hubs") {
+      const { count } = await adminClient
+        .from("link_hubs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      current = count || 0;
+    } else if (resource === "saved_cards") {
+      const { count } = await adminClient
+        .from("saved_cards")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+      current = count || 0;
+    } else {
+      const period = getCurrentUsagePeriod();
+      const key = `usage:${userId}:${resource}:${period}`;
+      const { data } = await adminClient
+        .from("rate_limits")
+        .select("count")
+        .eq("key", key)
+        .maybeSingle();
+      current = data?.count || 0;
+      if (increment) {
+        await incrementUserUsage(userId, resource, period);
+        current += 1;
+      }
+    }
+    return { allowed: true, current, limit };
+  }
+
+  // 2. Count current usage based on resource type
+  let current = 0;
+  if (resource === "link_hubs") {
+    const { count } = await adminClient
+      .from("link_hubs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    current = count || 0;
+
+    if (increment && current >= limit) {
+      return { 
+        allowed: false, 
+        current, 
+        limit, 
+        error: `${plan.toUpperCase()} plan limit reached: you can only have up to ${limit} active Link Hubs. Upgrade your plan to create more!` 
+      };
+    }
+  } else if (resource === "saved_cards") {
+    const { count } = await adminClient
+      .from("saved_cards")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    current = count || 0;
+
+    if (increment && current >= limit) {
+      return { 
+        allowed: false, 
+        current, 
+        limit, 
+        error: `${plan.toUpperCase()} plan limit reached: you can only save up to ${limit} cards. Upgrade your plan to save more!` 
+      };
+    }
+  } else {
+    // Monthly utility usage
+    const period = getCurrentUsagePeriod();
+    const key = `usage:${userId}:${resource}:${period}`;
+    const { data } = await adminClient
+      .from("rate_limits")
+      .select("count")
+      .eq("key", key)
+      .maybeSingle();
+    current = data?.count || 0;
+
+    if (increment) {
+      if (current >= limit) {
+        return { 
+          allowed: false, 
+          current, 
+          limit, 
+          error: `${plan.toUpperCase()} plan limit reached: you can only generate/create up to ${limit} ${resource.replace('_', ' ')} per month. Upgrade your plan for higher limits!` 
+        };
+      }
+      // Atomically increment
+      await incrementUserUsage(userId, resource, period);
+      current += 1;
+    } else {
+      if (current >= limit) {
+        return { allowed: false, current, limit };
+      }
+    }
+  }
+
+  return { allowed: true, current, limit };
+}
+
+async function incrementUserUsage(userId: string, resource: string, period: string): Promise<void> {
+  const key = `usage:${userId}:${resource}:${period}`;
+  const { data, error } = await adminClient
+    .from("rate_limits")
+    .select("*")
+    .eq("key", key)
+    .maybeSingle();
+  
+  const resetTime = Date.now() + 35 * 24 * 60 * 60 * 1000; // default 35 days in future
+  if (error) {
+    console.error("Error fetching usage counter:", error);
+  }
+  if (!data) {
+    await adminClient
+      .from("rate_limits")
+      .insert({ key, count: 1, reset_time: resetTime });
+  } else {
+    await adminClient
+      .from("rate_limits")
+      .update({ count: data.count + 1 })
+      .eq("key", key);
+  }
+}
+
 const memoryRateLimits = new Map<string, { count: number; resetTime: number }>();
 const activeConcurrency = new Map<string, number>();
 const MAX_CONCURRENT_PER_IP = 8; // Concurrency limit to prevent socket/resource exhaustion and abusive parallel spam
@@ -468,32 +670,14 @@ async function startServer() {
       // Authenticate user via request-scoped helper
       const { userId, client: requestClient } = await getAuthenticatedUserContext(req);
 
-      // Server-Enforced Pricing Entitlement: Enforce 5-link limit for free plan
+      // Server-Enforced Pricing Entitlement: Enforce short links quota server-side
       if (userId) {
-        try {
-          const { data: profileData } = await adminClient
-            .from("profiles")
-            .select("plan")
-            .eq("id", userId)
-            .maybeSingle();
-
-          const userPlan = profileData?.plan || "free";
-
-          if (userPlan === "free") {
-            const { count, error: countErr } = await adminClient
-              .from("short_links")
-              .select("id", { count: "exact", head: true })
-              .eq("user_id", userId);
-
-            if (!countErr && count !== null && count >= 5) {
-              return res.status(403).json({
-                error: "Free plan limit reached: you can only shorten up to 5 links. Upgrade to Creator or Pro to create unlimited shortened links!",
-                limitHit: true
-              });
-            }
-          }
-        } catch (planErr) {
-          console.error("Failed to check pricing plan entitlements:", planErr);
+        const quotaCheck = await checkAndIncrementQuota(userId, "short_links", true);
+        if (!quotaCheck.allowed) {
+          return res.status(403).json({
+            error: quotaCheck.error || "Short links limit reached. Upgrade your plan for higher limits!",
+            limitHit: true
+          });
         }
       }
 
@@ -615,6 +799,69 @@ async function startServer() {
     }
   });
 
+  // Get a comprehensive summary of all quotas and current usages for the active user
+  app.get("/api/utilities/usage-summary", apiRateLimiter, async (req, res) => {
+    try {
+      const { userId } = await getAuthenticatedUserContext(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized access." });
+      }
+
+      let plan = "free";
+      try {
+        const { data: profile, error } = await adminClient
+          .from("profiles")
+          .select("plan")
+          .eq("id", userId)
+          .maybeSingle();
+        if (!error && profile?.plan) {
+          plan = profile.plan.toLowerCase();
+        }
+      } catch (err) {
+        console.error("Error reading user plan for usage summary:", err);
+      }
+
+      if (!PLAN_QUOTAS[plan]) {
+        plan = "free";
+      }
+
+      const quotas = PLAN_QUOTAS[plan];
+      const period = getCurrentUsagePeriod();
+
+      // Retrieve current usages
+      const qr_codes_res = await checkAndIncrementQuota(userId, "qr_codes", false);
+      const short_links_res = await checkAndIncrementQuota(userId, "short_links", false);
+      const og_inspections_res = await checkAndIncrementQuota(userId, "og_inspections", false);
+      const screenshots_res = await checkAndIncrementQuota(userId, "screenshots", false);
+      const link_hubs_res = await checkAndIncrementQuota(userId, "link_hubs", false);
+      const saved_cards_res = await checkAndIncrementQuota(userId, "saved_cards", false);
+
+      res.json({
+        plan,
+        usagePeriod: period,
+        limits: {
+          qr_codes: quotas.qr_codes,
+          short_links: quotas.short_links,
+          og_inspections: quotas.og_inspections,
+          screenshots: quotas.screenshots,
+          link_hubs: quotas.link_hubs,
+          saved_cards: quotas.saved_cards,
+        },
+        usage: {
+          qr_codes: qr_codes_res.current,
+          short_links: short_links_res.current,
+          og_inspections: og_inspections_res.current,
+          screenshots: screenshots_res.current,
+          link_hubs: link_hubs_res.current,
+          saved_cards: saved_cards_res.current,
+        }
+      });
+    } catch (err: any) {
+      console.error("Error generating usage summary:", err);
+      res.status(500).json({ error: err.message || "Failed to generate usage summary." });
+    }
+  });
+
   // Open Graph Debugger API endpoint
   app.post("/api/utilities/og-debug", utilitiesRateLimiter, async (req, res) => {
     try {
@@ -626,6 +873,17 @@ async function startServer() {
       const trimmedUrl = url.trim();
       if (trimmedUrl.length > 2048) {
         return res.status(400).json({ error: "URL exceeds maximum length of 2048 characters." });
+      }
+
+      const { userId } = await getAuthenticatedUserContext(req);
+      if (userId) {
+        const quotaCheck = await checkAndIncrementQuota(userId, "og_inspections", true);
+        if (!quotaCheck.allowed) {
+          return res.status(403).json({
+            error: quotaCheck.error || "OG inspection quota exceeded. Upgrade your plan for higher limits!",
+            limitHit: true
+          });
+        }
       }
 
       const diagnosticsData = await debugLinkMetadata(trimmedUrl);
@@ -656,6 +914,17 @@ async function startServer() {
       return res.status(503).json({
         error: "The server is currently busy processing other screenshot requests. Please try again shortly."
       });
+    }
+
+    const { userId } = await getAuthenticatedUserContext(req);
+    if (userId) {
+      const quotaCheck = await checkAndIncrementQuota(userId, "screenshots", true);
+      if (!quotaCheck.allowed) {
+        return res.status(403).json({
+          error: quotaCheck.error || "Screenshot quota exceeded. Upgrade your plan for higher limits!",
+          limitHit: true
+        });
+      }
     }
 
     activeCapturesCount++;
@@ -1107,10 +1376,10 @@ async function startServer() {
 
       console.log(`Webhook processing: Received event ${eventType}`, JSON.stringify(event));
 
-      if (eventType && eventType.startsWith("subscription.")) {
-        const subscriptionId = data.id || data.subscription_id;
-        const customerId = data.customer_id || data.customer?.id;
-        const status = data.status || "inactive";
+      if (eventType && (eventType.startsWith("subscription.") || eventType === "order.completed" || eventType === "checkout.completed")) {
+        const subscriptionId = data.id || data.subscription_id || null;
+        const customerId = data.customer_id || data.customer?.id || null;
+        const status = data.status || "completed";
         
         let userId = data.metadata?.userId || data.customer?.metadata?.userId;
 
@@ -1137,7 +1406,7 @@ async function startServer() {
             }
           }
 
-          const isSubscriptionActive = ["active", "renewed", "completed"].includes(status);
+          const isSubscriptionActive = ["active", "renewed", "completed", "paid"].includes(status);
           const finalPlan = isSubscriptionActive ? plan : "free";
 
           const { error: updateErr } = await adminClient
@@ -1345,6 +1614,18 @@ async function startServer() {
 
       if (isSlugTaken) {
         return res.status(400).json({ error: `The custom URL alias "smyl.link/h/${slug}" is already taken by another profile.` });
+      }
+
+      // Enforce Link Hubs limit on creation
+      const isUpdate = Boolean(hub.id || (existingHubId && !isSlugTaken));
+      if (!isUpdate) {
+        const quotaCheck = await checkAndIncrementQuota(userId, "link_hubs", false);
+        if (!quotaCheck.allowed) {
+          return res.status(403).json({
+            error: quotaCheck.error || "Link Hubs quota exceeded. Upgrade your plan for higher limits!",
+            limitHit: true
+          });
+        }
       }
 
       let finalHubId = hub.id || existingHubId || gen_random_uuid_local();
