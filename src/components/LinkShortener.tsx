@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
+import { apiClient } from "../services/apiClient";
 import {
   IoLink,
   IoCopy,
@@ -103,22 +104,12 @@ export const LinkShortener: React.FC<{
           try {
             const localLinks: ShortLink[] = JSON.parse(localData);
             if (localLinks.length > 0) {
-              const { data: session } = await supabase.auth.getSession();
-              const token = session?.session?.access_token;
-              
               // Upload local links to user's database account via the API
               for (const link of localLinks) {
                 try {
-                  await fetch("/api/utilities/shorten", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                    },
-                    body: JSON.stringify({
-                      url: link.destination_url,
-                      slug: link.slug,
-                    }),
+                  await apiClient.post("/api/utilities/shorten", {
+                    url: link.destination_url,
+                    slug: link.slug,
                   });
                 } catch (e) {
                   // Silent fallback for individual sync fails
@@ -160,26 +151,10 @@ export const LinkShortener: React.FC<{
     onProcessingChange?.(true);
 
     try {
-      const { data: session } = await supabase.auth.getSession();
-      const token = session?.session?.access_token;
-
-      const response = await fetch("/api/utilities/shorten", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          url: trimmedUrl,
-          slug: customSlug.trim() || undefined,
-        }),
+      const data = await apiClient.post("/api/utilities/shorten", {
+        url: trimmedUrl,
+        slug: customSlug.trim() || undefined,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "An error occurred while shortening the link.");
-      }
 
       setResult({
         shortUrl: data.shortUrl,
@@ -521,14 +496,14 @@ export const LinkShortener: React.FC<{
                       </span>
                       <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => handleCopy(`${window.location.protocol}//${window.location.host}/s/${item.slug}`, item.slug)}
+                          onClick={() => handleCopy(`${window.location.protocol}//${window.location.host}/${item.slug}`, item.slug)}
                           className="p-1.5 text-[#626A73] hover:text-brand-primary rounded hover:bg-[#EDF1F5] transition-colors"
                           title="Copy Link"
                         >
                           <IoCopy className="w-3.5 h-3.5" />
                         </button>
                         <a
-                          href={`${window.location.protocol}//${window.location.host}/s/${item.slug}`}
+                          href={`${window.location.protocol}//${window.location.host}/${item.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 text-[#626A73] hover:text-brand-primary rounded hover:bg-[#EDF1F5] transition-colors"
@@ -538,7 +513,7 @@ export const LinkShortener: React.FC<{
                         </a>
                         {onGenerateQrCode && (
                           <button
-                            onClick={() => onGenerateQrCode(`${window.location.protocol}//${window.location.host}/s/${item.slug}`)}
+                            onClick={() => onGenerateQrCode(`${window.location.protocol}//${window.location.host}/${item.slug}`)}
                             className="p-1.5 text-[#626A73] hover:text-brand-primary rounded hover:bg-[#EDF1F5] transition-colors"
                             title="Generate QR Code"
                           >

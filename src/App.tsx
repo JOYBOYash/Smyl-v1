@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Lenis from "lenis";
 import { Helmet } from "react-helmet-async";
+import { apiClient } from "./services/apiClient";
 import { Breadcrumbs } from "./components/Breadcrumbs";
 import {
   ParsedPost,
@@ -821,28 +822,7 @@ export const App: React.FC = () => {
     setErrorMsg(null);
 
     try {
-      const response = await fetch("/api/parse-post", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: pastedContent }),
-      });
-
-      if (!response.ok) {
-        // Fallback to client-side heuristic parser
-        const fallbackResult = parsePostClientFallback(pastedContent);
-        setPost(fallbackResult.post);
-        if (fallbackResult.customizationPartial) {
-          setCustomization((prev) => ({
-            ...prev,
-            ...fallbackResult.customizationPartial,
-          }));
-        }
-        setSuccessMsg("Parsed and loaded post layout!");
-        setPastedContent("");
-        return;
-      }
-
-      const parsed: ParsedPost = await response.json();
+      const parsed: ParsedPost = await apiClient.post("/api/parse-post", { content: pastedContent });
       setPost(parsed);
       setCustomization((prev) => ({
         ...prev,

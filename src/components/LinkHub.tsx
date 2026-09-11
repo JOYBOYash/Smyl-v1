@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { apiClient } from "../services/apiClient";
 import { 
   LuLink as LinkIcon, LuCompass as Compass, LuPlus as Plus, LuTrash2 as Trash2, LuPen as Edit3, LuSave as Save, LuGlobe as Globe, LuSettings as Settings, 
   LuShare2 as Share2, LuCopy as Copy, LuExternalLink as ExternalLink, LuLock as Lock, LuEye as Eye, LuEyeOff as EyeOff, LuCheck as Check, LuChevronUp as ChevronUp, 
@@ -133,25 +134,7 @@ export const PublicLinkHub: React.FC<PublicLinkHubProps> = ({ slug }) => {
     const fetchPublicHub = async () => {
       try {
         setLoading(true);
-        // Add Bearer token from local storage if available so owners can preview drafts
-        const headers: Record<string, string> = { "Content-Type": "application/json" };
-        const storedAuth = localStorage.getItem("sb-ais-dev-fhrypyy5a5uqhtxsyveiov-832675621924-auth-token");
-        if (storedAuth) {
-          try {
-            const parsed = JSON.parse(storedAuth);
-            if (parsed?.access_token) {
-              headers["Authorization"] = `Bearer ${parsed.access_token}`;
-            }
-          } catch (_) {}
-        }
-
-        const res = await fetch(`/api/hubs/public/${encodeURIComponent(slug)}`, { headers });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || "Profile not found or draft mode restricted.");
-        }
-        
-        const data = await res.json();
+        const data = await apiClient.get(`/api/hubs/public/${encodeURIComponent(slug)}`);
         setHub(data);
         setItems(data.items || []);
       } catch (err: any) {
@@ -337,31 +320,22 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({
 
         // Fetch authenticated user's hubs
         let loaded = false;
-        if (token) {
-          try {
-            const res = await fetch("/api/hubs", {
-              headers: {
-                "Authorization": `Bearer ${token}`
-              }
-            });
-            if (res.ok) {
-              const hubs = await res.json();
-              if (hubs && hubs.length > 0) {
-                const myHub = hubs[0]; // Fetch first hub
-                setHubId(myHub.id);
-                setSlug(myHub.slug);
-                setDisplayName(myHub.display_name || "");
-                setBio(myHub.bio || "");
-                setAvatarPath(myHub.avatar_path || "");
-                setIsPublished(myHub.is_published || false);
-                setSelectedThemeId(myHub.theme_config?.theme || "light");
-                setItems(myHub.items || []);
-                loaded = true;
-              }
-            }
-          } catch (err) {
-            console.warn("Failed database link hubs retrieval, checking local fallback caches.", err);
+        try {
+          const hubs = await apiClient.get("/api/hubs");
+          if (hubs && hubs.length > 0) {
+            const myHub = hubs[0]; // Fetch first hub
+            setHubId(myHub.id);
+            setSlug(myHub.slug);
+            setDisplayName(myHub.display_name || "");
+            setBio(myHub.bio || "");
+            setAvatarPath(myHub.avatar_path || "");
+            setIsPublished(myHub.is_published || false);
+            setSelectedThemeId(myHub.theme_config?.theme || "light");
+            setItems(myHub.items || []);
+            loaded = true;
           }
+        } catch (err) {
+          console.warn("Failed database link hubs retrieval, checking local fallback caches.", err);
         }
 
         // Local Storage Cache fallback if offline or db unconfigured
@@ -476,23 +450,7 @@ export const LinkHubWorkspace: React.FC<LinkHubWorkspaceProps> = ({
         }))
       };
 
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const res = await fetch("/api/hubs/save", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Server failed to save Link Hub.");
-      }
-
-      const responseData = await res.json();
+      const responseData = await apiClient.post("/api/hubs/save", payload);
       
       // Update ID states returned by server
       setHubId(responseData.id);

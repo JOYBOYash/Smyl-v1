@@ -549,7 +549,7 @@ async function startServer() {
       // Construct short URL using host of current request
       const host = req.get("host") || "smyl.link";
       const proto = req.protocol || "https";
-      const shortUrl = `${proto}://${host}/s/${finalSlug}`;
+      const shortUrl = `${proto}://${host}/${finalSlug}`;
 
       res.json({
         shortUrl,
@@ -1462,6 +1462,109 @@ ${scrapedMetadata}`;
     } catch (err: any) {
       console.error("GET /api/hubs/redirect error:", err);
       res.status(500).send("Failed to follow tracked redirection link.");
+    }
+  });
+
+  // Reserved paths that should not be captured as short link slugs
+  const reservedSlugs = new Set([
+    "api",
+    "tools",
+    "history",
+    "for",
+    "blog",
+    "privacy",
+    "terms",
+    "how-it-works",
+    "examples",
+    "help",
+    "faq",
+    "customize",
+    "link-shortener",
+    "qr-generator",
+    "link-preview",
+    "og-debugger",
+    "utm-builder",
+    "hubs",
+    "screenshot-generator",
+    "assets",
+    "favicon.ico",
+    "s",
+    "h"
+  ]);
+
+  // Root level redirect route: Resolves single slugs like smyl.link/linkedin and redirects
+  app.get("/:slug", dbAvailabilityGuard, concurrencyLimiter, apiRateLimiter, async (req, res, next) => {
+    try {
+      const { slug } = req.params;
+      if (!slug || typeof slug !== "string") {
+        return next();
+      }
+
+      const cleanSlug = slug.trim().toLowerCase();
+
+      // Skip reserved frontend paths
+      if (reservedSlugs.has(cleanSlug)) {
+        return next();
+      }
+
+      // Check if it matches valid slug format (alphanumeric, simple hyphen, length 3-30)
+      if (cleanSlug.length < 3 || cleanSlug.length > 30 || !/^[a-z0-9-]+$/.test(cleanSlug)) {
+        return next();
+      }
+
+      // Query database
+      let link: any = null;
+      let dbError: any = null;
+
+      try {
+        const { data, error } = await adminClient
+          .from("short_links")
+          .select("*")
+          .eq("slug", cleanSlug)
+          .maybeSingle();
+        link = data;
+        dbError = error;
+      } catch (err) {
+        dbError = err;
+      }
+
+      if (dbError) {
+        console.error("Database check error during root redirection lookup:", dbError);
+        return next();
+      }
+
+      if (!link) {
+        // Fall through to index.html/SPA so the client router handles friendly 404s
+        return next();
+      }
+
+      // Check scheme safety
+      const dest = link.destination_url;
+      if (!dest.startsWith("http://") && !dest.startsWith("https://")) {
+        return res.status(400).send("Invalid redirection destination scheme.");
+      }
+
+      // Record count and redirect
+      adminClient
+        .rpc("increment_click_count", { link_id: link.id })
+        .then(({ error: rpcErr }) => {
+          if (rpcErr) {
+            console.error("Failed to update click count via RPC, attempting fallback update:", rpcErr);
+            const currentClicks = typeof link.click_count === "string" ? parseInt(link.click_count, 10) : Number(link.click_count || 0);
+            adminClient
+              .from("short_links")
+              .update({ click_count: currentClicks + 1 })
+              .eq("id", link.id)
+              .then(({ error: updateErr }) => {
+                if (updateErr) console.error("Failed to update click count via standard fallback:", updateErr);
+              });
+          }
+        });
+
+      res.redirect(301, dest);
+    } catch (err) {
+      console.error("Root redirection handler crash:", err);
+      next();
     }
   });
 

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { LinkMetadata } from "../services/metadataService";
-import { SocialPreviewCard } from "./SocialPreviewCard";
+import { SocialPreviewCard, PreviewPlatform } from "./SocialPreviewCard";
+import { apiClient } from "../services/apiClient";
 import {
   IoLink,
   IoAlertCircle,
@@ -11,6 +12,20 @@ import {
   IoPhonePortrait,
   IoDesktop,
 } from "react-icons/io5";
+import {
+  FaThreads,
+  FaFacebook,
+  FaTiktok,
+  FaYoutube,
+  FaMedium,
+  FaInstagram,
+  FaLinkedin,
+  FaWhatsapp,
+  FaXTwitter,
+  FaSlack,
+  FaDiscord,
+} from "react-icons/fa6";
+import { SiSubstack } from "react-icons/si";
 
 interface LinkPreviewGeneratorProps {
   onBackToTools?: () => void;
@@ -27,18 +42,22 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
   const [metadata, setMetadata] = useState<LinkMetadata | null>(null);
 
   // Preview options state
-  const [activePlatformTab, setActivePlatformTab] = useState<
-    "x" | "linkedin" | "facebook" | "slack" | "discord" | "whatsapp"
-  >("x");
+  const [activePlatformTab, setActivePlatformTab] = useState<PreviewPlatform>("x");
   const [previewViewportMode, setPreviewViewportMode] = useState<"desktop" | "mobile">("desktop");
 
-  const PLATFORMS: { id: typeof activePlatformTab; label: string }[] = [
-    { id: "x", label: "X / Twitter" },
-    { id: "linkedin", label: "LinkedIn" },
-    { id: "facebook", label: "Facebook" },
-    { id: "slack", label: "Slack" },
-    { id: "discord", label: "Discord" },
-    { id: "whatsapp", label: "WhatsApp" },
+  const PLATFORMS = [
+    { id: "x" as const, label: "X / Twitter", icon: FaXTwitter, color: "#000000" },
+    { id: "linkedin" as const, label: "LinkedIn", icon: FaLinkedin, color: "#0A66C2" },
+    { id: "facebook" as const, label: "Facebook", icon: FaFacebook, color: "#1877F2" },
+    { id: "whatsapp" as const, label: "WhatsApp", icon: FaWhatsapp, color: "#25D366" },
+    { id: "yt" as const, label: "YouTube", icon: FaYoutube, color: "#FF0000" },
+    { id: "instagram" as const, label: "Instagram", icon: FaInstagram, color: "#E1306C" },
+    { id: "tiktok" as const, label: "TikTok", icon: FaTiktok, color: "#000000" },
+    { id: "threads" as const, label: "Threads", icon: FaThreads, color: "#000000" },
+    { id: "substack" as const, label: "Substack", icon: SiSubstack, color: "#FF6719" },
+    { id: "medium" as const, label: "Medium", icon: FaMedium, color: "#000000" },
+    { id: "slack" as const, label: "Slack", icon: FaSlack, color: "#4A154B" },
+    { id: "discord" as const, label: "Discord", icon: FaDiscord, color: "#5865F2" },
   ];
 
   // Client-side quick validation matching the backend boundaries
@@ -91,20 +110,10 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
     setMetadata(null);
 
     try {
-      const response = await fetch("/api/utilities/link-preview", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: url.trim() }),
+      // Use centralized API client with automatic token handling and detailed error mappings
+      const data = await apiClient.post<LinkMetadata>("/api/utilities/link-preview", {
+        url: url.trim(),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to parse link metadata.");
-      }
-
       setMetadata(data);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred while fetching preview.");
@@ -138,65 +147,64 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
           Preview your link before you share it
         </h1>
         <p className="text-sm text-[#626A73]">
-          See the title, description, image, and site information Smyl can extract from a URL.
+          Generate visual previews and debug the exact metadata card that will render across popular platforms.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left hand: URL Input and extraction card */}
+        {/* Left hand side: Inputs & Extract results */}
         <div className="lg:col-span-6 space-y-6">
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white border border-[#E1E5E9] shadow-[0_4px_16px_rgba(0,0,0,0.04)] rounded-xl p-5 md:p-6 space-y-5"
+            className="bg-white border border-[#E1E5E9] shadow-[0_4px_16px_rgba(0,0,0,0.04)] rounded-xl p-5 md:p-6 space-y-4"
           >
-            <form onSubmit={handlePreviewSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-[#17191C]">
-                  Paste a URL
-                </label>
-                <div className="relative flex items-center">
-                  <IoLink className="absolute left-3 w-5 h-5 text-[#8D959F]" />
-                  <input
-                    type="url"
-                    required
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    placeholder="https://example.com/some-page"
-                    className="w-full h-11 pl-10 pr-3 bg-white border border-[#E1E5E9] rounded-lg text-sm text-[#17191C] placeholder-[#8D959F] hover:border-[#B9C0C8] focus:border-brand-primary focus:ring-1 focus:ring-brand-primary outline-none transition-all"
-                  />
+            <div className="space-y-1">
+              <label htmlFor="preview-target-url" className="block text-xs font-bold text-[#626A73] uppercase tracking-wider">
+                Destination URL Address
+              </label>
+              <p className="text-[11px] text-[#8D959F]">Input the web URL to fetch and decode rich graph tags.</p>
+            </div>
+
+            <form onSubmit={handlePreviewSubmit} className="space-y-3.5">
+              <div className="relative">
+                <input
+                  id="preview-target-url"
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://example.com/article"
+                  disabled={loading}
+                  className="w-full h-11 pl-4 pr-10 text-xs text-[#17191C] bg-white border border-[#D0D7DE] rounded-lg shadow-2xs focus:border-brand-primary focus:ring-1 focus:ring-brand-primary/25 focus:outline-hidden disabled:bg-slate-50 transition-colors"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <IoLink className="w-4 h-4 text-[#8D959F]" />
                 </div>
               </div>
 
-              {/* Status or error container */}
+              {/* Error messages reporting section */}
               {error && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="p-3 bg-rose-50 border border-rose-100 rounded-lg text-xs text-[#D94A4A] flex items-start gap-2"
-                >
-                  <IoAlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+                  <IoAlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{error}</span>
-                </motion.div>
+                </div>
               )}
 
               <button
-                type="submit"
                 id="link-preview-submit-btn"
+                type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-brand-primary hover:bg-brand-hover text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                className="w-full h-10 rounded-lg bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
               >
                 {loading ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    <span>Fetching metadata...</span>
-                  </span>
+                  <>
+                    <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                    <span>Extracting...</span>
+                  </>
                 ) : (
                   <>
-                    <span>Preview link</span>
+                    <IoGlobe className="w-4 h-4" />
+                    <span>Generate live preview</span>
                   </>
                 )}
               </button>
@@ -356,22 +364,31 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
               </div>
             </div>
 
-            {/* Platform Horizontal Tabs Selection */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1.5 scrollbar-thin">
-              {PLATFORMS.map((plat) => (
-                <button
-                  key={plat.id}
-                  type="button"
-                  onClick={() => setActivePlatformTab(plat.id)}
-                  className={`h-8 px-3 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
-                    activePlatformTab === plat.id
-                      ? "bg-brand-soft text-brand-primary font-bold"
-                      : "text-[#626A73] hover:text-[#17191C] hover:bg-[#F5F7F9]"
-                  }`}
-                >
-                  {plat.label}
-                </button>
-              ))}
+            {/* Platform Horizontal Tabs Selection with brand icons */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-thin border-b border-[#ECEEF1]">
+              {PLATFORMS.map((plat) => {
+                const IconComponent = plat.icon;
+                const isActive = activePlatformTab === plat.id;
+                return (
+                  <button
+                    key={plat.id}
+                    type="button"
+                    onClick={() => setActivePlatformTab(plat.id)}
+                    title={plat.label}
+                    className={`h-10 px-3 md:px-3.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 flex items-center gap-2 transition-all cursor-pointer border ${
+                      isActive
+                        ? "bg-brand-soft text-brand-primary border-brand-primary/20 shadow-xs scale-102"
+                        : "text-[#626A73] hover:text-[#17191C] hover:bg-[#F5F7F9] border-transparent"
+                    }`}
+                  >
+                    <IconComponent
+                      className="w-4 h-4 shrink-0 transition-transform"
+                      style={{ color: isActive ? plat.color : undefined }}
+                    />
+                    <span className="hidden md:inline font-medium text-[11px]">{plat.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Actual dynamic simulated social cards */}
@@ -436,7 +453,7 @@ export const LinkPreviewGenerator: React.FC<LinkPreviewGeneratorProps> = ({
                     <IoGlobe className="w-10 h-10 mx-auto text-[#CBD5E1] animate-bounce" />
                     <div className="space-y-1">
                       <p className="font-bold text-[#626A73]">Waiting for active URL input</p>
-                      <p className="text-[11px]">Paste a valid address and hit "Preview link" to see results</p>
+                      <p className="text-[11px]">Paste a valid address and hit "Generate live preview" to see results</p>
                     </div>
                   </motion.div>
                 )}

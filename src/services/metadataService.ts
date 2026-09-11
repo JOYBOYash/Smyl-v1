@@ -159,7 +159,7 @@ export async function extractLinkMetadata(targetUrl: string): Promise<LinkMetada
         method: "GET",
         headers: {
           "User-Agent":
-            "Mozilla/5.0 (compatible; SmylLinkPreviewGenerator/1.0; +https://ais-pre-fhrypyy5a5uqhtxsyveiov-832675621924.asia-east1.run.app)",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9",
         },
         redirect: "manual",
@@ -469,7 +469,7 @@ export async function debugLinkMetadata(targetUrl: string): Promise<DebugMetadat
         method: "GET",
         headers: {
           "User-Agent":
-            "Mozilla/5.0 (compatible; SmylOGDebugger/1.0; +https://ais-pre-fhrypyy5a5uqhtxsyveiov-832675621924.asia-east1.run.app)",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9",
         },
         redirect: "manual",

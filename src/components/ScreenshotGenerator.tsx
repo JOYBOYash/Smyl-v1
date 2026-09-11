@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabase";
+import { apiClient } from "../services/apiClient";
 import { 
   LuLink as Link, 
   LuDownload as Download, 
@@ -61,45 +62,13 @@ export const ScreenshotGenerator: React.FC<{
     }
 
     try {
-      // Fetch current token if user is signed in to allow storage upload
-      let token: string | null = null;
-      if (isAuthenticated) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        token = sessionData?.session?.access_token || null;
-      }
-
-      const res = await fetch("/api/utilities/screenshot", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          url: trimmedUrl,
-          viewport,
-          fullPage,
-          waitForTimeout,
-          waitUntil,
-        }),
+      const data = await apiClient.post<ScreenshotResult>("/api/utilities/screenshot", {
+        url: trimmedUrl,
+        viewport,
+        fullPage,
+        waitForTimeout,
+        waitUntil,
       });
-
-      const contentType = res.headers.get("content-type") || "";
-      let data: any = null;
-      if (contentType.includes("application/json")) {
-        try {
-          data = await res.json();
-        } catch (_) {
-          // ignore parsing error here and handle via response status
-        }
-      }
-
-      if (!res.ok) {
-        throw new Error(data?.error || `Failed to capture screenshot (Status: ${res.status}).`);
-      }
-
-      if (!data) {
-        throw new Error("Received an empty or invalid response from the screenshot server.");
-      }
 
       setResult(data);
     } catch (err: any) {

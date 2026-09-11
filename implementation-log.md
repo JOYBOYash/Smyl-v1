@@ -2364,3 +2364,30 @@ Add support for dynamic PORT loading to prevent startup issues on production hos
 
 ### Result
 Completed
+
+## 2026-09-11 (Centralized API Client, URL Shortener Overhaul & Preview Platform Icons)
+
+### Request
+Create a centralized API client with token injection and unified error mapping. Remove URL shortener `/s/` prefix and support direct slug redirection. Upgrade previews to support full platform array with brand-specific icons. Optimize Open Graph tags for excellence score.
+
+### Analysis
+- Centralized Client: Built `apiClient` service automatically appending Auth tokens and mapping Supabase/Postgres errors.
+- Shortener Overhaul: Refactored `server.ts` direct `/:slug` root redirection and removed `/s/` client routes.
+- Previews & Icons: Supported YT, Threads, Substack, Medium, TikTok, Instagram, Facebook, LinkedIn, X, WhatsApp in tabs with Lucide icons.
+- OG Optimization: Perfected meta tags and canonical URLs in App.tsx layout.
+
+### Files Changed
+- `/src/services/apiClient.ts`
+- `/server.ts`
+- `/src/components/LinkShortener.tsx`
+- `/src/components/OgDebugger.tsx`
+- `/src/components/ScreenshotGenerator.tsx`
+- `/src/components/LinkHub.tsx`
+- `/src/App.tsx`
+- `/implementation-log.md`
+
+### Verification
+- Both `lint_applet` and `compile_applet` finished with 100% success.
+
+### Result
+Completed

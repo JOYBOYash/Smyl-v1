@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { apiClient } from "../services/apiClient";
 import {
   LuLink as Link,
   LuInfo as AlertTriangle,
@@ -128,16 +129,7 @@ export const OgDebugger: React.FC<{
     setDebugData(null);
 
     try {
-      const res = await fetch("/api/utilities/og-debug", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim() }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to inspect page metadata.");
-      }
+      const data = await apiClient.post("/api/utilities/og-debug", { url: url.trim() });
       setDebugData(data);
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred during diagnostics inspection.");
