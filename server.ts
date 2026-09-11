@@ -323,7 +323,7 @@ async function validateUrl(urlStr: string): Promise<boolean> {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT);
 
   app.use(express.json());
 
@@ -497,7 +497,12 @@ async function startServer() {
 
       if (checkErr) {
         console.error("Database check error during creation lookup:", checkErr);
-        return res.status(500).json({ error: "Failed to verify slug availability." });
+        return res.status(500).json({ 
+          error: "Failed to verify slug availability.",
+          message: checkErr.message || String(checkErr),
+          code: checkErr.code,
+          details: checkErr.details
+        });
       }
 
       if (existing) {
@@ -524,13 +529,21 @@ async function startServer() {
 
         if (insertErr) {
           console.error("Database insertion error:", insertErr);
-          return res.status(500).json({ error: "Failed to register shortened URL." });
+          return res.status(500).json({ 
+            error: "Failed to register shortened URL.",
+            message: insertErr.message,
+            code: insertErr.code,
+            details: insertErr.details
+          });
         } else {
           createdLink = data;
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Database insertion crash:", err);
-        return res.status(500).json({ error: "Failed to register shortened URL." });
+        return res.status(500).json({ 
+          error: "Failed to register shortened URL.",
+          message: err.message || String(err)
+        });
       }
 
       // Construct short URL using host of current request
@@ -1043,7 +1056,12 @@ ${scrapedMetadata}`;
 
       if (dbError) {
         console.error("Database error fetching hubs:", dbError);
-        return res.status(500).json({ error: "Failed to load link hubs from database." });
+        return res.status(500).json({ 
+          error: "Failed to load link hubs from database.",
+          message: dbError.message || String(dbError),
+          code: dbError.code,
+          details: dbError.details
+        });
       }
 
       // Fetch items for each hub
@@ -1066,7 +1084,12 @@ ${scrapedMetadata}`;
 
         if (itemsError) {
           console.error("Database error fetching hub items:", itemsError);
-          return res.status(500).json({ error: "Failed to load link hub items." });
+          return res.status(500).json({ 
+            error: "Failed to load link hub items.",
+            message: itemsError.message || String(itemsError),
+            code: itemsError.code,
+            details: itemsError.details
+          });
         }
 
         enrichedHubs.push({
@@ -1137,7 +1160,12 @@ ${scrapedMetadata}`;
 
       if (checkError) {
         console.error("Database check error during hub save:", checkError);
-        return res.status(500).json({ error: "Failed to verify slug availability." });
+        return res.status(500).json({ 
+          error: "Failed to verify slug availability.",
+          message: checkError.message || String(checkError),
+          code: checkError.code,
+          details: checkError.details
+        });
       }
 
       if (isSlugTaken) {
@@ -1201,7 +1229,12 @@ ${scrapedMetadata}`;
 
       if (writeError) {
         console.error("Database save error:", writeError);
-        return res.status(500).json({ error: "Failed to save Link Hub to database." });
+        return res.status(500).json({ 
+          error: "Failed to save Link Hub to database.",
+          message: writeError.message || String(writeError),
+          code: writeError.code,
+          details: writeError.details
+        });
       }
 
       // Upsert Items
@@ -1298,7 +1331,12 @@ ${scrapedMetadata}`;
 
       if (dbError) {
         console.error("Database check error during public hub lookup:", dbError);
-        return res.status(500).json({ error: "Failed to fetch link hub details." });
+        return res.status(500).json({ 
+          error: "Failed to fetch link hub details.",
+          message: dbError.message || String(dbError),
+          code: dbError.code,
+          details: dbError.details
+        });
       }
 
       if (!hub) {
@@ -1332,7 +1370,12 @@ ${scrapedMetadata}`;
 
       if (itemsError) {
         console.error("Database check error during public hub items fetch:", itemsError);
-        return res.status(500).json({ error: "Failed to fetch link hub items." });
+        return res.status(500).json({ 
+          error: "Failed to fetch link hub items.",
+          message: itemsError.message || String(itemsError),
+          code: itemsError.code,
+          details: itemsError.details
+        });
       }
 
       // Filter enabled links for public view

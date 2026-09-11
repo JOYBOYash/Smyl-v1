@@ -2344,3 +2344,23 @@ Remove all in-memory fallback stores and conditional routing branches. Ensure th
 
 ### Result
 Completed
+
+## 2026-09-10 (Dynamic PORT & Granular Supabase Error Reporting)
+
+### Request
+Add support for dynamic PORT loading to prevent startup issues on production hosts like Railway. Remove vague error states and return rich, descriptive Supabase errors for enhanced debugging.
+
+### Analysis
+- Port Configuration: Updated PORT initialization in `server.ts` to query `process.env.PORT` dynamically and fallback to 3000, ensuring compatibility with container platforms.
+- Detailed DB Errors: Enhanced error responses across `/api/utilities/shorten`, `/api/hubs`, `/api/hubs/save`, and `/api/hubs/public/:slug` to forward detailed Postgres logs (code, details, message).
+
+### Files Changed
+- `/server.ts`
+- `/implementation-log.md`
+
+### Verification
+- Ran `lint_applet` with zero syntax or TS compilation errors.
+- Built production application cleanly using `compile_applet`.
+
+### Result
+Completed
