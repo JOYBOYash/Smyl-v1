@@ -23,6 +23,7 @@ interface SolutionData {
   useCases: { label: string; details: string }[];
   ctaText: string;
   brandColor: string;
+  image: string;
 }
 
 const SOLUTIONS: Record<string, SolutionData> = {
@@ -32,6 +33,7 @@ const SOLUTIONS: Record<string, SolutionData> = {
     heroText: "Stop letting text posts get buried in feed algorithms. Turn your high-value ideas and newsletters into professional, media-rich visual post cards. Consolidate your digital assets under an analytical Link Hub.",
     benefitTitle: "How Smyl Elevates Your Creative Platform",
     brandColor: "#0145F2",
+    image: "/assets/landing/Final_1_Creators.webp",
     benefits: [
       {
         title: "Pristine Post Card Studio",
@@ -62,6 +64,7 @@ const SOLUTIONS: Record<string, SolutionData> = {
     heroText: "Empower your acquisition channels. Maintain complete control of campaign tracking, diagnose broken social tags before launching, and build short links that match your precise UTM attributes.",
     benefitTitle: "How Smyl Supports Growth Campaigns",
     brandColor: "#2E9B62",
+    image: "/assets/landing/Final_3_Marketers.webp",
     benefits: [
       {
         title: "Robust Campaign UTMs",
@@ -92,6 +95,7 @@ const SOLUTIONS: Record<string, SolutionData> = {
     heroText: "Your personal founder brand is your startup's strongest marketing asset. Share insights with elegant post-card visuals, direct readers through professional, secure link pathways, and track investor decks smoothly.",
     benefitTitle: "How Smyl Helps Startup Leaders Scale",
     brandColor: "#D99422",
+    image: "/assets/landing/Final_2_Founders.webp",
     benefits: [
       {
         title: "Authority visual templates",
@@ -122,6 +126,7 @@ const SOLUTIONS: Record<string, SolutionData> = {
     heroText: "Manage and optimize link-sharing strategies and visual assets for multiple client accounts. From Link Hub portfolio landing pages to robust UTM structures, keep your agency's operations completely structured.",
     benefitTitle: "How Smyl Drives Agency Client Results",
     brandColor: "#0145F2",
+    image: "/assets/landing/Final_4_Teams.webp",
     benefits: [
       {
         title: "Fast Client Mockups",
@@ -189,12 +194,13 @@ export const SolutionPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-4 hidden lg:flex justify-center">
-            <div className="w-48 h-48 rounded-3xl bg-[#E8EEFF] flex items-center justify-center relative shadow-inner">
-              <div className="absolute w-36 h-36 rounded-2xl bg-white border border-[#E1E5E9] flex items-center justify-center rotate-6 shadow-md transition-transform hover:rotate-0 duration-300">
-                <IoCompass className="w-16 h-16 text-[#0145F2]" />
-              </div>
-            </div>
+          <div className="lg:col-span-4 hidden lg:flex justify-center items-center">
+            <img
+              src={data.image}
+              alt={data.title}
+              className="w-full h-auto max-h-[340px] object-contain rounded-2xl drop-shadow-md hover:scale-[1.02] transition-transform duration-300"
+              referrerPolicy="no-referrer"
+            />
           </div>
         </div>
 
