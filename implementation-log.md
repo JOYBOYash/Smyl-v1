@@ -2557,3 +2557,48 @@ Completed
  
  ### Result
  Completed
+
+## 2026-09-20 (Billing Token Auth, Atomic Usage, SSRF Redirect Safety, Production Health Probes)
+
+### Request
+Harden billing callbacks, checkout, and portal authentication; enforce atomic monthly usage quotas; validate redirect destinations to prevent SSRF; add advanced health checks.
+
+### Analysis
+- Billing Authorization: Refactored PricingPage.tsx checkout and portal endpoints to fetch and append the Supabase JWT dynamically via AuthContext session, removing sessionStorage.getItem("sb-access-token").
+- Atomic Quotas: Implemented increment_usage_if_allowed database function using FOR UPDATE serializability to prevent concurrent quota race conditions.
+- Safety & Health: Upgraded /api/health to probe database connection and process telemetry, corrected validateUrl boolean check, and secured shortener redirects with validateUrl.
+
+### Files Changed
+- `/src/components/PricingPage.tsx`
+- `/server.ts`
+- `/supabase/migrations/20260909_atomic_quotas.sql`
+- `/implementation-log.md`
+
+### Verification
+- Both `lint_applet` and `compile_applet` completed with 100% success.
+- Dev server restarted successfully.
+
+### Result
+Completed
+
+## 2026-09-20 (Supabase Connection Resilience & Health Check Stability)
+
+### Request
+Fix the ENOTFOUND fetch failures on rate-limiting DB queries, and prevent container restart loops when the database is unreachable.
+
+### Analysis
+- Found that `VITE_SUPABASE_URL` is unresolvable (`ktamtwijmaxcblbwotqn.supabase.co`), causing fetch failures during rate limiting checks and health checks.
+- Handled this cleanly by adding a non-blocking asynchronous DNS/fetch pre-check with a 15-second cooldown.
+- When offline/unreachable, the rate limiter instantly falls back to in-memory mode, avoiding timeouts and massive error logs.
+- The `/api/health` check is hardened to return `200 OK` with `database: "offline"` rather than throwing 500 exceptions, keeping the container healthy and operational in local resilient mode.
+
+### Files Changed
+- `/server.ts`
+- `/implementation-log.md`
+
+### Verification
+- `lint_applet` and `compile_applet` completed with 100% success.
+- Checked `/api/health` locally, confirming it returns status `ok` and `database: "offline"` under `200 OK`.
+
+### Result
+Completed

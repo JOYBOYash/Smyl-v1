@@ -28,6 +28,51 @@ const isSupabaseConfigured = Boolean(
   supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith("http")
 );
 
+let isSupabaseAvailable = true;
+let lastDbCheckTime = 0;
+const DB_CHECK_COOLDOWN = 15000; // 15 seconds cooldown
+
+async function checkDatabaseAvailability(): Promise<boolean> {
+  if (!isSupabaseConfigured) {
+    isSupabaseAvailable = false;
+    return false;
+  }
+
+  const now = Date.now();
+  if (now - lastDbCheckTime < DB_CHECK_COOLDOWN) {
+    return isSupabaseAvailable;
+  }
+
+  lastDbCheckTime = now;
+  try {
+    const urlObj = new URL(supabaseUrl);
+    const hostname = urlObj.hostname;
+
+    // Fast DNS lookup pre-check (runs instantly and catches unresolvable hosts like the ENOTFOUND issue)
+    await dnsLookup(hostname);
+
+    // Fast HEAD probe with 2000ms timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+      method: "HEAD",
+      headers: { "apikey": supabaseAnonKey },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    isSupabaseAvailable = response.ok || response.status === 401 || response.status === 404;
+  } catch (err: any) {
+    isSupabaseAvailable = false;
+    console.warn(`[Supabase Availability Check] Database is offline or unreachable: ${err.message || err}`);
+  }
+  return isSupabaseAvailable;
+}
+
+// Trigger initial asynchronous probe at server startup
+checkDatabaseAvailability().catch(() => {});
+
 const supabase = createClient(
   supabaseUrl || "https://placeholder.supabase.co",
   supabaseAnonKey || "placeholder-anon-key"
@@ -44,8 +89,8 @@ const adminClient = isSupabaseConfigured && supabaseServiceKey
     })
   : supabase;
 
-// Database Availability Guard Middleware (Blocks requests with 503 if database is unconfigured)
-function dbAvailabilityGuard(
+// Database Availability Guard Middleware (Blocks requests with 503 if database is unconfigured or offline)
+async function dbAvailabilityGuard(
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
@@ -55,6 +100,13 @@ function dbAvailabilityGuard(
       error: "Database Service Unavailable. The required Supabase backend environment variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY) are missing or misconfigured."
     });
   }
+
+  const available = await checkDatabaseAvailability();
+  if (!available) {
+    return res.status(503).json({
+      error: "Database Service is currently offline or unreachable. Please try again later or use Local Resilient Mode in your browser."
+    });
+  }
   next();
 }
 
@@ -62,6 +114,11 @@ function dbAvailabilityGuard(
 async function getAuthenticatedUserContext(req: any): Promise<{ userId: string | null; client: SupabaseClient }> {
   if (!isSupabaseConfigured) {
     throw new Error("Supabase is not configured. Unable to resolve user authentication context.");
+  }
+
+  const available = await checkDatabaseAvailability();
+  if (!available) {
+    throw new Error("Database Service is currently offline or unreachable. Authentication cannot be processed.");
   }
   
   const authHeader = req.headers.authorization;
@@ -248,26 +305,81 @@ async function checkAndIncrementQuota(
     // Monthly utility usage
     const period = getCurrentUsagePeriod();
     const key = `usage:${userId}:${resource}:${period}`;
-    const { data } = await adminClient
-      .from("rate_limits")
-      .select("count")
-      .eq("key", key)
-      .maybeSingle();
-    current = data?.count || 0;
+    const resetTime = Date.now() + 35 * 24 * 60 * 60 * 1000; // default 35 days in future
 
     if (increment) {
-      if (current >= limit) {
-        return { 
-          allowed: false, 
-          current, 
-          limit, 
-          error: `${plan.toUpperCase()} plan limit reached: you can only generate/create up to ${limit} ${resource.replace('_', ' ')} per month. Upgrade your plan for higher limits!` 
-        };
+      try {
+        const { data, error } = await adminClient.rpc("increment_usage_if_allowed", {
+          p_key: key,
+          p_limit: limit,
+          p_reset_time: resetTime
+        });
+
+        if (error) {
+          console.error("Atomic quota increment failed, falling back to read-then-write:", error);
+          // Fallback to old behavior in case migration is not applied yet
+          const { data: fallbackData } = await adminClient
+            .from("rate_limits")
+            .select("count")
+            .eq("key", key)
+            .maybeSingle();
+          current = fallbackData?.count || 0;
+          if (current >= limit) {
+            return {
+              allowed: false,
+              current,
+              limit,
+              error: `${plan.toUpperCase()} plan limit reached: you can only generate/create up to ${limit} ${resource.replace('_', ' ')} per month. Upgrade your plan for higher limits!`
+            };
+          }
+          await incrementUserUsage(userId, resource, period);
+          current += 1;
+          return { allowed: true, current, limit };
+        }
+
+        // RPC returns an array of [{ allowed: boolean, current_count: number }] or single object depending on PostgREST
+        const rpcResult = Array.isArray(data) ? data[0] : data;
+        const isAllowed = rpcResult?.allowed ?? false;
+        const currentCount = rpcResult?.current_count ?? 1;
+
+        if (!isAllowed) {
+          return {
+            allowed: false,
+            current: currentCount,
+            limit,
+            error: `${plan.toUpperCase()} plan limit reached: you can only generate/create up to ${limit} ${resource.replace('_', ' ')} per month. Upgrade your plan for higher limits!`
+          };
+        }
+
+        return { allowed: true, current: currentCount, limit };
+      } catch (err) {
+        console.error("Atomic quota RPC exception:", err);
+        // Fallback
+        const { data: fallbackData } = await adminClient
+          .from("rate_limits")
+          .select("count")
+          .eq("key", key)
+          .maybeSingle();
+        current = fallbackData?.count || 0;
+        if (current >= limit) {
+          return {
+            allowed: false,
+            current,
+            limit,
+            error: `${plan.toUpperCase()} plan limit reached: you can only generate/create up to ${limit} ${resource.replace('_', ' ')} per month. Upgrade your plan for higher limits!`
+          };
+        }
+        await incrementUserUsage(userId, resource, period);
+        current += 1;
+        return { allowed: true, current, limit };
       }
-      // Atomically increment
-      await incrementUserUsage(userId, resource, period);
-      current += 1;
     } else {
+      const { data } = await adminClient
+        .from("rate_limits")
+        .select("count")
+        .eq("key", key)
+        .maybeSingle();
+      current = data?.count || 0;
       if (current >= limit) {
         return { allowed: false, current, limit };
       }
@@ -375,7 +487,8 @@ async function dbRateLimiter(
     return { allowed: true, retryAfterSecs: 0 };
   };
 
-  if (!isSupabaseConfigured) {
+  const dbReachable = await checkDatabaseAvailability();
+  if (!isSupabaseConfigured || !dbReachable) {
     return getMemoryLimitFallback();
   }
   
@@ -520,12 +633,12 @@ function isTableMissingError(error: any): boolean {
 // Backward compatible helper routing to hardened security
 async function validateUrl(urlStr: string): Promise<boolean> {
   const result = await validateAndNormalizeUrl(urlStr);
-  return result !== null;
+  return result.isValid;
 }
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT);
+  const PORT = Number(process.env.PORT || 3000);
 
   app.use(express.json({
     verify: (req: any, res, buf) => {
@@ -537,8 +650,19 @@ async function startServer() {
   app.use("/api", concurrencyLimiter);
 
   // Health check API
-  app.get("/api/health", apiRateLimiter, (req, res) => {
-    res.json({ status: "ok" });
+  app.get("/api/health", async (req, res) => {
+    try {
+      const dbReachable = await checkDatabaseAvailability();
+      res.json({
+        status: "ok",
+        database: dbReachable ? "connected" : "offline",
+        timestamp: Date.now(),
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage()
+      });
+    } catch (err: any) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
   });
 
   // Shortener GET Redirect Route: Resolves formatted slugs and redirects users
@@ -580,10 +704,11 @@ async function startServer() {
         return res.status(404).send("Short link not found or has been removed.");
       }
 
-      // Check scheme safety
+      // Check scheme safety and destination safety
       const dest = link.destination_url;
-      if (!dest.startsWith("http://") && !dest.startsWith("https://")) {
-        return res.status(400).send("Invalid redirection destination scheme.");
+      const isSafe = await validateUrl(dest);
+      if (!isSafe) {
+        return res.status(400).send("The target redirection URL is insecure or invalid.");
       }
 
       // Fire-and-forget atomic concurrency-safe click count update via Postgres RPC
@@ -1994,10 +2119,11 @@ async function startServer() {
         return next();
       }
 
-      // Check scheme safety
+      // Check scheme safety and destination safety
       const dest = link.destination_url;
-      if (!dest.startsWith("http://") && !dest.startsWith("https://")) {
-        return res.status(400).send("Invalid redirection destination scheme.");
+      const isSafe = await validateUrl(dest);
+      if (!isSafe) {
+        return res.status(400).send("The target redirection URL is insecure or invalid.");
       }
 
       // Record count and redirect
